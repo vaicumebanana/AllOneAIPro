@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador Multimodal Offline</title>
+    <!-- CDNs CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding-top: 20px;
+            padding-bottom: 40px;
+        }
+        .card {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .output-area {
+            min-height: 200px;
+            border: 1px dashed #ccc;
+            border-radius: 5px;
+            padding: 15px;
+            background-color: white;
+        }
+        #generatedImage, #generatedVideo {
+            max-width: 100%;
+            border-radius: 5px;
+        }
+        .loading {
+            position: relative;
+            overflow: hidden;
+        }
+        .loading::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+            animation: loading 1.5s infinite;
+        }
+        @keyframes loading {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-3">
+        <h1 class="text-center mb-4"><i class="fas fa-magic me-2"></i>Gerador Multimodal Offline</h1>
+        <p class="text-center text-muted mb-4">Experimente nossos geradores de texto, imagem e vídeo (simulados)</p>
+        
+        <div class="row">
+            <!-- Gerador de Texto -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <i class="fas fa-font me-2"></i>Gerador de Texto
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="textPrompt" class="form-label">Descreva o texto desejado:</label>
+                            <textarea id="textPrompt" class="form-control" rows="3" placeholder="Ex: Uma história curta sobre um dragão amigável..."></textarea>
+                        </div>
+                        <button id="generateTextBtn" class="btn btn-primary">
+                            <i class="fas fa-magic me-1"></i> Gerar Texto
+                        </button>
+                        <div id="textOutput" class="output-area mt-3"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Gerador de Imagem -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-success text-white">
+                        <i class="fas fa-image me-2"></i>Gerador de Imagem
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="imagePrompt" class="form-label">Descreva a imagem desejada:</label>
+                            <input type="text" id="imagePrompt" class="form-control" placeholder="Ex: Um gato astronauta no espaço">
+                        </div>
+                        <button id="generateImageBtn" class="btn btn-success">
+                            <i class="fas fa-paint-brush me-1"></i> Gerar Imagem
+                        </button>
+                        <div id="imageOutput" class="output-area mt-3 text-center">
+                            <img id="generatedImage" src="" class="img-fluid rounded d-none" alt="Imagem gerada">
+                            <p id="imagePlaceholder" class="text-muted mt-3">Nenhuma imagem gerada ainda</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Gerador de Vídeo -->
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <i class="fas fa-video me-2"></i>Gerador de Vídeo
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="videoPrompt" class="form-label">Descreva o vídeo desejado:</label>
+                            <input type="text" id="videoPrompt" class="form-control" placeholder="Ex: Um pôr do sol na praia com pássaros voando">
+                        </div>
+                        <button id="generateVideoBtn" class="btn btn-info">
+                            <i class="fas fa-film me-1"></i> Gerar Vídeo
+                        </button>
+                        <div id="videoOutput" class="output-area mt-3 text-center">
+                            <video id="generatedVideo" controls class="w-100 rounded d-none"></video>
+                            <p id="videoPlaceholder" class="text-muted mt-3">Nenhum vídeo gerado ainda</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CDNs JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Dados pré-definidos para simulação
+        const sampleTexts = {
+            "dragão": "Era uma vez um dragão chamado Ember, que ao contrário de seus parentes, tinha medo de fogo. Em vez de cuspir chamas, ele produzia bolhas de sabão coloridas que encantavam todas as criaturas da floresta.",
+            "robô": "No ano 2142, um robô chamado Zeta descobriu que podia sonhar. Seus sonhos eram cheios de equações matemáticas que formavam paisagens surreais, e isso o levou a questionar sua própria existência.",
+            "viagem": "A viagem através do portal dimensional foi mais estranha do que Maria esperava. Em vez de encontrar civilizações alienígenas, ela se viu em uma versão espelhada de sua própria cidade, onde todos andavam de cabeça para baixo."
+        };
+
+        const sampleImages = [
+            "https://placehold.co/600x400/FF5733/FFFFFF?text=Gato+Astronauta",
+            "https://placehold.co/600x400/33FF57/FFFFFF?text=Drag%C3%A3o+Amig%C3%A1vel",
+            "https://placehold.co/600x400/3357FF/FFFFFF?text=P%C3%B4r+do+Sol+Espacial",
+            "https://placehold.co/600x400/F033FF/FFFFFF?text=Cidade+Futurista",
+            "https://placehold.co/600x400/33FFF0/FFFFFF?text=Floresta+Encantada"
+        ];
+
+        const sampleVideos = [
+            "https://samplelib.com/lib/preview/mp4/sample-5s.mp4",
+            "https://samplelib.com/lib/preview/mp4/sample-10s.mp4",
+            "https://samplelib.com/lib/preview/mp4/sample-15s.mp4"
+        ];
+
+        // Função para simular atraso de processamento
+        function simulateLoading(element) {
+            element.classList.add('loading');
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    element.classList.remove('loading');
+                    resolve();
+                }, 1500 + Math.random() * 2000);
+            });
+        }
+
+        // Gerador de Texto
+        document.getElementById('generateTextBtn').addEventListener('click', async function() {
+            const prompt = document.getElementById('textPrompt').value.toLowerCase();
+            const output = document.getElementById('textOutput');
+            
+            output.innerHTML = '<p class="text-muted">Gerando... <i class="fas fa-spinner fa-spin"></i></p>';
+            await simulateLoading(output);
+            
+            // Encontra texto pré-definido baseado em palavras-chave ou gera um genérico
+            let generatedText = "Não foi possível gerar um texto com base no seu prompt. Aqui está um exemplo aleatório:\n\n";
+            
+            for (const keyword in sampleTexts) {
+                if (prompt.includes(keyword)) {
+                    generatedText = sampleTexts[keyword];
+                    break;
+                }
+            }
+            
+            if (generatedText.startsWith("Não foi possível")) {
+                const randomKey = Object.keys(sampleTexts)[Math.floor(Math.random() * Object.keys(sampleTexts).length)];
+                generatedText += sampleTexts[randomKey];
+            }
+            
+            output.innerHTML = `<p>${generatedText}</p><small class="text-muted">Texto gerado simuladamente - ${new Date().toLocaleTimeString()}</small>`;
+        });
+
+        // Gerador de Imagem
+        document.getElementById('generateImageBtn').addEventListener('click', async function() {
+            const prompt = document.getElementById('imagePrompt').value;
+            const output = document.getElementById('imageOutput');
+            const img = document.getElementById('generatedImage');
+            const placeholder = document.getElementById('imagePlaceholder');
+            
+            placeholder.classList.add('d-none');
+            img.classList.add('d-none');
+            output.innerHTML = '<p class="text-muted">Gerando imagem... <i class="fas fa-spinner fa-spin"></i></p>';
+            await simulateLoading(output);
+            
+            // Seleciona uma imagem pré-definida aleatória
+            const randomImage = sampleImages[Math.floor(Math.random() * sampleImages.length)];
+            img.src = randomImage + "?text=" + encodeURIComponent(prompt.substring(0, 30));
+            img.alt = "Imagem gerada: " + prompt;
+            img.classList.remove('d-none');
+            
+            output.innerHTML = '';
+            output.appendChild(img);
+            output.innerHTML += `<small class="d-block text-muted mt-2">Imagem gerada simuladamente - ${new Date().toLocaleTimeString()}</small>`;
+        });
+
+        // Gerador de Vídeo
+        document.getElementById('generateVideoBtn').addEventListener('click', async function() {
+            const prompt = document.getElementById('videoPrompt').value;
+            const output = document.getElementById('videoOutput');
+            const video = document.getElementById('generatedVideo');
+            const placeholder = document.getElementById('videoPlaceholder');
+            
+            placeholder.classList.add('d-none');
+            video.classList.add('d-none');
+            output.innerHTML = '<p class="text-muted">Gerando vídeo... <i class="fas fa-spinner fa-spin"></i></p>';
+            await simulateLoading(output);
+            
+            // Seleciona um vídeo pré-definido aleatório
+            const randomVideo = sampleVideos[Math.floor(Math.random() * sampleVideos.length)];
+            video.src = randomVideo;
+            video.classList.remove('d-none');
+            
+            output.innerHTML = '';
+            output.appendChild(video);
+            output.innerHTML += `<small class="d-block text-muted mt-2">Vídeo gerado simuladamente - ${new Date().toLocaleTimeString()}</small>`;
+        });
+    </script>
+</body>
+</html>
