@@ -1,232 +1,690 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador Multimodal Offline</title>
-    <!-- CDNs CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <title>AllOneAI Pro - Todos os Modelos de IA em Um Lugar</title>
     <style>
+        :root {
+            --primary: #6e48aa;
+            --secondary: #9d50bb;
+            --dark: #1a1a2e;
+            --light: #f8f9fa;
+            --success: #28a745;
+        }
+        
         body {
-            background-color: #f8f9fa;
-            padding-top: 20px;
-            padding-bottom: 40px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
         }
-        .card {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
         }
-        .card:hover {
-            transform: translateY(-5px);
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
         }
-        .output-area {
-            min-height: 200px;
-            border: 1px dashed #ccc;
+        
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .chat-container {
+            flex: 2;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 70vh;
+        }
+        
+        .chat-history {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #eee;
             border-radius: 5px;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        
+        .user-message {
+            background-color: var(--primary);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .ai-message {
+            background-color: #f1f1f1;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #user-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+        
+        #user-input:focus {
+            border-color: var(--primary);
+        }
+        
+        #send-button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 0 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        
+        #send-button:hover {
+            background-color: var(--secondary);
+        }
+        
+        .sidebar {
+            flex: 1;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            height: fit-content;
+        }
+        
+        .model-selector {
+            margin-bottom: 20px;
+        }
+        
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+        
+        .model-info {
+            background-color: #f9f9f9;
             padding: 15px;
-            background-color: white;
-        }
-        #generatedImage, #generatedVideo {
-            max-width: 100%;
             border-radius: 5px;
+            border-left: 4px solid var(--primary);
+            margin-top: 10px;
         }
+        
+        .conversation-history {
+            margin-top: 20px;
+        }
+        
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .history-item:hover {
+            background-color: #f5f5f5;
+        }
+        
         .loading {
-            position: relative;
-            overflow: hidden;
+            display: none;
+            text-align: center;
+            margin: 10px 0;
         }
-        .loading::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-            animation: loading 1.5s infinite;
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
         }
-        @keyframes loading {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container mt-3">
-        <h1 class="text-center mb-4"><i class="fas fa-magic me-2"></i>Gerador Multimodal Offline</h1>
-        <p class="text-center text-muted mb-4">Experimente nossos geradores de texto, imagem e vídeo (simulados)</p>
-        
-        <div class="row">
-            <!-- Gerador de Texto -->
-            <div class="col-md-6 mb-4">
-                <div class="card h-100">
-                    <div class="card-header bg-primary text-white">
-                        <i class="fas fa-font me-2"></i>Gerador de Texto
+    <header>
+        <div class="container">
+            <h1>AllOneAI Pro</h1>
+            <p class="subtitle">Todos os modelos de IA em um único lugar</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="main-content">
+            <div class="chat-container">
+                <div class="chat-history" id="chat-history">
+                    <div class="message ai-message">
+                        Olá! Eu sou o AllOneAI. Escolha um modelo no menu à direita e comece a conversar!
                     </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label for="textPrompt" class="form-label">Descreva o texto desejado:</label>
-                            <textarea id="textPrompt" class="form-control" rows="3" placeholder="Ex: Uma história curta sobre um dragão amigável..."></textarea>
-                        </div>
-                        <button id="generateTextBtn" class="btn btn-primary">
-                            <i class="fas fa-magic me-1"></i> Gerar Texto
-                        </button>
-                        <div id="textOutput" class="output-area mt-3"></div>
-                    </div>
+                </div>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Processando sua mensagem...</p>
+                </div>
+                
+                <div class="input-area">
+                    <input type="text" id="user-input" placeholder="Digite sua mensagem..." autocomplete="off">
+                    <button id="send-button">Enviar</button>
                 </div>
             </div>
             
-            <!-- Gerador de Imagem -->
-            <div class="col-md-6 mb-4">
-                <div class="card h-100">
-                    <div class="card-header bg-success text-white">
-                        <i class="fas fa-image me-2"></i>Gerador de Imagem
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label for="imagePrompt" class="form-label">Descreva a imagem desejada:</label>
-                            <input type="text" id="imagePrompt" class="form-control" placeholder="Ex: Um gato astronauta no espaço">
-                        </div>
-                        <button id="generateImageBtn" class="btn btn-success">
-                            <i class="fas fa-paint-brush me-1"></i> Gerar Imagem
-                        </button>
-                        <div id="imageOutput" class="output-area mt-3 text-center">
-                            <img id="generatedImage" src="" class="img-fluid rounded d-none" alt="Imagem gerada">
-                            <p id="imagePlaceholder" class="text-muted mt-3">Nenhuma imagem gerada ainda</p>
-                        </div>
+            <div class="sidebar">
+                <div class="model-selector">
+                    <h3>Selecione o Modelo</h3>
+                    <select id="model-selector">
+                        <option value="">-- Selecione um Modelo --</option>
+                        <!-- Modelos serão adicionados dinamicamente via JavaScript -->
+                    </select>
+                    <div class="model-info" id="model-info">
+                        Selecione um modelo para ver sua descrição
                     </div>
                 </div>
-            </div>
-            
-            <!-- Gerador de Vídeo -->
-            <div class="col-12 mb-4">
-                <div class="card">
-                    <div class="card-header bg-info text-white">
-                        <i class="fas fa-video me-2"></i>Gerador de Vídeo
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label for="videoPrompt" class="form-label">Descreva o vídeo desejado:</label>
-                            <input type="text" id="videoPrompt" class="form-control" placeholder="Ex: Um pôr do sol na praia com pássaros voando">
-                        </div>
-                        <button id="generateVideoBtn" class="btn btn-info">
-                            <i class="fas fa-film me-1"></i> Gerar Vídeo
-                        </button>
-                        <div id="videoOutput" class="output-area mt-3 text-center">
-                            <video id="generatedVideo" controls class="w-100 rounded d-none"></video>
-                            <p id="videoPlaceholder" class="text-muted mt-3">Nenhum vídeo gerado ainda</p>
-                        </div>
+                
+                <div class="conversation-history">
+                    <h3>Histórico de Conversas</h3>
+                    <div id="history-list">
+                        <!-- Histórico será adicionado dinamicamente -->
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- CDNs JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://js.puter.com/v2/"></script>
     <script>
-        // Dados pré-definidos para simulação
-        const sampleTexts = {
-            "dragão": "Era uma vez um dragão chamado Ember, que ao contrário de seus parentes, tinha medo de fogo. Em vez de cuspir chamas, ele produzia bolhas de sabão coloridas que encantavam todas as criaturas da floresta.",
-            "robô": "No ano 2142, um robô chamado Zeta descobriu que podia sonhar. Seus sonhos eram cheios de equações matemáticas que formavam paisagens surreais, e isso o levou a questionar sua própria existência.",
-            "viagem": "A viagem através do portal dimensional foi mais estranha do que Maria esperava. Em vez de encontrar civilizações alienígenas, ela se viu em uma versão espelhada de sua própria cidade, onde todos andavam de cabeça para baixo."
+        // Objeto com todos os modelos e suas descrições
+        const models = {
+            // 01-ai
+            "openrouter:01-ai/yi-large": {
+                name: "Yi Large",
+                description: "Modelo avançado da 01.AI com capacidade de processamento de linguagem natural em larga escala."
+            },
+            
+            // Aetherwiing
+            "openrouter:aetherwiing/mn-starcannon-12b": {
+                name: "MN Starcannon 12B",
+                description: "Modelo especializado em geração criativa de conteúdo e narrativas complexas."
+            },
+            
+            // Agentica
+            "openrouter:agentica-org/deepcoder-14b-preview:free": {
+                name: "Deepcoder 14B",
+                description: "Especializado em programação e geração de código, com suporte a múltiplas linguagens."
+            },
+            
+            // AI21
+            "openrouter:ai21/jamba-1.6-large": {
+                name: "Jamba 1.6 Large",
+                description: "Modelo versátil para diversas tarefas de processamento de linguagem natural."
+            },
+            "openrouter:ai21/jamba-1.6-mini": {
+                name: "Jamba 1.6 Mini",
+                description: "Versão compacta do Jamba, ideal para respostas rápidas e eficientes."
+            },
+            
+            // Aion Labs
+            "openrouter:aion-labs/aion-1.0": {
+                name: "Aion 1.0",
+                description: "Modelo geral com foco em compreensão contextual avançada."
+            },
+            "openrouter:aion-labs/aion-1.0-mini": {
+                name: "Aion 1.0 Mini",
+                description: "Versão compacta do Aion 1.0 para tarefas mais simples."
+            },
+            "openrouter:aion-labs/aion-rp-llama-3.1-8b": {
+                name: "Aion RP Llama 3.1 8B",
+                description: "Modelo especializado em roleplay e narrativas interativas."
+            },
+            
+            // Alfredpros
+            "openrouter:alfredpros/codellama-7b-instruct-solidity": {
+                name: "Codellama 7B Solidity",
+                description: "Especializado em programação blockchain e contratos inteligentes em Solidity."
+            },
+            
+            // Alpindale
+            "openrouter:alpindale/goliath-120b": {
+                name: "Goliath 120B",
+                description: "Um dos maiores modelos disponíveis, com capacidade excepcional para tarefas complexas."
+            },
+            "openrouter:alpindale/magnum-72b": {
+                name: "Magnum 72B",
+                description: "Modelo poderoso para análise e geração de texto avançada."
+            },
+            
+            // Amazon
+            "openrouter:amazon/nova-lite-v1": {
+                name: "Amazon Nova Lite",
+                description: "Versão leve do modelo da Amazon para tarefas gerais."
+            },
+            "openrouter:amazon/nova-micro-v1": {
+                name: "Amazon Nova Micro",
+                description: "Modelo compacto da Amazon para respostas rápidas."
+            },
+            "openrouter:amazon/nova-pro-v1": {
+                name: "Amazon Nova Pro",
+                description: "Versão avançada do modelo da Amazon com maior capacidade."
+            },
+            
+            // Anthropic (Claude)
+            "openrouter:anthropic/claude-2": {
+                name: "Claude 2",
+                description: "Modelo geral da Anthropic com foco em segurança e alinhamento."
+            },
+            "openrouter:anthropic/claude-2.0": {
+                name: "Claude 2.0",
+                description: "Versão estável do Claude com melhorias na coerência."
+            },
+            "openrouter:anthropic/claude-2.1": {
+                name: "Claude 2.1",
+                description: "Versão aprimorada do Claude 2 com melhor compreensão contextual."
+            },
+            "openrouter:anthropic/claude-3-haiku": {
+                name: "Claude 3 Haiku",
+                description: "Modelo rápido e eficiente da série Claude 3 para respostas concisas."
+            },
+            "openrouter:anthropic/claude-3-opus": {
+                name: "Claude 3 Opus",
+                description: "O modelo mais avançado da série Claude 3 para tarefas complexas."
+            },
+            "openrouter:anthropic/claude-3-sonnet": {
+                name: "Claude 3 Sonnet",
+                description: "Modelo balanceado da série Claude 3 com ótimo custo-benefício."
+            },
+            "openrouter:anthropic/claude-3.5-haiku": {
+                name: "Claude 3.5 Haiku",
+                description: "Versão atualizada do Haiku com melhor desempenho e eficiência."
+            },
+            "openrouter:anthropic/claude-3.5-sonnet": {
+                name: "Claude 3.5 Sonnet",
+                description: "Versão aprimorada do Sonnet com maior capacidade de raciocínio."
+            },
+            
+            // Arcee AI
+            "openrouter:arcee-ai/arcee-blitz": {
+                name: "Arcee Blitz",
+                description: "Modelo rápido para respostas instantâneas e tarefas simples."
+            },
+            "openrouter:arcee-ai/coder-large": {
+                name: "Arcee Coder Large",
+                description: "Modelo especializado em programação e análise de código."
+            },
+            
+            // Baidu
+            "openrouter:baidu/ernie-4.5-300b-a47b": {
+                name: "Ernie 4.5",
+                description: "Modelo avançado da Baidu com foco em compreensão de linguagem chinesa e inglesa."
+            },
+            
+            // Cognitive Computations
+            "openrouter:cognitivecomputations/dolphin-mixtral-8x22b": {
+                name: "Dolphin Mixtral 8x22B",
+                description: "Modelo especializado em tarefas criativas e assistência geral."
+            },
+            
+            // Cohere
+            "openrouter:cohere/command-r": {
+                name: "Cohere Command R",
+                description: "Modelo avançado da Cohere para pesquisa e recuperação de informações."
+            },
+            "openrouter:cohere/command-r-plus": {
+                name: "Cohere Command R+",
+                description: "Versão premium do Command R com maior capacidade de raciocínio."
+            },
+            
+            // Deepseek
+            "openrouter:deepseek/deepseek-chat": {
+                name: "Deepseek Chat",
+                description: "Modelo geral para conversação e assistência em diversas tarefas."
+            },
+            "openrouter:deepseek/deepseek-prover-v2": {
+                name: "Deepseek Prover",
+                description: "Especializado em raciocínio lógico e provas matemáticas."
+            },
+            
+            // Google
+            "openrouter:google/gemini-2.0-flash-001": {
+                name: "Gemini 2.0 Flash",
+                description: "Modelo rápido da Google para respostas instantâneas."
+            },
+            "openrouter:google/gemini-2.5-pro": {
+                name: "Gemini 2.5 Pro",
+                description: "Versão avançada do Gemini com maior capacidade de compreensão."
+            },
+            "openrouter:google/gemma-2-27b-it": {
+                name: "Gemma 2 27B",
+                description: "Modelo de código aberto da Google para diversas aplicações."
+            },
+            
+            // Meta (Llama)
+            "openrouter:meta-llama/llama-3-70b-instruct": {
+                name: "Llama 3 70B",
+                description: "Um dos modelos mais avançados da série Llama 3 para instruções complexas."
+            },
+            "openrouter:meta-llama/llama-3-8b-instruct": {
+                name: "Llama 3 8B",
+                description: "Versão mais leve do Llama 3 ainda com bom desempenho."
+            },
+            "openrouter:meta-llama/llama-3.1-70b-instruct": {
+                name: "Llama 3.1 70B",
+                description: "Versão atualizada do Llama 3 com melhorias na compreensão."
+            },
+            
+            // Microsoft
+            "openrouter:microsoft/phi-3-medium-128k-instruct": {
+                name: "Phi-3 Medium",
+                description: "Modelo balanceado da Microsoft para diversas tarefas."
+            },
+            "openrouter:microsoft/phi-4": {
+                name: "Phi-4",
+                description: "Modelo avançado da Microsoft com grande capacidade de raciocínio."
+            },
+            
+            // Mistral
+            "openrouter:mistralai/mistral-7b-instruct": {
+                name: "Mistral 7B",
+                description: "Modelo eficiente para instruções e tarefas gerais."
+            },
+            "openrouter:mistralai/mistral-large": {
+                name: "Mistral Large",
+                description: "Modelo avançado da Mistral com excelente desempenho."
+            },
+            "openrouter:mistralai/mixtral-8x7b-instruct": {
+                name: "Mixtral 8x7B",
+                description: "Modelo de mistura de especialistas com ótimo custo-benefício."
+            },
+            
+            // OpenAI
+            "openrouter:openai/gpt-3.5-turbo-16k": {
+                name: "GPT-3.5 Turbo",
+                description: "Modelo rápido e eficiente da OpenAI para diversas tarefas."
+            },
+            "openrouter:openai/gpt-4": {
+                name: "GPT-4",
+                description: "Modelo avançado da OpenAI com maior capacidade de raciocínio."
+            },
+            "openrouter:openai/gpt-4-turbo": {
+                name: "GPT-4 Turbo",
+                description: "Versão otimizada do GPT-4 com melhor desempenho."
+            },
+            "openrouter:openai/gpt-4o": {
+                name: "GPT-4o",
+                description: "Modelo mais recente da OpenAI com multimodalidade e melhor desempenho."
+            },
+            
+            // Outros modelos importantes
+            "openrouter:openrouter/auto": {
+                name: "Auto (OpenRouter)",
+                description: "Permite que o OpenRouter selecione automaticamente o melhor modelo para sua tarefa."
+            },
+            "openrouter:perplexity/sonar-large": {
+                name: "Sonar Large",
+                description: "Modelo avançado da Perplexity para pesquisa e respostas precisas."
+            },
+            "openrouter:qwen/qwen-2-72b-instruct": {
+                name: "Qwen 2 72B",
+                description: "Modelo avançado da Alibaba para diversas tarefas de linguagem."
+            }
         };
 
-        const sampleImages = [
-            "https://placehold.co/600x400/FF5733/FFFFFF?text=Gato+Astronauta",
-            "https://placehold.co/600x400/33FF57/FFFFFF?text=Drag%C3%A3o+Amig%C3%A1vel",
-            "https://placehold.co/600x400/3357FF/FFFFFF?text=P%C3%B4r+do+Sol+Espacial",
-            "https://placehold.co/600x400/F033FF/FFFFFF?text=Cidade+Futurista",
-            "https://placehold.co/600x400/33FFF0/FFFFFF?text=Floresta+Encantada"
-        ];
-
-        const sampleVideos = [
-            "https://samplelib.com/lib/preview/mp4/sample-5s.mp4",
-            "https://samplelib.com/lib/preview/mp4/sample-10s.mp4",
-            "https://samplelib.com/lib/preview/mp4/sample-15s.mp4"
-        ];
-
-        // Função para simular atraso de processamento
-        function simulateLoading(element) {
-            element.classList.add('loading');
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    element.classList.remove('loading');
-                    resolve();
-                }, 1500 + Math.random() * 2000);
+        // Variáveis globais
+        let currentModel = "";
+        let conversationHistory = [];
+        let currentConversation = [];
+        
+        // Inicialização do DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            // Preencher o seletor de modelos
+            const modelSelector = document.getElementById('model-selector');
+            const modelInfo = document.getElementById('model-info');
+            
+            // Agrupar modelos por provedor
+            const providers = {};
+            for (const [id, data] of Object.entries(models)) {
+                const provider = id.split(':')[1].split('/')[0];
+                if (!providers[provider]) {
+                    providers[provider] = [];
+                }
+                providers[provider].push({id, ...data});
+            }
+            
+            // Adicionar modelos ao seletor
+            for (const [provider, models] of Object.entries(providers)) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = provider;
+                
+                models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model.id;
+                    option.textContent = model.name;
+                    optgroup.appendChild(option);
+                });
+                
+                modelSelector.appendChild(optgroup);
+            }
+            
+            // Event listener para seleção de modelo
+            modelSelector.addEventListener('change', function() {
+                currentModel = this.value;
+                const modelData = models[currentModel];
+                
+                if (modelData) {
+                    modelInfo.innerHTML = `<strong>${modelData.name}</strong><br>${modelData.description}`;
+                    
+                    // Adicionar mensagem inicial quando um modelo é selecionado
+                    if (currentConversation.length === 0) {
+                        addMessage(`Agora você está conversando com ${modelData.name}. Como posso ajudar?`, 'ai');
+                    }
+                } else {
+                    modelInfo.textContent = "Selecione um modelo para ver sua descrição";
+                }
+            });
+            
+            // Event listener para enviar mensagem
+            const sendButton = document.getElementById('send-button');
+            const userInput = document.getElementById('user-input');
+            
+            sendButton.addEventListener('click', sendMessage);
+            userInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            // Carregar histórico de conversas do localStorage
+            loadConversationHistory();
+        });
+        
+        // Função para enviar mensagem
+        function sendMessage() {
+            const userInput = document.getElementById('user-input');
+            const message = userInput.value.trim();
+            
+            if (!message) return;
+            if (!currentModel) {
+                alert("Por favor, selecione um modelo primeiro");
+                return;
+            }
+            
+            // Adicionar mensagem do usuário ao chat
+            addMessage(message, 'user');
+            userInput.value = '';
+            
+            // Mostrar indicador de carregamento
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+            
+            // Adicionar mensagem ao histórico da conversa atual
+            currentConversation.push({role: 'user', content: message});
+            
+            // Enviar toda a conversa para a API
+            puter.ai.chat(currentConversation, {model: currentModel})
+                .then(response => {
+                    // Adicionar resposta ao chat
+                    addMessage(response, 'ai');
+                    
+                    // Adicionar resposta ao histórico da conversa atual
+                    currentConversation.push({role: 'assistant', content: response});
+                    
+                    // Salvar conversa no histórico
+                    saveConversation();
+                })
+                .catch(error => {
+                    console.error("Erro na API:", error);
+                    addMessage("Desculpe, ocorreu um erro ao processar sua mensagem.", 'ai');
+                })
+                .finally(() => {
+                    loading.style.display = 'none';
+                });
+        }
+        
+        // Função para adicionar mensagem ao chat
+        function addMessage(text, sender) {
+            const chatHistory = document.getElementById('chat-history');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
+            messageDiv.textContent = text;
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+        
+        // Função para salvar conversa no histórico
+        function saveConversation() {
+            if (currentConversation.length === 0) return;
+            
+            const conversation = {
+                id: Date.now(),
+                model: currentModel,
+                title: currentConversation[0].content.substring(0, 30) + (currentConversation[0].content.length > 30 ? "..." : ""),
+                messages: [...currentConversation],
+                timestamp: new Date().toISOString()
+            };
+            
+            // Adicionar ao histórico
+            conversationHistory.unshift(conversation);
+            
+            // Manter apenas as últimas 20 conversas
+            if (conversationHistory.length > 20) {
+                conversationHistory = conversationHistory.slice(0, 20);
+            }
+            
+            // Salvar no localStorage
+            localStorage.setItem('alloneai_conversations', JSON.stringify(conversationHistory));
+            
+            // Atualizar lista de histórico
+            updateHistoryList();
+        }
+        
+        // Função para carregar histórico do localStorage
+        function loadConversationHistory() {
+            const saved = localStorage.getItem('alloneai_conversations');
+            if (saved) {
+                conversationHistory = JSON.parse(saved);
+                updateHistoryList();
+            }
+        }
+        
+        // Função para atualizar a lista de histórico
+        function updateHistoryList() {
+            const historyList = document.getElementById('history-list');
+            historyList.innerHTML = '';
+            
+            conversationHistory.forEach(conv => {
+                const item = document.createElement('div');
+                item.classList.add('history-item');
+                item.innerHTML = `
+                    <strong>${conv.title}</strong><br>
+                    <small>${models[conv.model]?.name || conv.model} • ${new Date(conv.timestamp).toLocaleString()}</small>
+                `;
+                
+                item.addEventListener('click', () => {
+                    loadConversation(conv);
+                });
+                
+                historyList.appendChild(item);
             });
         }
-
-        // Gerador de Texto
-        document.getElementById('generateTextBtn').addEventListener('click', async function() {
-            const prompt = document.getElementById('textPrompt').value.toLowerCase();
-            const output = document.getElementById('textOutput');
+        
+        // Função para carregar uma conversa do histórico
+        function loadConversation(conversation) {
+            const chatHistory = document.getElementById('chat-history');
+            chatHistory.innerHTML = '';
             
-            output.innerHTML = '<p class="text-muted">Gerando... <i class="fas fa-spinner fa-spin"></i></p>';
-            await simulateLoading(output);
+            currentConversation = [...conversation.messages];
+            currentModel = conversation.model;
             
-            // Encontra texto pré-definido baseado em palavras-chave ou gera um genérico
-            let generatedText = "Não foi possível gerar um texto com base no seu prompt. Aqui está um exemplo aleatório:\n\n";
+            // Atualizar seletor de modelo
+            document.getElementById('model-selector').value = currentModel;
+            document.getElementById('model-info').innerHTML = `
+                <strong>${models[currentModel]?.name || currentModel}</strong><br>
+                ${models[currentModel]?.description || 'Sem descrição disponível'}
+            `;
             
-            for (const keyword in sampleTexts) {
-                if (prompt.includes(keyword)) {
-                    generatedText = sampleTexts[keyword];
-                    break;
-                }
-            }
-            
-            if (generatedText.startsWith("Não foi possível")) {
-                const randomKey = Object.keys(sampleTexts)[Math.floor(Math.random() * Object.keys(sampleTexts).length)];
-                generatedText += sampleTexts[randomKey];
-            }
-            
-            output.innerHTML = `<p>${generatedText}</p><small class="text-muted">Texto gerado simuladamente - ${new Date().toLocaleTimeString()}</small>`;
-        });
-
-        // Gerador de Imagem
-        document.getElementById('generateImageBtn').addEventListener('click', async function() {
-            const prompt = document.getElementById('imagePrompt').value;
-            const output = document.getElementById('imageOutput');
-            const img = document.getElementById('generatedImage');
-            const placeholder = document.getElementById('imagePlaceholder');
-            
-            placeholder.classList.add('d-none');
-            img.classList.add('d-none');
-            output.innerHTML = '<p class="text-muted">Gerando imagem... <i class="fas fa-spinner fa-spin"></i></p>';
-            await simulateLoading(output);
-            
-            // Seleciona uma imagem pré-definida aleatória
-            const randomImage = sampleImages[Math.floor(Math.random() * sampleImages.length)];
-            img.src = randomImage + "?text=" + encodeURIComponent(prompt.substring(0, 30));
-            img.alt = "Imagem gerada: " + prompt;
-            img.classList.remove('d-none');
-            
-            output.innerHTML = '';
-            output.appendChild(img);
-            output.innerHTML += `<small class="d-block text-muted mt-2">Imagem gerada simuladamente - ${new Date().toLocaleTimeString()}</small>`;
-        });
-
-        // Gerador de Vídeo
-        document.getElementById('generateVideoBtn').addEventListener('click', async function() {
-            const prompt = document.getElementById('videoPrompt').value;
-            const output = document.getElementById('videoOutput');
-            const video = document.getElementById('generatedVideo');
-            const placeholder = document.getElementById('videoPlaceholder');
-            
-            placeholder.classList.add('d-none');
-            video.classList.add('d-none');
-            output.innerHTML = '<p class="text-muted">Gerando vídeo... <i class="fas fa-spinner fa-spin"></i></p>';
-            await simulateLoading(output);
-            
-            // Seleciona um vídeo pré-definido aleatório
-            const randomVideo = sampleVideos[Math.floor(Math.random() * sampleVideos.length)];
-            video.src = randomVideo;
-            video.classList.remove('d-none');
-            
-            output.innerHTML = '';
-            output.appendChild(video);
-            output.innerHTML += `<small class="d-block text-muted mt-2">Vídeo gerado simuladamente - ${new Date().toLocaleTimeString()}</small>`;
-        });
+            // Mostrar todas as mensagens da conversa
+            currentConversation.forEach(msg => {
+                addMessage(msg.content, msg.role === 'user' ? 'user' : 'ai');
+            });
+        }
     </script>
 </body>
 </html>
