@@ -55,7 +55,7 @@
         .chat-container {
             flex: 2;
             background: white;
-            border-radius: 10px;
+            border-radius: 900px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
             display: flex;
@@ -115,7 +115,7 @@
             cursor: pointer;
             font-size: 0.85rem;
             transition: background-color 0.3s;
-            display: inline-block; /* Para o botão ficar ao lado, se houver texto */
+            display: inline-block;
             margin-left: 5px;
         }
 
@@ -131,7 +131,7 @@
         .input-area {
             display: flex;
             gap: 10px;
-            flex-wrap: wrap; /* Permite que os botões quebrem a linha em telas pequenas */
+            flex-wrap: wrap;
         }
         
         #user-input {
@@ -208,21 +208,6 @@
             margin-top: 10px;
         }
         
-        .conversation-history {
-            margin-top: 20px;
-        }
-        
-        .history-item {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        
-        .history-item:hover {
-            background-color: #f5f5f5;
-        }
-        
         .loading {
             display: none;
             text-align: center;
@@ -277,7 +262,7 @@
                     <input type="text" id="user-input" placeholder="Digite sua mensagem..." autocomplete="off">
                     <button id="send-button">Enviar</button>
                     <div class="command-hint">
-                        Use <span>/imagem [descrição]</span> para gerar imagens, <span>/falar [texto]</span> para áudio, ou <span>/gerarvideo [descrição]</span> para criar um vídeo.
+                        Use <span>/imagem [descrição]</span> para gerar imagens, <span>/falar [texto]</span> para áudio.
                     </div>
                 </div>
             </div>
@@ -290,12 +275,6 @@
                     </select>
                     <div class="model-info" id="model-info">
                         Selecione um modelo para ver sua descrição
-                    </div>
-                </div>
-                
-                <div class="conversation-history">
-                    <h3>Histórico de Conversas</h3>
-                    <div id="history-list">
                     </div>
                 </div>
             </div>
@@ -352,7 +331,7 @@
             "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo": { name: "Meta Llama 3.1 405B Instruct Turbo", description: "Versão turbo do Llama 3.1 de 405 bilhões de parâmetros para instruções." },
             "Qwen/Qwen2.5-7B-Instruct-Turbo": { name: "Qwen 2.5 7B Instruct Turbo", description: "Modelo Qwen 2.5 otimizado para instruções e turbo." },
             "Qwen/Qwen2.5-72B-Instruct-Turbo": { name: "Qwen 2.5 72B Instruct Turbo", description: "Modelo Qwen 2.5 de 72 bilhões de parâmetros para instruções e turbo." },
-            "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo": { name: "Meta Llama 3.1 8B Instruct Turbo", description: "Versão turbo do Llama 3.1 de 8 bilhões de parâmetros para instruções." },
+            "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo": { name: "Meta Llama 3.1 8B Instruct Turbo", description: "Versão turbo do Llama 3.1 de 8 bilhões de parámetros para instruções." },
             "arize-ai/qwen-2-1.5b-instruct": { name: "Arize Qwen 2 1.5B Instruct", description: "Modelo Qwen 2 compacto e otimizado para instruções." },
             "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free": { name: "Meta Llama 3.3 70B Instruct Turbo (Free)", description: "Versão gratuita do Llama 3.3 de 70 bilhões de parâmetros para instruções." },
             "meta-llama/Llama-3.3-70B-Instruct-Turbo": { name: "Meta Llama 3.3 70B Instruct Turbo", description: "Versão turbo do Llama 3.3 de 70 bilhões de parâmetros para instruções." },
@@ -811,12 +790,11 @@
 
         // Variáveis globais
         let currentModel = "";
-        let conversationHistory = [];
         let currentConversation = [];
         
         // --- API Keys (Para desenvolvimento/teste. Em produção, use um backend para chaves) ---
         // A chave API que você forneceu. MUITO CUIDADO ao usar chaves em frontend em produção.
-        const COMETAPI_KEY = "sk-5bI4uGFfNfBlAll6UvRjhRtGuI1f6HVxxXs4sG51eugmMhB3";
+        const COMETAPI_KEY = "";
         const COMETAPI_URL = "https://api.cometapi.com/v1/chat/completions";
         // --- Fim das API Keys ---
         
@@ -896,9 +874,6 @@
                     sendMessage();
                 }
             });
-            
-            // Carregar histórico de conversas do localStorage
-            loadConversationHistory();
         });
         
         // Função para enviar mensagem
@@ -967,7 +942,6 @@
                 addMessage("Desculpe, ocorreu um erro ao processar sua mensagem.", 'ai');
             } finally {
                 loading.style.display = 'none';
-                saveConversation();
             }
         }
         
@@ -1107,67 +1081,6 @@
             }
         }
         // --- Fim da Nova Função ---
-
-        // Funções de histórico de conversas (existentes)
-        function saveConversation() {
-            if (currentConversation.length > 1) { // Salva se houver pelo menos uma troca (usuário e IA)
-                const timestamp = new Date().toLocaleString();
-                conversationHistory.unshift({ id: Date.now(), title: currentConversation[0].content.substring(0, 50) + "...", messages: currentConversation, timestamp: timestamp });
-                localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
-                renderConversationHistory();
-            }
-        }
-
-        function loadConversationHistory() {
-            const storedHistory = localStorage.getItem('conversationHistory');
-            if (storedHistory) {
-                conversationHistory = JSON.parse(storedHistory);
-                renderConversationHistory();
-            }
-        }
-
-        function renderConversationHistory() {
-            const historyList = document.getElementById('history-list');
-            historyList.innerHTML = ''; // Limpa a lista antes de renderizar
-            conversationHistory.forEach(conv => {
-                const historyItem = document.createElement('div');
-                historyItem.classList.add('history-item');
-                historyItem.textContent = conv.title + ` (${conv.timestamp})`;
-                historyItem.dataset.id = conv.id;
-                historyItem.addEventListener('click', () => loadSpecificConversation(conv.id));
-                historyList.appendChild(historyItem);
-            });
-        }
-
-        function loadSpecificConversation(id) {
-            const selectedConversation = conversationHistory.find(conv => conv.id === id);
-            if (selectedConversation) {
-                currentConversation = JSON.parse(JSON.stringify(selectedConversation.messages)); // Deep copy
-                document.getElementById('chat-history').innerHTML = ''; // Limpa o chat atual
-                currentConversation.forEach(msg => {
-                    if (msg.type === 'image' || msg.type === 'audio' || msg.type === 'video') {
-                        addMessageWithDownload(msg.url, msg.role, msg.type, msg.content.replace(/\[Imagem gerada: |\[Áudio reproduzido: |\[Vídeo gerado: |\]/g, ''));
-                    } else {
-                        addMessage(msg.content, msg.role);
-                    }
-                });
-                document.getElementById('chat-history').scrollTop = document.getElementById('chat-history').scrollHeight;
-                
-                // Tenta selecionar o modelo correto no dropdown se for uma conversa de chat normal
-                const lastAiMessage = currentConversation.findLast(msg => msg.role === 'assistant');
-                if (lastAiMessage && lastAiMessage.modelUsed) { // Supondo que você adicionaria `modelUsed` ao objeto `assistant`
-                    document.getElementById('model-selector').value = lastAiMessage.modelUsed;
-                    currentModel = lastAiMessage.modelUsed;
-                    const modelData = models[currentModel];
-                    if (modelData) {
-                        document.getElementById('model-info').innerHTML = `<strong>${modelData.name}</strong><br>${modelData.description}`;
-                    }
-                } else {
-                     document.getElementById('model-selector').value = ''; // Reseta a seleção se não houver modelo associado
-                     document.getElementById('model-info').textContent = "Selecione um modelo para ver sua descrição";
-                }
-            }
-        }
     </script>
 </body>
 </html>
