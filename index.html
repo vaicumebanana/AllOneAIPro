@@ -92,10 +92,46 @@
             margin-right: auto;
             border-bottom-left-radius: 5px;
         }
+
+        .ai-message img {
+            max-width: 100%;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .ai-message video {
+            max-width: 100%;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .ai-message .download-button {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            margin-top: 10px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background-color 0.3s;
+            display: inline-block; /* Para o botão ficar ao lado, se houver texto */
+            margin-left: 5px;
+        }
+
+        .ai-message .download-button:hover {
+            background-color: #7a3a91;
+        }
+
+        .ai-message audio {
+            width: 100%;
+            margin-top: 10px;
+        }
         
         .input-area {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap; /* Permite que os botões quebrem a linha em telas pequenas */
         }
         
         #user-input {
@@ -125,6 +161,21 @@
         
         #send-button:hover {
             background-color: var(--secondary);
+        }
+
+        .command-hint {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .command-hint span {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: #e0e0e0;
+            padding: 2px 5px;
+            border-radius: 3px;
         }
         
         .sidebar {
@@ -225,6 +276,9 @@
                 <div class="input-area">
                     <input type="text" id="user-input" placeholder="Digite sua mensagem..." autocomplete="off">
                     <button id="send-button">Enviar</button>
+                    <div class="command-hint">
+                        Use <span>/imagem [descrição]</span> para gerar imagens, <span>/falar [texto]</span> para áudio, ou <span>/gerarvideo [descrição]</span> para criar um vídeo.
+                    </div>
                 </div>
             </div>
             
@@ -233,8 +287,7 @@
                     <h3>Selecione o Modelo</h3>
                     <select id="model-selector">
                         <option value="">-- Selecione um Modelo --</option>
-                        <!-- Modelos serão adicionados dinamicamente via JavaScript -->
-                    </select>
+                        </select>
                     <div class="model-info" id="model-info">
                         Selecione um modelo para ver sua descrição
                     </div>
@@ -243,8 +296,7 @@
                 <div class="conversation-history">
                     <h3>Histórico de Conversas</h3>
                     <div id="history-list">
-                        <!-- Histórico será adicionado dinamicamente -->
-                    </div>
+                        </div>
                 </div>
             </div>
         </div>
@@ -492,6 +544,12 @@
         let conversationHistory = [];
         let currentConversation = [];
         
+        // --- API Keys (Para desenvolvimento/teste. Em produção, use um backend para chaves) ---
+        // A chave API que você forneceu. MUITO CUIDADO ao usar chaves em frontend em produção.
+        const COMETAPI_KEY = "sk-5bI4uGFfNfBlAll6UvRjhRtGuI1f6HVxxXs4sG51eugmMhB3";
+        const COMETAPI_URL = "https://api.cometapi.com/v1/chat/completions";
+        // --- Fim das API Keys ---
+        
         // Inicialização do DOM
         document.addEventListener('DOMContentLoaded', function() {
             // Preencher o seletor de modelos
@@ -556,15 +614,17 @@
         });
         
         // Função para enviar mensagem
-        function sendMessage() {
+        async function sendMessage() {
             const userInput = document.getElementById('user-input');
             const message = userInput.value.trim();
             
             if (!message) return;
-            if (!currentModel) {
-                alert("Por favor, selecione um modelo primeiro");
-                return;
-            }
+            // Removed currentModel check here to allow /gerarvideo without a selected chat model
+            // If you want /gerarvideo to only work when a model is selected, uncomment below:
+            // if (!currentModel && !message.toLowerCase().startsWith('/gerarvideo')) {
+            //     alert("Por favor, selecione um modelo primeiro para chat ou use /gerarvideo.");
+            //     return;
+            // }
             
             // Adicionar mensagem do usuário ao chat
             addMessage(message, 'user');
@@ -577,28 +637,59 @@
             // Adicionar mensagem ao histórico da conversa atual
             currentConversation.push({role: 'user', content: message});
             
-            // Enviar toda a conversa para a API
-            puter.ai.chat(currentConversation, {model: currentModel})
-                .then(response => {
-                    // Adicionar resposta ao chat
+            try {
+                // Verificar se a mensagem é para gerar imagem
+                if (message.toLowerCase().startsWith('/imagem')) {
+                    const prompt = message.substring('/imagem'.length).trim();
+                    if (prompt) {
+                        const imageUrl = await puter.ai.txt2img(prompt);
+                        addMessageWithDownload(imageUrl, 'ai', 'image');
+                        currentConversation.push({role: 'assistant', content: `[Imagem gerada: ${prompt}]`, url: imageUrl, type: 'image'});
+                    } else {
+                        addMessage("Por favor, forneça um prompt para a imagem. Ex: /imagem um gato no espaço", 'ai');
+                    }
+                } 
+                // Verificar se a mensagem é para text-to-speech
+                else if (message.toLowerCase().startsWith('/falar')) {
+                    const textToSpeak = message.substring('/falar'.length).trim();
+                    if (textToSpeak) {
+                        const audioBlob = await puter.ai.txt2speech(textToSpeak, 'pt'); // 'pt' para português
+                        const audioUrl = URL.createObjectURL(audioBlob);
+                        addMessageWithDownload(audioUrl, 'ai', 'audio', textToSpeak);
+                        currentConversation.push({role: 'assistant', content: `[Áudio reproduzido: ${textToSpeak}]`, url: audioUrl, type: 'audio'});
+                    } else {
+                        addMessage("Por favor, forneça um texto para eu falar. Ex: /falar Olá, como você está?", 'ai');
+                    }
+                }
+                // Verificar se a mensagem é para gerar vídeo com CometAPI
+                else if (message.toLowerCase().startsWith('/gerarvideo')) {
+                    const videoPrompt = message.substring('/gerarvideo'.length).trim();
+                    if (videoPrompt) {
+                        await generateVideoWithCometAPI(videoPrompt);
+                    } else {
+                        addMessage("Por favor, forneça um prompt para o vídeo. Ex: /gerarvideo um gato fofo em uma nuvem", 'ai');
+                    }
+                }
+                // Se não for comando de mídia, enviar para o chat normal
+                else {
+                    if (!currentModel) {
+                        addMessage("Por favor, selecione um modelo para chat normal.", 'ai');
+                        return;
+                    }
+                    const response = await puter.ai.chat(currentConversation, {model: currentModel});
                     addMessage(response, 'ai');
-                    
-                    // Adicionar resposta ao histórico da conversa atual
                     currentConversation.push({role: 'assistant', content: response});
-                    
-                    // Salvar conversa no histórico
-                    saveConversation();
-                })
-                .catch(error => {
-                    console.error("Erro na API:", error);
-                    addMessage("Desculpe, ocorreu um erro ao processar sua mensagem.", 'ai');
-                })
-                .finally(() => {
-                    loading.style.display = 'none';
-                });
+                }
+            } catch (error) {
+                console.error("Erro na API:", error);
+                addMessage("Desculpe, ocorreu um erro ao processar sua mensagem.", 'ai');
+            } finally {
+                loading.style.display = 'none';
+                saveConversation();
+            }
         }
         
-        // Função para adicionar mensagem ao chat
+        // Função para adicionar mensagem ao chat (versão padrão)
         function addMessage(text, sender) {
             const chatHistory = document.getElementById('chat-history');
             const messageDiv = document.createElement('div');
@@ -607,7 +698,153 @@
             chatHistory.appendChild(messageDiv);
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
+
+        // Função para adicionar mensagem com conteúdo de mídia e botão de download
+        function addMessageWithDownload(url, sender, type, textContent = '') {
+            const chatHistory = document.getElementById('chat-history');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
+            
+            if (type === 'image') {
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = textContent || 'Imagem gerada pela IA';
+                messageDiv.appendChild(img);
+
+                const downloadBtn = document.createElement('button');
+                downloadBtn.classList.add('download-button');
+                downloadBtn.textContent = 'Baixar Imagem';
+                downloadBtn.onclick = () => downloadFile(url, `imagem_ia_${Date.now()}.png`);
+                messageDiv.appendChild(downloadBtn);
+
+            } else if (type === 'audio') {
+                const audio = document.createElement('audio');
+                audio.controls = true;
+                audio.src = url;
+                messageDiv.appendChild(audio);
+                
+                // Texto opcional abaixo do player de áudio
+                if (textContent) {
+                    const textSpan = document.createElement('span');
+                    textSpan.textContent = ` "${textContent}"`;
+                    messageDiv.appendChild(textSpan);
+                }
+
+                const downloadBtn = document.createElement('button');
+                downloadBtn.classList.add('download-button');
+                downloadBtn.textContent = 'Baixar Áudio';
+                downloadBtn.onclick = () => downloadFile(url, `audio_ia_${Date.now()}.mp3`); 
+                messageDiv.appendChild(downloadBtn);
+            } else if (type === 'video') {
+                const video = document.createElement('video');
+                video.controls = true;
+                video.src = url;
+                video.loop = true; // Vídeos de IA costumam ser curtos, loop pode ajudar
+                messageDiv.appendChild(video);
+
+                if (textContent) {
+                    const textSpan = document.createElement('span');
+                    textSpan.textContent = ` "${textContent}"`;
+                    messageDiv.appendChild(textSpan);
+                }
+
+                const downloadBtn = document.createElement('button');
+                downloadBtn.classList.add('download-button');
+                downloadBtn.textContent = 'Baixar Vídeo';
+                downloadBtn.onclick = () => downloadFile(url, `video_ia_${Date.now()}.mp4`); // Assumindo mp4
+                messageDiv.appendChild(downloadBtn);
+            }
+            
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        // Função para iniciar o download
+        function downloadFile(url, filename) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            // Revogar a URL do Blob após o download para liberar memória
+            if (url.startsWith('blob:')) {
+                URL.revokeObjectURL(url);
+            }
+        }
         
+        // --- Nova Função: generateVideoWithCometAPI ---
+        async function generateVideoWithCometAPI(prompt) {
+            addMessage(`Gerando vídeo para: "${prompt}"... Isso pode levar um tempo.`, 'ai');
+            const requestBody = {
+                "model": "veo3-pro",
+                "stream": false, // Alterei para false para tentar obter o URL final de uma vez
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": prompt // A API espera a descrição diretamente aqui
+                    }
+                ]
+            };
+
+            // Você pode adicionar a lógica de "upsample" aqui se desejar
+            // if (prompt.toLowerCase().startsWith('upsample ')) {
+            //     requestBody.messages[0].content = prompt; // Assume que a API entende "upsample" no prompt
+            // }
+
+            try {
+                const response = await fetch(COMETAPI_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${COMETAPI_KEY}` // Tentativa de autenticação
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`Erro na CometAPI! Status: ${response.status}, Resposta: ${errorText}`);
+                    addMessage(`❌ Erro ao gerar vídeo: ${response.status} - ${errorText}. Verifique o console.`, 'ai');
+                    return;
+                }
+
+                const data = await response.json();
+                console.log("Resposta da CometAPI:", data);
+
+                let videoUrl = null;
+                // Tentativas de encontrar o URL do vídeo na resposta (baseado em padrões comuns)
+                if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+                    // Se o URL estiver embutido no texto da resposta (e.g., "Aqui está seu vídeo: [URL]")
+                    // Isso é uma suposição, a API real pode ter um formato diferente.
+                    const content = data.choices[0].message.content;
+                    const urlRegex = /(https?:\/\/[^\s]+[.mp4|.mov|.webm])/; // Regex simples para URLs de vídeo
+                    const match = content.match(urlRegex);
+                    if (match) {
+                        videoUrl = match[0];
+                    }
+                } else if (data.url) { // Alguns APIs retornam o URL diretamente no campo 'url'
+                    videoUrl = data.url;
+                } else if (data.video_url) { // Ou no campo 'video_url'
+                    videoUrl = data.video_url;
+                }
+                // Você pode precisar ajustar esta lógica de parsing de acordo com a resposta real da API
+
+                if (videoUrl) {
+                    addMessageWithDownload(videoUrl, 'ai', 'video', `Vídeo gerado: "${prompt}"`);
+                    currentConversation.push({role: 'assistant', content: `[Vídeo gerado: ${prompt}]`, url: videoUrl, type: 'video'});
+                } else {
+                    addMessage("Não consegui encontrar o URL do vídeo na resposta da API. Verifique o console para mais detalhes.", 'ai');
+                    currentConversation.push({role: 'assistant', content: `[Vídeo gerado (URL não encontrada): ${prompt}]`, type: 'video'});
+                }
+
+            } catch (error) {
+                console.error("Erro ao chamar CometAPI:", error);
+                addMessage("Ocorreu um erro ao conectar ou processar a resposta da API de vídeo. Verifique sua conexão e o console.", 'ai');
+            }
+        }
+        // --- Fim da Nova Função ---
+
         // Função para salvar conversa no histórico
         function saveConversation() {
             if (currentConversation.length === 0) return;
@@ -616,7 +853,13 @@
                 id: Date.now(),
                 model: currentModel,
                 title: currentConversation[0].content.substring(0, 30) + (currentConversation[0].content.length > 30 ? "..." : ""),
-                messages: [...currentConversation],
+                messages: currentConversation.map(msg => {
+                    // Ao salvar, apenas armazene o texto do prompt/resposta e, se houver, a URL e tipo
+                    const savedMsg = { role: msg.role, content: msg.content };
+                    if (msg.url) savedMsg.url = msg.url;
+                    if (msg.type) savedMsg.type = msg.type;
+                    return savedMsg;
+                }),
                 timestamp: new Date().toISOString()
             };
             
@@ -654,7 +897,7 @@
                 item.classList.add('history-item');
                 item.innerHTML = `
                     <strong>${conv.title}</strong><br>
-                    <small>${models[conv.model]?.name || conv.model} • ${new Date(conv.timestamp).toLocaleString()}</small>
+                    <small>${models[conv.model]?.name || conv.model || 'N/A'} • ${new Date(conv.timestamp).toLocaleString()}</small>
                 `;
                 
                 item.addEventListener('click', () => {
@@ -670,19 +913,29 @@
             const chatHistory = document.getElementById('chat-history');
             chatHistory.innerHTML = '';
             
-            currentConversation = [...conversation.messages];
+            currentConversation = []; // Limpa e reconstrói a conversa atual
             currentModel = conversation.model;
             
             // Atualizar seletor de modelo
             document.getElementById('model-selector').value = currentModel;
             document.getElementById('model-info').innerHTML = `
-                <strong>${models[currentModel]?.name || currentModel}</strong><br>
+                <strong>${models[currentModel]?.name || currentModel || 'N/A'}</strong><br>
                 ${models[currentModel]?.description || 'Sem descrição disponível'}
             `;
             
             // Mostrar todas as mensagens da conversa
-            currentConversation.forEach(msg => {
-                addMessage(msg.content, msg.role === 'user' ? 'user' : 'ai');
+            conversation.messages.forEach(msg => {
+                currentConversation.push(msg); // Adiciona ao currentConversation para manter o contexto
+                if (msg.type === 'image' && msg.url) {
+                    addMessageWithDownload(msg.url, 'ai', 'image');
+                } else if (msg.type === 'audio' && msg.url) {
+                    addMessageWithDownload(msg.url, 'ai', 'audio', msg.content.replace('[Áudio reproduzido: ', '').slice(0, -1));
+                } else if (msg.type === 'video' && msg.url) {
+                    addMessageWithDownload(msg.url, 'ai', 'video', msg.content.replace('[Vídeo gerado: ', '').slice(0, -1));
+                }
+                else {
+                    addMessage(msg.content, msg.role === 'user' ? 'user' : 'ai');
+                }
             });
         }
     </script>
