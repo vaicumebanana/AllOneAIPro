@@ -287,7 +287,7 @@
                     <h3>Selecione o Modelo</h3>
                     <select id="model-selector">
                         <option value="">-- Selecione um Modelo --</option>
-                        </select>
+                    </select>
                     <div class="model-info" id="model-info">
                         Selecione um modelo para ver sua descrição
                     </div>
@@ -296,7 +296,7 @@
                 <div class="conversation-history">
                     <h3>Histórico de Conversas</h3>
                     <div id="history-list">
-                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -306,237 +306,507 @@
     <script>
         // Objeto com todos os modelos e suas descrições
         const models = {
-            // 01-ai
-            "openrouter:01-ai/yi-large": {
-                name: "Yi Large",
-                description: "Modelo avançado da 01.AI com capacidade de processamento de linguagem natural em larga escala."
-            },
+            // Modelos Adicionados
+            "gpt-5-2025-08-07": { name: "GPT-5 (2025-08-07)", description: "Versão futura do GPT-5 com melhorias de agosto de 2025." },
+            "gpt-5": { name: "GPT-5", description: "O mais recente modelo da OpenAI, com capacidades avançadas." },
+            "gpt-5-mini-2025-08-07": { name: "GPT-5 Mini (2025-08-07)", description: "Versão compacta do GPT-5, otimizada para velocidade e eficiência." },
+            "gpt-5-mini": { name: "GPT-5 Mini", description: "Versão compacta do GPT-5, ideal para tarefas rápidas." },
+            "gpt-5-nano-2025-08-07": { name: "GPT-5 Nano (2025-08-07)", description: "Versão ultra-compacta do GPT-5 para uso em recursos limitados." },
+            "gpt-5-nano": { name: "GPT-5 Nano", description: "Versão ultra-compacta do GPT-5." },
+            "gpt-5-chat-latest": { name: "GPT-5 Chat (Latest)", description: "A versão mais recente do GPT-5 otimizada para conversação." },
+            "gpt-4o": { name: "GPT-4o", description: "Modelo multimodal da OpenAI, otimizado para interação natural e em tempo real." },
+            "gpt-4o-mini": { name: "GPT-4o Mini", description: "Versão compacta do GPT-4o, com foco em eficiência e baixo custo." },
+            "o1": { name: "O1 (OpenAI)", description: "Modelo experimental da OpenAI." },
+            "o1-mini": { name: "O1 Mini (OpenAI)", description: "Versão mini do modelo experimental O1." },
+            "o1-pro": { name: "O1 Pro (OpenAI)", description: "Versão Pro do modelo experimental O1." },
+            "o3": { name: "O3 (OpenAI)", description: "Outro modelo experimental da OpenAI." },
+            "o3-mini": { name: "O3 Mini (OpenAI)", description: "Versão mini do modelo experimental O3." },
+            "o4-mini": { name: "O4 Mini (OpenAI)", description: "Versão mini do modelo experimental O4." },
+            "gpt-4.1": { name: "GPT-4.1", description: "Atualização do GPT-4 com pequenas melhorias." },
+            "gpt-4.1-mini": { name: "GPT-4.1 Mini", description: "Versão mini do GPT-4.1." },
+            "gpt-4.1-nano": { name: "GPT-4.1 Nano", description: "Versão nano do GPT-4.1." },
+            "gpt-4.5-preview": { name: "GPT-4.5 Preview", description: "Prévia do próximo modelo GPT-4.5." },
+            "claude-opus-4-1-20250805": { name: "Claude Opus 4.1 (20250805)", description: "Versão futura do Claude Opus 4.1 com data específica." },
+            "claude-opus-4-1": { name: "Claude Opus 4.1", description: "Modelo avançado da Anthropic, focado em segurança e desempenho." },
+            "claude-opus-4-20250514": { name: "Claude Opus 4 (20250514)", description: "Versão específica do Claude Opus 4." },
+            "claude-opus-4": { name: "Claude Opus 4", description: "O modelo mais capaz da Anthropic." },
+            "claude-opus-4-latest": { name: "Claude Opus 4 (Latest)", description: "A versão mais recente do Claude Opus 4." },
+            "claude-sonnet-4-20250514": { name: "Claude Sonnet 4 (20250514)", description: "Versão específica do Claude Sonnet 4." },
+            "claude-sonnet-4": { name: "Claude Sonnet 4", description: "Modelo balanceado da Anthropic, ótimo para tarefas gerais." },
+            "claude-sonnet-4-latest": { name: "Claude Sonnet 4 (Latest)", description: "A versão mais recente do Claude Sonnet 4." },
+            "claude-3-7-sonnet-20250219": { name: "Claude 3.7 Sonnet (20250219)", description: "Versão futura do Claude 3.7 Sonnet." },
+            "claude-3-7-sonnet-latest": { name: "Claude 3.7 Sonnet (Latest)", description: "A versão mais recente do Claude 3.7 Sonnet." },
+            "claude-3-5-sonnet-20241022": { name: "Claude 3.5 Sonnet (20241022)", description: "Versão específica do Claude 3.5 Sonnet." },
+            "claude-3-5-sonnet-latest": { name: "Claude 3.5 Sonnet (Latest)", description: "A versão mais recente do Claude 3.5 Sonnet." },
+            "claude-3-5-sonnet-20240620": { name: "Claude 3.5 Sonnet (20240620)", description: "Versão específica do Claude 3.5 Sonnet." },
+            "claude-3-haiku-20240307": { name: "Claude 3 Haiku (20240307)", description: "Versão específica do Claude 3 Haiku." },
+            "cartesia/sonic": { name: "Cartesia Sonic", description: "Modelo otimizado para velocidade e processamento rápido." },
+            "mistralai/Mistral-7B-Instruct-v0.3": { name: "Mistral 7B Instruct v0.3", description: "Versão atualizada do Mistral 7B para instruções." },
+            "cartesia/sonic-2": { name: "Cartesia Sonic 2", description: "Versão 2 do modelo Sonic da Cartesia." },
+            "togethercomputer/MoA-1": { name: "Together MoA-1", description: "Modelo de Mixture-of-Experts para diversas tarefas." },
+            "meta-llama/Meta-Llama-Guard-3-8B": { name: "Meta Llama Guard 3 8B", description: "Modelo Llama para moderação de conteúdo." },
+            "meta-llama/LlamaGuard-2-8b": { name: "Meta Llama Guard 2 8B", description: "Versão anterior do Llama Guard." },
+            "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo": { name: "Meta Llama 3.1 70B Instruct Turbo", description: "Versão turbo do Llama 3.1 para instruções de 70 bilhões de parâmetros." },
+            "meta-llama/Llama-3.2-3B-Instruct-Turbo": { name: "Meta Llama 3.2 3B Instruct Turbo", description: "Versão compacta e turbo do Llama 3.2 para instruções." },
+            "deepseek-ai/DeepSeek-R1": { name: "DeepSeek R1", description: "Modelo R1 da DeepSeek AI." },
+            "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo": { name: "Meta Llama 3.1 405B Instruct Turbo", description: "Versão turbo do Llama 3.1 de 405 bilhões de parâmetros para instruções." },
+            "Qwen/Qwen2.5-7B-Instruct-Turbo": { name: "Qwen 2.5 7B Instruct Turbo", description: "Modelo Qwen 2.5 otimizado para instruções e turbo." },
+            "Qwen/Qwen2.5-72B-Instruct-Turbo": { name: "Qwen 2.5 72B Instruct Turbo", description: "Modelo Qwen 2.5 de 72 bilhões de parâmetros para instruções e turbo." },
+            "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo": { name: "Meta Llama 3.1 8B Instruct Turbo", description: "Versão turbo do Llama 3.1 de 8 bilhões de parâmetros para instruções." },
+            "arize-ai/qwen-2-1.5b-instruct": { name: "Arize Qwen 2 1.5B Instruct", description: "Modelo Qwen 2 compacto e otimizado para instruções." },
+            "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free": { name: "Meta Llama 3.3 70B Instruct Turbo (Free)", description: "Versão gratuita do Llama 3.3 de 70 bilhões de parâmetros para instruções." },
+            "meta-llama/Llama-3.3-70B-Instruct-Turbo": { name: "Meta Llama 3.3 70B Instruct Turbo", description: "Versão turbo do Llama 3.3 de 70 bilhões de parâmetros para instruções." },
+            "black-forest-labs/FLUX.1-pro": { name: "FLUX.1 Pro", description: "Modelo Pro da Black Forest Labs." },
+            "black-forest-labs/FLUX.1.1-pro": { name: "FLUX.1.1 Pro", description: "Versão 1.1 Pro do FLUX." },
+            "meta-llama/Llama-Guard-3-11B-Vision-Turbo": { name: "Meta Llama Guard 3 11B Vision Turbo", description: "Modelo Llama Guard com capacidade de visão." },
+            "meta-llama/Llama-3-8b-chat-hf": { name: "Meta Llama 3 8B Chat HF", description: "Llama 3 de 8 bilhões de parâmetros para chat." },
+            "Qwen/Qwen3-235B-A22B-Thinking-2507": { name: "Qwen 3 235B Thinking (2507)", description: "Modelo Qwen 3 grande com capacidade de raciocínio." },
+            "Qwen/Qwen2.5-Coder-32B-Instruct": { name: "Qwen 2.5 Coder 32B Instruct", description: "Modelo Qwen 2.5 especializado em codificação." },
+            "black-forest-labs/FLUX.1-krea-dev": { name: "FLUX.1 Krea Dev", description: "Versão de desenvolvimento Krea do FLUX." },
+            "togethercomputer/MoA-1-Turbo": { name: "Together MoA-1 Turbo", description: "Versão turbo do MoA-1." },
+            "black-forest-labs/FLUX.1-redux": { name: "FLUX.1 Redux", description: "Versão Redux do FLUX." },
+            "Qwen/Qwen3-235B-A22B-Instruct-2507-tput": { name: "Qwen 3 235B Instruct Tput (2507)", description: "Modelo Qwen 3 grande com foco em throughput." },
+            "arcee_ai/arcee-spotlight": { name: "Arcee Spotlight", description: "Modelo Arcee com foco em destaque e sumarização." },
+            "black-forest-labs/FLUX.1-dev-lora": { name: "FLUX.1 Dev LoRA", description: "Versão de desenvolvimento LoRA do FLUX." },
+            "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo": { name: "Meta Llama 3.2 11B Vision Instruct Turbo", description: "Modelo Llama 3.2 com capacidade de visão e turbo." },
+            "meta-llama/Meta-Llama-3-70B-Instruct-Turbo": { name: "Meta Llama 3 70B Instruct Turbo", description: "Versão turbo do Llama 3 de 70 bilhões de parâmetros para instruções." },
+            "openai/whisper-large-v3": { name: "OpenAI Whisper Large v3", description: "Modelo de reconhecimento de fala da OpenAI." },
+            "Qwen/Qwen3-235B-A22B-fp8-tput": { name: "Qwen 3 235B FP8 Tput", description: "Modelo Qwen 3 grande otimizado para FP8 e throughput." },
+            "Qwen/Qwen2.5-VL-72B-Instruct": { name: "Qwen 2.5 VL 72B Instruct", description: "Modelo Qwen 2.5 de Visão e Linguagem para instruções." },
+            "openai/gpt-oss-120b": { name: "OpenAI GPT-OSS 120B", description: "Modelo Open-Source da OpenAI de 120 bilhões de parâmetros." },
+            "black-forest-labs/FLUX.1-schnell": { name: "FLUX.1 Schnell", description: "Modelo FLUX otimizado para velocidade." },
+            "lgai/exaone-3-5-32b-instruct": { name: "LGAI ExaOne 3.5 32B Instruct", description: "Modelo ExaOne de 32 bilhões de parâmetros para instruções." },
+            "meta-llama/Llama-3-70b-chat-hf": { name: "Meta Llama 3 70B Chat HF", description: "Llama 3 de 70 bilhões de parâmetros para chat." },
+            "mistralai/Mixtral-8x7B-Instruct-v0.1": { name: "Mixtral 8x7B Instruct v0.1", description: "Versão inicial do Mixtral 8x7B para instruções." },
+            "black-forest-labs/FLUX.1-depth": { name: "FLUX.1 Depth", description: "Modelo FLUX com foco em profundidade de raciocínio." },
+            "black-forest-labs/FLUX.1-kontext-dev": { name: "FLUX.1 Kontext Dev", description: "Versão de desenvolvimento Kontext do FLUX." },
+            "mixedbread-ai/Mxbai-Rerank-Large-V2": { name: "Mxbai Rerank Large V2", description: "Modelo de reranking da Mixedbread AI." },
+            "google/gemma-2-27b-it": { name: "Google Gemma 2 27B IT", description: "Modelo Gemma 2 de 27 bilhões de parâmetros para instruções." },
+            "black-forest-labs/FLUX.1-dev": { name: "FLUX.1 Dev", description: "Versão de desenvolvimento do FLUX." },
+            "Qwen/Qwen2-72B-Instruct": { name: "Qwen 2 72B Instruct", description: "Modelo Qwen 2 de 72 bilhões de parâmetros para instruções." },
+            "meta-llama/Llama-2-70b-hf": { name: "Meta Llama 2 70B HF", description: "Llama 2 de 70 bilhões de parâmetros." },
+            "black-forest-labs/FLUX.1-canny": { name: "FLUX.1 Canny", description: "Modelo FLUX com foco em detalhes e nuances." },
+            "Salesforce/Llama-Rank-V1": { name: "Salesforce Llama Rank V1", description: "Modelo Llama Rank da Salesforce." },
+            "mistralai/Mistral-Small-24B-Instruct-2501": { name: "Mistral Small 24B Instruct (2501)", description: "Modelo Mistral Small de 24 bilhões de parâmetros para instruções." },
+            "Qwen/Qwen2-VL-72B-Instruct": { name: "Qwen 2 VL 72B Instruct", description: "Modelo Qwen 2 de Visão e Linguagem para instruções." },
+            "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B": { name: "DeepSeek R1 Distill Qwen 1.5B", description: "Versão destilada do DeepSeek R1 otimizada para Qwen." },
+            "meta-llama/Llama-Vision-Free": { name: "Meta Llama Vision Free", description: "Modelo Llama com capacidade de visão (versão gratuita)." },
+            "deepcogito/cogito-v2-preview-deepseek-671b": { name: "Deepcogito Cogito v2 Deepseek 671B", description: "Modelo Cogito v2 da Deepcogito com base Deepseek." },
+            "perplexity-ai/r1-1776": { name: "Perplexity R1-1776", description: "Modelo R1 da Perplexity AI." },
+            "scb10x/scb10x-llama3-1-typhoon2-70b-instruct": { name: "SCB10X Llama 3.1 Typhoon 2 70B Instruct", description: "Modelo Llama 3.1 Typhoon 2 de 70 bilhões de parâmetros para instruções." },
+            "arcee-ai/maestro-reasoning": { name: "Arcee Maestro Reasoning", description: "Modelo Arcee focado em raciocínio avançado." },
+            "togethercomputer/Refuel-Llm-V2-Small": { name: "Together Refuel LLM V2 Small", description: "Versão pequena do Refuel LLM V2." },
+            "arcee-ai/coder-large": { name: "Arcee Coder Large", description: "Modelo Arcee grande para codificação." },
+            "Qwen/QwQ-32B": { name: "Qwen QwQ 32B", description: "Modelo QwQ de 32 bilhões de parâmetros da Qwen." },
+            "deepseek-ai/DeepSeek-R1-0528-tput": { name: "DeepSeek R1 0528 Tput", description: "Modelo DeepSeek R1 otimizado para throughput." },
+            "marin-community/marin-8b-instruct": { name: "Marin 8B Instruct", description: "Modelo Marin de 8 bilhões de parâmetros para instruções." },
+            "lgai/exaone-deep-32b": { name: "LGAI ExaOne Deep 32B", description: "Modelo ExaOne Deep de 32 bilhões de parâmetros." },
+            "google/gemma-3-27b-it": { name: "Google Gemma 3 27B IT", description: "Modelo Gemma 3 de 27 bilhões de parâmetros para instruções." },
+            "deepseek-ai/DeepSeek-R1-Distill-Llama-70B": { name: "DeepSeek R1 Distill Llama 70B", description: "Versão destilada do DeepSeek R1 otimizada para Llama." },
+            "NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO": { name: "Nous Hermes 2 Mixtral 8x7B DPO", description: "Modelo Hermes 2 da NousResearch com Mixtral e DPO." },
+            "mistralai/Mistral-7B-Instruct-v0.1": { name: "Mistral 7B Instruct v0.1", description: "Versão inicial do Mistral 7B para instruções." },
+            "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8": { name: "Meta Llama 4 Maverick 17B Instruct FP8", description: "Modelo Llama 4 Maverick otimizado para FP8." },
+            "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B": { name: "DeepSeek R1 Distill Qwen 14B", description: "Versão destilada do DeepSeek R1 otimizada para Qwen (14B)." },
+            "deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free": { name: "DeepSeek R1 Distill Llama 70B (Free)", description: "Versão gratuita do DeepSeek R1 destilada para Llama." },
+            "scb10x/scb10x-typhoon-2-1-gemma3-12b": { name: "SCB10X Typhoon 2.1 Gemma 3 12B", description: "Modelo Typhoon 2.1 da SCB10X com Gemma 3." },
+            "meta-llama/Llama-Guard-4-12B": { name: "Meta Llama Guard 4 12B", description: "Versão 4 do Llama Guard de 12 bilhões de parâmetros." },
+            "togethercomputer/Refuel-Llm-V2": { name: "Together Refuel LLM V2", description: "Modelo Refuel LLM V2 da Together." },
+            "meta-llama/Meta-Llama-3-8B-Instruct-Lite": { name: "Meta Llama 3 8B Instruct Lite", description: "Versão Lite do Llama 3 de 8 bilhões de parâmetros para instruções." },
+            "intfloat/multilingual-e5-large-instruct": { name: "Intfloat Multilingual E5 Large Instruct", description: "Modelo E5 multilingual para instruções." },
+            "meta-llama/Llama-4-Scout-17B-16E-Instruct": { name: "Meta Llama 4 Scout 17B Instruct", description: "Modelo Llama 4 Scout para instruções." },
+            "black-forest-labs/FLUX.1-kontext-max": { name: "FLUX.1 Kontext Max", description: "Versão Kontext Max do FLUX." },
+            "Alibaba-NLP/gte-modernbert-base": { name: "Alibaba GTE ModernBERT Base", description: "Modelo ModernBERT base da Alibaba NLP." },
+            "nvidia/Llama-3.1-Nemotron-70B-Instruct-HF": { name: "NVIDIA Llama 3.1 Nemotron 70B Instruct HF", description: "Modelo Llama 3.1 Nemotron de 70 bilhões de parâmetros para instruções da NVIDIA." },
+            "deepseek-ai/DeepSeek-V3": { name: "DeepSeek V3", description: "Versão 3 do modelo DeepSeek." },
+            "black-forest-labs/FLUX.1-schnell-Free": { name: "FLUX.1 Schnell (Free)", description: "Versão gratuita e rápida do FLUX." },
+            "Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8": { name: "Qwen 3 Coder 480B Instruct FP8", description: "Modelo Qwen 3 Coder de 480 bilhões de parâmetros otimizado para FP8." },
+            "black-forest-labs/FLUX.1-kontext-pro": { name: "FLUX.1 Kontext Pro", description: "Versão Kontext Pro do FLUX." },
+            "Virtue-AI/VirtueGuard-Text-Lite": { name: "Virtue AI VirtueGuard Text Lite", description: "Modelo VirtueGuard Lite para texto." },
+            "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo": { name: "Meta Llama 3.2 90B Vision Instruct Turbo", description: "Modelo Llama 3.2 de 90 bilhões de parâmetros com visão e turbo." },
+            "arcee-ai/virtuoso-large": { name: "Arcee Virtuoso Large", description: "Modelo Arcee Virtuoso grande." },
+            "google/gemma-3n-E4B-it": { name: "Google Gemma 3n E4B IT", description: "Modelo Gemma 3n de 4 bilhões de parâmetros para instruções." },
+            "moonshotai/Kimi-K2-Instruct": { name: "Moonshot AI Kimi K2 Instruct", description: "Modelo Kimi K2 para instruções da Moonshot AI." },
+            "openai/gpt-oss-20b": { name: "OpenAI GPT-OSS 20B", description: "Modelo Open-Source da OpenAI de 20 bilhões de parâmetros." },
+            "mistralai/Mistral-7B-Instruct-v0.2": { name: "Mistral 7B Instruct v0.2", description: "Versão 0.2 do Mistral 7B para instruções." },
+            "zai-org/GLM-4.5-Air-FP8": { name: "ZAI GLM 4.5 Air FP8", description: "Modelo GLM 4.5 Air otimizado para FP8." },
+            "model-fallback-test-1": { name: "Model Fallback Test 1", description: "Modelo de teste para fallback." },
+            "mistral-medium-2505": { name: "Mistral Medium (2505)", description: "Versão específica do Mistral Medium." },
+            "mistral-medium-latest": { name: "Mistral Medium (Latest)", description: "A versão mais recente do Mistral Medium." },
+            "mistral-medium": { name: "Mistral Medium", description: "Modelo Mistral de tamanho médio." },
+            "mistral-large-latest": { name: "Mistral Large (Latest)", description: "A versão mais recente do Mistral Large." },
+            "ministral-3b-2410": { name: "Minustral 3B (2410)", description: "Versão específica do Minustral 3B." },
+            "ministral-3b-latest": { name: "Minustral 3B (Latest)", description: "A versão mais recente do Minustral 3B." },
+            "ministral-8b-2410": { name: "Minustral 8B (2410)", description: "Versão específica do Minustral 8B." },
+            "ministral-8b-latest": { name: "Minustral 8B (Latest)", description: "A versão mais recente do Minustral 8B." },
+            "open-mistral-7b": { name: "Open Mistral 7B", description: "Versão open source do Mistral 7B." },
+            "mistral-tiny": { name: "Mistral Tiny", description: "Modelo Mistral de tamanho pequeno." },
+            "mistral-tiny-2312": { name: "Mistral Tiny (2312)", description: "Versão específica do Mistral Tiny." },
+            "open-mistral-nemo": { name: "Open Mistral Nemo", description: "Versão open source do Mistral Nemo." },
+            "open-mistral-nemo-2407": { name: "Open Mistral Nemo (2407)", description: "Versão específica do Mistral Nemo." },
+            "mistral-tiny-2407": { name: "Mistral Tiny (2407)", description: "Versão específica do Mistral Tiny." },
+            "mistral-tiny-latest": { name: "Mistral Tiny (Latest)", description: "A versão mais recente do Mistral Tiny." },
+            "open-mixtral-8x7b": { name: "Open Mixtral 8x7B", description: "Versão open source do Mixtral 8x7B." },
+            "mistral-small": { name: "Mistral Small", description: "Modelo Mistral de tamanho pequeno." },
+            "mistral-small-2312": { name: "Mistral Small (2312)", description: "Versão específica do Mistral Small." },
+            "open-mixtral-8x22b": { name: "Open Mixtral 8x22B", description: "Versão open source do Mixtral 8x22B." },
+            "open-mixtral-8x22b-2404": { name: "Open Mixtral 8x22B (2404)", description: "Versão específica do Mixtral 8x22B." },
+            "pixtral-large-2411": { name: "Pixtral Large (2411)", description: "Versão específica do Pixtral Large." },
+            "pixtral-large-latest": { name: "Pixtral Large (Latest)", description: "A versão mais recente do Pixtral Large." },
+            "mistral-large-pixtral-2411": { name: "Mistral Large Pixtral (2411)", description: "Mistral Large com integração Pixtral." },
+            "codestral-2508": { name: "Codestral (2508)", description: "Versão específica do Codestral." },
+            "codestral-latest": { name: "Codestral (Latest)", description: "A versão mais recente do Codestral, para geração de código." },
+            "devstral-small-2507": { name: "Devstral Small (2507)", description: "Versão específica do Devstral Small." },
+            "devstral-small-latest": { name: "Devstral Small (Latest)", description: "A versão mais recente do Devstral Small." },
+            "pixtral-12b-2409": { name: "Pixtral 12B (2409)", description: "Versão específica do Pixtral 12B." },
+            "pixtral-12b": { name: "Pixtral 12B", description: "Modelo Pixtral de 12 bilhões de parâmetros." },
+            "pixtral-12b-latest": { name: "Pixtral 12B (Latest)", description: "A versão mais recente do Pixtral 12B." },
+            "mistral-small-2506": { name: "Mistral Small (2506)", description: "Versão específica do Mistral Small." },
+            "mistral-small-latest": { name: "Mistral Small (Latest)", description: "A versão mais recente do Mistral Small." },
+            "mistral-saba-2502": { name: "Mistral Saba (2502)", description: "Versão específica do Mistral Saba." },
+            "mistral-saba-latest": { name: "Mistral Saba (Latest)", description: "A versão mais recente do Mistral Saba." },
+            "magistral-medium-2507": { name: "Magistral Medium (2507)", description: "Versão específica do Magistral Medium." },
+            "magistral-medium-latest": { name: "Magistral Medium (Latest)", description: "A versão mais recente do Magistral Medium." },
+            "magistral-small-2507": { name: "Magistral Small (2507)", description: "Versão específica do Magistral Small." },
+            "magistral-small-latest": { name: "Magistral Small (Latest)", description: "A versão mais recente do Magistral Small." },
+            "mistral-moderation-2411": { name: "Mistral Moderation (2411)", description: "Modelo Mistral para moderação de conteúdo." },
+            "mistral-moderation-latest": { name: "Mistral Moderation (Latest)", description: "A versão mais recente do Mistral Moderation." },
+            "mistral-ocr-2505": { name: "Mistral OCR (2505)", description: "Modelo Mistral para reconhecimento óptico de caracteres (OCR)." },
+            "mistral-ocr-latest": { name: "Mistral OCR (Latest)", description: "A versão mais recente do Mistral OCR." },
+            "grok-beta": { name: "Grok Beta", description: "Versão beta do Grok." },
+            "grok-vision-beta": { name: "Grok Vision Beta", description: "Versão beta do Grok com capacidade de visão." },
+            "grok-3": { name: "Grok 3", description: "Terceira geração do modelo Grok." },
+            "grok-3-fast": { name: "Grok 3 Fast", description: "Versão rápida do Grok 3." },
+            "grok-3-mini": { name: "Grok 3 Mini", description: "Versão mini do Grok 3." },
+            "grok-3-mini-fast": { name: "Grok 3 Mini Fast", description: "Versão mini e rápida do Grok 3." },
+            "grok-2-vision": { name: "Grok 2 Vision", description: "Grok 2 com capacidade de visão." },
+            "grok-2": { name: "Grok 2", description: "Segunda geração do modelo Grok." },
+            "deepseek-chat": { name: "DeepSeek Chat", description: "Modelo DeepSeek otimizado para conversação." },
+            "deepseek-reasoner": { name: "DeepSeek Reasoner", description: "Modelo DeepSeek focado em raciocínio." },
+            "gemini-1.5-flash": { name: "Gemini 1.5 Flash", description: "Versão rápida do Gemini 1.5." },
+            "gemini-2.0-flash": { name: "Gemini 2.0 Flash", description: "Versão rápida do Gemini 2.0." },
             
-            // Aetherwiing
-            "openrouter:aetherwiing/mn-starcannon-12b": {
-                name: "MN Starcannon 12B",
-                description: "Modelo especializado em geração criativa de conteúdo e narrativas complexas."
-            },
-            
-            // Agentica
-            "openrouter:agentica-org/deepcoder-14b-preview:free": {
-                name: "Deepcoder 14B",
-                description: "Especializado em programação e geração de código, com suporte a múltiplas linguagens."
-            },
-            
-            // AI21
-            "openrouter:ai21/jamba-1.6-large": {
-                name: "Jamba 1.6 Large",
-                description: "Modelo versátil para diversas tarefas de processamento de linguagem natural."
-            },
-            "openrouter:ai21/jamba-1.6-mini": {
-                name: "Jamba 1.6 Mini",
-                description: "Versão compacta do Jamba, ideal para respostas rápidas e eficientes."
-            },
-            
-            // Aion Labs
-            "openrouter:aion-labs/aion-1.0": {
-                name: "Aion 1.0",
-                description: "Modelo geral com foco em compreensão contextual avançada."
-            },
-            "openrouter:aion-labs/aion-1.0-mini": {
-                name: "Aion 1.0 Mini",
-                description: "Versão compacta do Aion 1.0 para tarefas mais simples."
-            },
-            "openrouter:aion-labs/aion-rp-llama-3.1-8b": {
-                name: "Aion RP Llama 3.1 8B",
-                description: "Modelo especializado em roleplay e narrativas interativas."
-            },
-            
-            // Alfredpros
-            "openrouter:alfredpros/codellama-7b-instruct-solidity": {
-                name: "Codellama 7B Solidity",
-                description: "Especializado em programação blockchain e contratos inteligentes em Solidity."
-            },
-            
-            // Alpindale
-            "openrouter:alpindale/goliath-120b": {
-                name: "Goliath 120B",
-                description: "Um dos maiores modelos disponíveis, com capacidade excepcional para tarefas complexas."
-            },
-            "openrouter:alpindale/magnum-72b": {
-                name: "Magnum 72B",
-                description: "Modelo poderoso para análise e geração de texto avançada."
-            },
-            
-            // Amazon
-            "openrouter:amazon/nova-lite-v1": {
-                name: "Amazon Nova Lite",
-                description: "Versão leve do modelo da Amazon para tarefas gerais."
-            },
-            "openrouter:amazon/nova-micro-v1": {
-                name: "Amazon Nova Micro",
-                description: "Modelo compacto da Amazon para respostas rápidas."
-            },
-            "openrouter:amazon/nova-pro-v1": {
-                name: "Amazon Nova Pro",
-                description: "Versão avançada do modelo da Amazon com maior capacidade."
-            },
-            
-            // Anthropic (Claude)
-            "openrouter:anthropic/claude-2": {
-                name: "Claude 2",
-                description: "Modelo geral da Anthropic com foco em segurança e alinhamento."
-            },
-            "openrouter:anthropic/claude-2.0": {
-                name: "Claude 2.0",
-                description: "Versão estável do Claude com melhorias na coerência."
-            },
-            "openrouter:anthropic/claude-2.1": {
-                name: "Claude 2.1",
-                description: "Versão aprimorada do Claude 2 com melhor compreensão contextual."
-            },
-            "openrouter:anthropic/claude-3-haiku": {
-                name: "Claude 3 Haiku",
-                description: "Modelo rápido e eficiente da série Claude 3 para respostas concisas."
-            },
-            "openrouter:anthropic/claude-3-opus": {
-                name: "Claude 3 Opus",
-                description: "O modelo mais avançado da série Claude 3 para tarefas complexas."
-            },
-            "openrouter:anthropic/claude-3-sonnet": {
-                name: "Claude 3 Sonnet",
-                description: "Modelo balanceado da série Claude 3 com ótimo custo-benefício."
-            },
-            "openrouter:anthropic/claude-3.5-haiku": {
-                name: "Claude 3.5 Haiku",
-                description: "Versão atualizada do Haiku com melhor desempenho e eficiência."
-            },
-            "openrouter:anthropic/claude-3.5-sonnet": {
-                name: "Claude 3.5 Sonnet",
-                description: "Versão aprimorada do Sonnet com maior capacidade de raciocínio."
-            },
-            
-            // Arcee AI
-            "openrouter:arcee-ai/arcee-blitz": {
-                name: "Arcee Blitz",
-                description: "Modelo rápido para respostas instantâneas e tarefas simples."
-            },
-            "openrouter:arcee-ai/coder-large": {
-                name: "Arcee Coder Large",
-                description: "Modelo especializado em programação e análise de código."
-            },
-            
-            // Baidu
-            "openrouter:baidu/ernie-4.5-300b-a47b": {
-                name: "Ernie 4.5",
-                description: "Modelo avançado da Baidu com foco em compreensão de linguagem chinesa e inglesa."
-            },
-            
-            // Cognitive Computations
-            "openrouter:cognitivecomputations/dolphin-mixtral-8x22b": {
-                name: "Dolphin Mixtral 8x22B",
-                description: "Modelo especializado em tarefas criativas e assistência geral."
-            },
-            
-            // Cohere
-            "openrouter:cohere/command-r": {
-                name: "Cohere Command R",
-                description: "Modelo avançado da Cohere para pesquisa e recuperação de informações."
-            },
-            "openrouter:cohere/command-r-plus": {
-                name: "Cohere Command R+",
-                description: "Versão premium do Command R com maior capacidade de raciocínio."
-            },
-            
-            // Deepseek
-            "openrouter:deepseek/deepseek-chat": {
-                name: "Deepseek Chat",
-                description: "Modelo geral para conversação e assistência em diversas tarefas."
-            },
-            "openrouter:deepseek/deepseek-prover-v2": {
-                name: "Deepseek Prover",
-                description: "Especializado em raciocínio lógico e provas matemáticas."
-            },
-            
-            // Google
-            "openrouter:google/gemini-2.0-flash-001": {
-                name: "Gemini 2.0 Flash",
-                description: "Modelo rápido da Google para respostas instantâneas."
-            },
-            "openrouter:google/gemini-2.5-pro": {
-                name: "Gemini 2.5 Pro",
-                description: "Versão avançada do Gemini com maior capacidade de compreensão."
-            },
-            "openrouter:google/gemma-2-27b-it": {
-                name: "Gemma 2 27B",
-                description: "Modelo de código aberto da Google para diversas aplicações."
-            },
-            
-            // Meta (Llama)
-            "openrouter:meta-llama/llama-3-70b-instruct": {
-                name: "Llama 3 70B",
-                description: "Um dos modelos mais avançados da série Llama 3 para instruções complexas."
-            },
-            "openrouter:meta-llama/llama-3-8b-instruct": {
-                name: "Llama 3 8B",
-                description: "Versão mais leve do Llama 3 ainda com bom desempenho."
-            },
-            "openrouter:meta-llama/llama-3.1-70b-instruct": {
-                name: "Llama 3.1 70B",
-                description: "Versão atualizada do Llama 3 com melhorias na compreensão."
-            },
-            
-            // Microsoft
-            "openrouter:microsoft/phi-3-medium-128k-instruct": {
-                name: "Phi-3 Medium",
-                description: "Modelo balanceado da Microsoft para diversas tarefas."
-            },
-            "openrouter:microsoft/phi-4": {
-                name: "Phi-4",
-                description: "Modelo avançado da Microsoft com grande capacidade de raciocínio."
-            },
-            
-            // Mistral
-            "openrouter:mistralai/mistral-7b-instruct": {
-                name: "Mistral 7B",
-                description: "Modelo eficiente para instruções e tarefas gerais."
-            },
-            "openrouter:mistralai/mistral-large": {
-                name: "Mistral Large",
-                description: "Modelo avançado da Mistral com excelente desempenho."
-            },
-            "openrouter:mistralai/mixtral-8x7b-instruct": {
-                name: "Mixtral 8x7B",
-                description: "Modelo de mistura de especialistas com ótimo custo-benefício."
-            },
-            
-            // OpenAI
-            "openrouter:openai/gpt-3.5-turbo-16k": {
-                name: "GPT-3.5 Turbo",
-                description: "Modelo rápido e eficiente da OpenAI para diversas tarefas."
-            },
-            "openrouter:openai/gpt-4": {
-                name: "GPT-4",
-                description: "Modelo avançado da OpenAI com maior capacidade de raciocínio."
-            },
-            "openrouter:openai/gpt-4-turbo": {
-                name: "GPT-4 Turbo",
-                description: "Versão otimizada do GPT-4 com melhor desempenho."
-            },
-            "openrouter:openai/gpt-4o": {
-                name: "GPT-4o",
-                description: "Modelo mais recente da OpenAI com multimodalidade e melhor desempenho."
-            },
-            
-            // Outros modelos importantes
-            "openrouter:openrouter/auto": {
-                name: "Auto (OpenRouter)",
-                description: "Permite que o OpenRouter selecione automaticamente o melhor modelo para sua tarefa."
-            },
-            "openrouter:perplexity/sonar-large": {
-                name: "Sonar Large",
-                description: "Modelo avançado da Perplexity para pesquisa e respostas precisas."
-            },
-            "openrouter:qwen/qwen-2-72b-instruct": {
-                name: "Qwen 2 72B",
-                description: "Modelo avançado da Alibaba para diversas tarefas de linguagem."
-            }
+            // Modelos OpenRouter (com prefixo)
+            "openrouter:ai21/jamba-mini-1.7": { name: "OpenRouter: Jamba Mini 1.7", description: "Jamba Mini 1.7 via OpenRouter." },
+            "openrouter:ai21/jamba-large-1.7": { name: "OpenRouter: Jamba Large 1.7", description: "Jamba Large 1.7 via OpenRouter." },
+            "openrouter:openai/gpt-5-chat": { name: "OpenRouter: GPT-5 Chat", description: "GPT-5 otimizado para chat via OpenRouter." },
+            "openrouter:openai/gpt-5": { name: "OpenRouter: GPT-5", description: "GPT-5 via OpenRouter." },
+            "openrouter:openai/gpt-5-mini": { name: "OpenRouter: GPT-5 Mini", description: "GPT-5 Mini via OpenRouter." },
+            "openrouter:openai/gpt-5-nano": { name: "OpenRouter: GPT-5 Nano", description: "GPT-5 Nano via OpenRouter." },
+            "openrouter:openai/gpt-oss-120b": { name: "OpenRouter: GPT-OSS 120B", description: "GPT-OSS 120B via OpenRouter." },
+            "openrouter:openai/gpt-oss-20b:free": { name: "OpenRouter: GPT-OSS 20B (Free)", description: "GPT-OSS 20B gratuito via OpenRouter." },
+            "openrouter:openai/gpt-oss-20b": { name: "OpenRouter: GPT-OSS 20B", description: "GPT-OSS 20B via OpenRouter." },
+            "openrouter:anthropic/claude-opus-4.1": { name: "OpenRouter: Claude Opus 4.1", description: "Claude Opus 4.1 via OpenRouter." },
+            "openrouter:mistralai/codestral-2508": { name: "OpenRouter: Codestral (2508)", description: "Codestral (2508) via OpenRouter." },
+            "openrouter:qwen/qwen3-30b-a3b-instruct-2507": { name: "OpenRouter: Qwen 3 30B Instruct (2507)", description: "Qwen 3 30B Instruct (2507) via OpenRouter." },
+            "openrouter:z-ai/glm-4.5": { name: "OpenRouter: GLM 4.5", description: "GLM 4.5 via OpenRouter." },
+            "openrouter:z-ai/glm-4.5-air:free": { name: "OpenRouter: GLM 4.5 Air (Free)", description: "GLM 4.5 Air gratuito via OpenRouter." },
+            "openrouter:z-ai/glm-4.5-air": { name: "OpenRouter: GLM 4.5 Air", description: "GLM 4.5 Air via OpenRouter." },
+            "openrouter:qwen/qwen3-235b-a22b-thinking-2507": { name: "OpenRouter: Qwen 3 235B Thinking (2507)", description: "Qwen 3 235B Thinking (2507) via OpenRouter." },
+            "openrouter:z-ai/glm-4-32b": { name: "OpenRouter: GLM 4 32B", description: "GLM 4 32B via OpenRouter." },
+            "openrouter:qwen/qwen3-coder:free": { name: "OpenRouter: Qwen 3 Coder (Free)", description: "Qwen 3 Coder gratuito via OpenRouter." },
+            "openrouter:qwen/qwen3-coder": { name: "OpenRouter: Qwen 3 Coder", description: "Qwen 3 Coder via OpenRouter." },
+            "openrouter:bytedance/ui-tars-1.5-7b": { name: "OpenRouter: ByteDance UI-Tars 1.5 7B", description: "UI-Tars 1.5 7B da ByteDance via OpenRouter." },
+            "openrouter:google/gemini-2.5-flash-lite": { name: "OpenRouter: Gemini 2.5 Flash Lite", description: "Gemini 2.5 Flash Lite via OpenRouter." },
+            "openrouter:qwen/qwen3-235b-a22b-2507": { name: "OpenRouter: Qwen 3 235B (2507)", description: "Qwen 3 235B (2507) via OpenRouter." },
+            "openrouter:switchpoint/router": { name: "OpenRouter: Switchpoint Router", description: "Switchpoint Router via OpenRouter." },
+            "openrouter:moonshotai/kimi-k2:free": { name: "OpenRouter: Kimi K2 (Free)", description: "Kimi K2 gratuito via OpenRouter." },
+            "openrouter:moonshotai/kimi-k2": { name: "OpenRouter: Kimi K2", description: "Kimi K2 via OpenRouter." },
+            "openrouter:thudm/glm-4.1v-9b-thinking": { name: "OpenRouter: GLM 4.1v 9B Thinking", description: "GLM 4.1v 9B Thinking via OpenRouter." },
+            "openrouter:mistralai/devstral-medium": { name: "OpenRouter: Devstral Medium", description: "Devstral Medium via OpenRouter." },
+            "openrouter:mistralai/devstral-small": { name: "OpenRouter: Devstral Small", description: "Devstral Small via OpenRouter." },
+            "openrouter:cognitivecomputations/dolphin-mistral-24b-venice-edition:free": { name: "OpenRouter: Dolphin Mistral 24B Venice (Free)", description: "Dolphin Mistral 24B Venice Edition gratuito via OpenRouter." },
+            "openrouter:x-ai/grok-4": { name: "OpenRouter: Grok 4", description: "Grok 4 via OpenRouter." },
+            "openrouter:google/gemma-3n-e2b-it:free": { name: "OpenRouter: Gemma 3n E2B IT (Free)", description: "Gemma 3n E2B IT gratuito via OpenRouter." },
+            "openrouter:tencent/hunyuan-a13b-instruct:free": { name: "OpenRouter: Tencent Hunyuan A13B Instruct (Free)", description: "Hunyuan A13B Instruct gratuito via OpenRouter." },
+            "openrouter:tencent/hunyuan-a13b-instruct": { name: "OpenRouter: Tencent Hunyuan A13B Instruct", description: "Hunyuan A13B Instruct via OpenRouter." },
+            "openrouter:tngtech/deepseek-r1t2-chimera:free": { name: "OpenRouter: DeepSeek R1T2 Chimera (Free)", description: "DeepSeek R1T2 Chimera gratuito via OpenRouter." },
+            "openrouter:morph/morph-v3-large": { name: "OpenRouter: Morph V3 Large", description: "Morph V3 Large via OpenRouter." },
+            "openrouter:morph/morph-v3-fast": { name: "OpenRouter: Morph V3 Fast", description: "Morph V3 Fast via OpenRouter." },
+            "openrouter:baidu/ernie-4.5-300b-a47b": { name: "OpenRouter: Baidu Ernie 4.5", description: "Ernie 4.5 da Baidu via OpenRouter." },
+            "openrouter:thedrummer/anubis-70b-v1.1": { name: "OpenRouter: Anubis 70B v1.1", description: "Anubis 70B v1.1 via OpenRouter." },
+            "openrouter:inception/mercury": { name: "OpenRouter: Inception Mercury", description: "Mercury da Inception via OpenRouter." },
+            "openrouter:mistralai/mistral-small-3.2-24b-instruct:free": { name: "OpenRouter: Mistral Small 3.2 24B Instruct (Free)", description: "Mistral Small 3.2 24B Instruct gratuito via OpenRouter." },
+            "openrouter:mistralai/mistral-small-3.2-24b-instruct": { name: "OpenRouter: Mistral Small 3.2 24B Instruct", description: "Mistral Small 3.2 24B Instruct via OpenRouter." },
+            "openrouter:minimax/minimax-m1": { name: "OpenRouter: MiniMax M1", description: "MiniMax M1 via OpenRouter." },
+            "openrouter:google/gemini-2.5-flash-lite-preview-06-17": { name: "OpenRouter: Gemini 2.5 Flash Lite Preview (06-17)", description: "Gemini 2.5 Flash Lite Preview (06-17) via OpenRouter." },
+            "openrouter:google/gemini-2.5-flash": { name: "OpenRouter: Gemini 2.5 Flash", description: "Gemini 2.5 Flash via OpenRouter." },
+            "openrouter:google/gemini-2.5-pro": { name: "OpenRouter: Gemini 2.5 Pro", description: "Gemini 2.5 Pro via OpenRouter." },
+            "openrouter:moonshotai/kimi-dev-72b:free": { name: "OpenRouter: Kimi Dev 72B (Free)", description: "Kimi Dev 72B gratuito via OpenRouter." },
+            "openrouter:openai/o3-pro": { name: "OpenRouter: O3 Pro", description: "O3 Pro via OpenRouter." },
+            "openrouter:x-ai/grok-3-mini": { name: "OpenRouter: Grok 3 Mini", description: "Grok 3 Mini via OpenRouter." },
+            "openrouter:x-ai/grok-3": { name: "OpenRouter: Grok 3", description: "Grok 3 via OpenRouter." },
+            "openrouter:mistralai/magistral-small-2506": { name: "OpenRouter: Magistral Small (2506)", description: "Magistral Small (2506) via OpenRouter." },
+            "openrouter:mistralai/magistral-medium-2506": { name: "OpenRouter: Magistral Medium (2506)", description: "Magistral Medium (2506) via OpenRouter." },
+            "openrouter:mistralai/magistral-medium-2506:thinking": { name: "OpenRouter: Magistral Medium (2506) Thinking", description: "Magistral Medium (2506) Thinking via OpenRouter." },
+            "openrouter:google/gemini-2.5-pro-preview": { name: "OpenRouter: Gemini 2.5 Pro Preview", description: "Gemini 2.5 Pro Preview via OpenRouter." },
+            "openrouter:deepseek/deepseek-r1-distill-qwen-7b": { name: "OpenRouter: DeepSeek R1 Distill Qwen 7B", description: "DeepSeek R1 Distill Qwen 7B via OpenRouter." },
+            "openrouter:deepseek/deepseek-r1-0528-qwen3-8b:free": { name: "OpenRouter: DeepSeek R1 0528 Qwen 3 8B (Free)", description: "DeepSeek R1 0528 Qwen 3 8B gratuito via OpenRouter." },
+            "openrouter:deepseek/deepseek-r1-0528-qwen3-8b": { name: "OpenRouter: DeepSeek R1 0528 Qwen 3 8B", description: "DeepSeek R1 0528 Qwen 3 8B via OpenRouter." },
+            "openrouter:deepseek/deepseek-r1-0528:free": { name: "OpenRouter: DeepSeek R1 0528 (Free)", description: "DeepSeek R1 0528 gratuito via OpenRouter." },
+            "openrouter:deepseek/deepseek-r1-0528": { name: "OpenRouter: DeepSeek R1 0528", description: "DeepSeek R1 0528 via OpenRouter." },
+            "openrouter:sarvamai/sarvam-m:free": { name: "OpenRouter: Sarvam M (Free)", description: "Sarvam M gratuito via OpenRouter." },
+            "openrouter:thedrummer/valkyrie-49b-v1": { name: "OpenRouter: Valkyrie 49B v1", description: "Valkyrie 49B v1 via OpenRouter." },
+            "openrouter:anthropic/claude-opus-4": { name: "OpenRouter: Claude Opus 4", description: "Claude Opus 4 via OpenRouter." },
+            "openrouter:anthropic/claude-sonnet-4": { name: "OpenRouter: Claude Sonnet 4", description: "Claude Sonnet 4 via OpenRouter." },
+            "openrouter:mistralai/devstral-small-2505:free": { name: "OpenRouter: Devstral Small (2505) (Free)", description: "Devstral Small (2505) gratuito via OpenRouter." },
+            "openrouter:mistralai/devstral-small-2505": { name: "OpenRouter: Devstral Small (2505)", description: "Devstral Small (2505) via OpenRouter." },
+            "openrouter:google/gemma-3n-e4b-it:free": { name: "OpenRouter: Gemma 3n E4B IT (Free)", description: "Gemma 3n E4B IT gratuito via OpenRouter." },
+            "openrouter:google/gemma-3n-e4b-it": { name: "OpenRouter: Gemma 3n E4B IT", description: "Gemma 3n E4B IT via OpenRouter." },
+            "openrouter:openai/codex-mini": { name: "OpenRouter: Codex Mini", description: "Codex Mini via OpenRouter." },
+            "openrouter:nousresearch/deephermes-3-mistral-24b-preview": { name: "OpenRouter: DeepHermes 3 Mistral 24B Preview", description: "DeepHermes 3 Mistral 24B Preview via OpenRouter." },
+            "openrouter:mistralai/mistral-medium-3": { name: "OpenRouter: Mistral Medium 3", description: "Mistral Medium 3 via OpenRouter." },
+            "openrouter:google/gemini-2.5-pro-preview-05-06": { name: "OpenRouter: Gemini 2.5 Pro Preview (05-06)", description: "Gemini 2.5 Pro Preview (05-06) via OpenRouter." },
+            "openrouter:arcee-ai/spotlight": { name: "OpenRouter: Arcee Spotlight", description: "Arcee Spotlight via OpenRouter." },
+            "openrouter:arcee-ai/maestro-reasoning": { name: "OpenRouter: Arcee Maestro Reasoning", description: "Arcee Maestro Reasoning via OpenRouter." },
+            "openrouter:arcee-ai/virtuoso-large": { name: "OpenRouter: Arcee Virtuoso Large", description: "Arcee Virtuoso Large via OpenRouter." },
+            "openrouter:arcee-ai/coder-large": { name: "OpenRouter: Arcee Coder Large", description: "Arcee Coder Large via OpenRouter." },
+            "openrouter:microsoft/phi-4-reasoning-plus": { name: "OpenRouter: Phi-4 Reasoning Plus", description: "Phi-4 Reasoning Plus da Microsoft via OpenRouter." },
+            "openrouter:inception/mercury-coder": { name: "OpenRouter: Inception Mercury Coder", description: "Mercury Coder da Inception via OpenRouter." },
+            "openrouter:qwen/qwen3-4b:free": { name: "OpenRouter: Qwen 3 4B (Free)", description: "Qwen 3 4B gratuito via OpenRouter." },
+            "openrouter:opengvlab/internvl3-14b": { name: "OpenRouter: InternVL3 14B", description: "InternVL3 14B via OpenRouter." },
+            "openrouter:deepseek/deepseek-prover-v2": { name: "OpenRouter: DeepSeek Prover V2", description: "DeepSeek Prover V2 via OpenRouter." },
+            "openrouter:meta-llama/llama-guard-4-12b": { name: "OpenRouter: Llama Guard 4 12B", description: "Llama Guard 4 12B via OpenRouter." },
+            "openrouter:qwen/qwen3-30b-a3b:free": { name: "OpenRouter: Qwen 3 30B (Free)", description: "Qwen 3 30B gratuito via OpenRouter." },
+            "openrouter:qwen/qwen3-30b-a3b": { name: "OpenRouter: Qwen 3 30B", description: "Qwen 3 30B via OpenRouter." },
+            "openrouter:qwen/qwen3-8b:free": { name: "OpenRouter: Qwen 3 8B (Free)", description: "Qwen 3 8B gratuito via OpenRouter." },
+            "openrouter:qwen/qwen3-8b": { name: "OpenRouter: Qwen 3 8B", description: "Qwen 3 8B via OpenRouter." },
+            "openrouter:qwen/qwen3-14b:free": { name: "OpenRouter: Qwen 3 14B (Free)", description: "Qwen 3 14B gratuito via OpenRouter." },
+            "openrouter:qwen/qwen3-14b": { name: "OpenRouter: Qwen 3 14B", description: "Qwen 3 14B via OpenRouter." },
+            "openrouter:qwen/qwen3-32b": { name: "OpenRouter: Qwen 3 32B", description: "Qwen 3 32B via OpenRouter." },
+            "openrouter:qwen/qwen3-235b-a22b:free": { name: "OpenRouter: Qwen 3 235B (Free)", description: "Qwen 3 235B gratuito via OpenRouter." },
+            "openrouter:qwen/qwen3-235b-a22b": { name: "OpenRouter: Qwen 3 235B", description: "Qwen 3 235B via OpenRouter." },
+            "openrouter:tngtech/deepseek-r1t-chimera:free": { name: "OpenRouter: DeepSeek R1T Chimera (Free)", description: "DeepSeek R1T Chimera gratuito via OpenRouter." },
+            "openrouter:tngtech/deepseek-r1t-chimera": { name: "OpenRouter: DeepSeek R1T Chimera", description: "DeepSeek R1T Chimera via OpenRouter." },
+            "openrouter:microsoft/mai-ds-r1:free": { name: "OpenRouter: MAI-DS-R1 (Free)", description: "MAI-DS-R1 gratuito via OpenRouter." },
+            "openrouter:microsoft/mai-ds-r1": { name: "OpenRouter: MAI-DS-R1", description: "MAI-DS-R1 via OpenRouter." },
+            "openrouter:thudm/glm-z1-32b:free": { name: "OpenRouter: GLM Z1 32B (Free)", description: "GLM Z1 32B gratuito via OpenRouter." },
+            "openrouter:thudm/glm-4-32b": { name: "OpenRouter: GLM 4 32B", description: "GLM 4 32B via OpenRouter." },
+            "openrouter:openai/o4-mini-high": { name: "OpenRouter: O4 Mini High", description: "O4 Mini High via OpenRouter." },
+            "openrouter:openai/o3": { name: "OpenRouter: O3", description: "O3 via OpenRouter." },
+            "openrouter:openai/o4-mini": { name: "OpenRouter: O4 Mini", description: "O4 Mini via OpenRouter." },
+            "openrouter:shisa-ai/shisa-v2-llama3.3-70b:free": { name: "OpenRouter: Shisa V2 Llama 3.3 70B (Free)", description: "Shisa V2 Llama 3.3 70B gratuito via OpenRouter." },
+            "openrouter:shisa-ai/shisa-v2-llama3.3-70b": { name: "OpenRouter: Shisa V2 Llama 3.3 70B", description: "Shisa V2 Llama 3.3 70B via OpenRouter." },
+            "openrouter:openai/gpt-4.1": { name: "OpenRouter: GPT-4.1", description: "GPT-4.1 via OpenRouter." },
+            "openrouter:openai/gpt-4.1-mini": { name: "OpenRouter: GPT-4.1 Mini", description: "GPT-4.1 Mini via OpenRouter." },
+            "openrouter:openai/gpt-4.1-nano": { name: "OpenRouter: GPT-4.1 Nano", description: "GPT-4.1 Nano via OpenRouter." },
+            "openrouter:eleutherai/llemma_7b": { name: "OpenRouter: EleutherAI LLaMMA 7B", description: "LLaMMA 7B da EleutherAI via OpenRouter." },
+            "openrouter:alfredpros/codellama-7b-instruct-solidity": { name: "OpenRouter: CodeLlama 7B Instruct Solidity", description: "CodeLlama 7B Instruct Solidity via OpenRouter." },
+            "openrouter:arliai/qwq-32b-arliai-rpr-v1:free": { name: "OpenRouter: QwQ 32B ArlAI RPR v1 (Free)", description: "QwQ 32B ArlAI RPR v1 gratuito via OpenRouter." },
+            "openrouter:arliai/qwq-32b-arliai-rpr-v1": { name: "OpenRouter: QwQ 32B ArlAI RPR v1", description: "QwQ 32B ArlAI RPR v1 via OpenRouter." },
+            "openrouter:agentica-org/deepcoder-14b-preview:free": { name: "OpenRouter: Deepcoder 14B Preview (Free)", description: "Deepcoder 14B Preview gratuito via OpenRouter." },
+            "openrouter:agentica-org/deepcoder-14b-preview": { name: "OpenRouter: Deepcoder 14B Preview", description: "Deepcoder 14B Preview via OpenRouter." },
+            "openrouter:moonshotai/kimi-vl-a3b-thinking:free": { name: "OpenRouter: Kimi VL A3B Thinking (Free)", description: "Kimi VL A3B Thinking gratuito via OpenRouter." },
+            "openrouter:moonshotai/kimi-vl-a3b-thinking": { name: "OpenRouter: Kimi VL A3B Thinking", description: "Kimi VL A3B Thinking via OpenRouter." },
+            "openrouter:x-ai/grok-3-mini-beta": { name: "OpenRouter: Grok 3 Mini Beta", description: "Grok 3 Mini Beta via OpenRouter." },
+            "openrouter:x-ai/grok-3-beta": { name: "OpenRouter: Grok 3 Beta", description: "Grok 3 Beta via OpenRouter." },
+            "openrouter:nvidia/llama-3.3-nemotron-super-49b-v1": { name: "OpenRouter: NVIDIA Llama 3.3 Nemotron Super 49B v1", description: "Llama 3.3 Nemotron Super 49B v1 da NVIDIA via OpenRouter." },
+            "openrouter:nvidia/llama-3.1-nemotron-ultra-253b-v1:free": { name: "OpenRouter: NVIDIA Llama 3.1 Nemotron Ultra 253B v1 (Free)", description: "Llama 3.1 Nemotron Ultra 253B v1 gratuito via OpenRouter." },
+            "openrouter:nvidia/llama-3.1-nemotron-ultra-253b-v1": { name: "OpenRouter: NVIDIA Llama 3.1 Nemotron Ultra 253B v1", description: "Llama 3.1 Nemotron Ultra 253B v1 da NVIDIA via OpenRouter." },
+            "openrouter:meta-llama/llama-4-maverick": { name: "OpenRouter: Llama 4 Maverick", description: "Llama 4 Maverick via OpenRouter." },
+            "openrouter:meta-llama/llama-4-scout": { name: "OpenRouter: Llama 4 Scout", description: "Llama 4 Scout via OpenRouter." },
+            "openrouter:deepseek/deepseek-v3-base": { name: "OpenRouter: DeepSeek V3 Base", description: "DeepSeek V3 Base via OpenRouter." },
+            "openrouter:scb10x/llama3.1-typhoon2-70b-instruct": { name: "OpenRouter: Llama 3.1 Typhoon 2 70B Instruct", description: "Llama 3.1 Typhoon 2 70B Instruct via OpenRouter." },
+            "openrouter:google/gemini-2.5-pro-exp-03-25": { name: "OpenRouter: Gemini 2.5 Pro Exp (03-25)", description: "Gemini 2.5 Pro Exp (03-25) via OpenRouter." },
+            "openrouter:qwen/qwen2.5-vl-32b-instruct:free": { name: "OpenRouter: Qwen 2.5 VL 32B Instruct (Free)", description: "Qwen 2.5 VL 32B Instruct gratuito via OpenRouter." },
+            "openrouter:qwen/qwen2.5-vl-32b-instruct": { name: "OpenRouter: Qwen 2.5 VL 32B Instruct", description: "Qwen 2.5 VL 32B Instruct via OpenRouter." },
+            "openrouter:deepseek/deepseek-chat-v3-0324:free": { name: "OpenRouter: DeepSeek Chat V3 (0324) (Free)", description: "DeepSeek Chat V3 (0324) gratuito via OpenRouter." },
+            "openrouter:deepseek/deepseek-chat-v3-0324": { name: "OpenRouter: DeepSeek Chat V3 (0324)", description: "DeepSeek Chat V3 (0324) via OpenRouter." },
+            "openrouter:featherless/qwerky-72b:free": { name: "OpenRouter: Qwerky 72B (Free)", description: "Qwerky 72B gratuito via OpenRouter." },
+            "openrouter:openai/o1-pro": { name: "OpenRouter: O1 Pro", description: "O1 Pro via OpenRouter." },
+            "openrouter:mistralai/mistral-small-3.1-24b-instruct:free": { name: "OpenRouter: Mistral Small 3.1 24B Instruct (Free)", description: "Mistral Small 3.1 24B Instruct gratuito via OpenRouter." },
+            "openrouter:mistralai/mistral-small-3.1-24b-instruct": { name: "OpenRouter: Mistral Small 3.1 24B Instruct", description: "Mistral Small 3.1 24B Instruct via OpenRouter." },
+            "openrouter:google/gemma-3-4b-it:free": { name: "OpenRouter: Gemma 3 4B IT (Free)", description: "Gemma 3 4B IT gratuito via OpenRouter." },
+            "openrouter:google/gemma-3-4b-it": { name: "OpenRouter: Gemma 3 4B IT", description: "Gemma 3 4B IT via OpenRouter." },
+            "openrouter:google/gemma-3-12b-it:free": { name: "OpenRouter: Gemma 3 12B IT (Free)", description: "Gemma 3 12B IT gratuito via OpenRouter." },
+            "openrouter:google/gemma-3-12b-it": { name: "OpenRouter: Gemma 3 12B IT", description: "Gemma 3 12B IT via OpenRouter." },
+            "openrouter:cohere/command-a": { name: "OpenRouter: Cohere Command A", description: "Command A da Cohere via OpenRouter." },
+            "openrouter:openai/gpt-4o-mini-search-preview": { name: "OpenRouter: GPT-4o Mini Search Preview", description: "GPT-4o Mini Search Preview via OpenRouter." },
+            "openrouter:openai/gpt-4o-search-preview": { name: "OpenRouter: GPT-4o Search Preview", description: "GPT-4o Search Preview via OpenRouter." },
+            "openrouter:rekaai/reka-flash-3:free": { name: "OpenRouter: Reka Flash 3 (Free)", description: "Reka Flash 3 gratuito via OpenRouter." },
+            "openrouter:google/gemma-3-27b-it:free": { name: "OpenRouter: Gemma 3 27B IT (Free)", description: "Gemma 3 27B IT gratuito via OpenRouter." },
+            "openrouter:google/gemma-3-27b-it": { name: "OpenRouter: Gemma 3 27B IT", description: "Gemma 3 27B IT via OpenRouter." },
+            "openrouter:thedrummer/anubis-pro-105b-v1": { name: "OpenRouter: Anubis Pro 105B v1", description: "Anubis Pro 105B v1 via OpenRouter." },
+            "openrouter:thedrummer/skyfall-36b-v2": { name: "OpenRouter: Skyfall 36B v2", description: "Skyfall 36B v2 via OpenRouter." },
+            "openrouter:microsoft/phi-4-multimodal-instruct": { name: "OpenRouter: Phi-4 Multimodal Instruct", description: "Phi-4 Multimodal Instruct da Microsoft via OpenRouter." },
+            "openrouter:perplexity/sonar-reasoning-pro": { name: "OpenRouter: Perplexity Sonar Reasoning Pro", description: "Sonar Reasoning Pro da Perplexity via OpenRouter." },
+            "openrouter:perplexity/sonar-pro": { name: "OpenRouter: Perplexity Sonar Pro", description: "Sonar Pro da Perplexity via OpenRouter." },
+            "openrouter:perplexity/sonar-deep-research": { name: "OpenRouter: Perplexity Sonar Deep Research", description: "Sonar Deep Research da Perplexity via OpenRouter." },
+            "openrouter:qwen/qwq-32b:free": { name: "OpenRouter: QwQ 32B (Free)", description: "QwQ 32B gratuito via OpenRouter." },
+            "openrouter:qwen/qwq-32b": { name: "OpenRouter: QwQ 32B", description: "QwQ 32B via OpenRouter." },
+            "openrouter:nousresearch/deephermes-3-llama-3-8b-preview:free": { name: "OpenRouter: DeepHermes 3 Llama 3 8B Preview (Free)", description: "DeepHermes 3 Llama 3 8B Preview gratuito via OpenRouter." },
+            "openrouter:google/gemini-2.0-flash-lite-001": { name: "OpenRouter: Gemini 2.0 Flash Lite (001)", description: "Gemini 2.0 Flash Lite (001) via OpenRouter." },
+            "openrouter:anthropic/claude-3.7-sonnet": { name: "OpenRouter: Claude 3.7 Sonnet", description: "Claude 3.7 Sonnet via OpenRouter." },
+            "openrouter:anthropic/claude-3.7-sonnet:thinking": { name: "OpenRouter: Claude 3.7 Sonnet (Thinking)", description: "Claude 3.7 Sonnet (Thinking) via OpenRouter." },
+            "openrouter:anthropic/claude-3.7-sonnet:beta": { name: "OpenRouter: Claude 3.7 Sonnet (Beta)", description: "Claude 3.7 Sonnet (Beta) via OpenRouter." },
+            "openrouter:perplexity/r1-1776": { name: "OpenRouter: Perplexity R1-1776", description: "R1-1776 da Perplexity via OpenRouter." },
+            "openrouter:mistralai/mistral-saba": { name: "OpenRouter: Mistral Saba", description: "Mistral Saba via OpenRouter." },
+            "openrouter:cognitivecomputations/dolphin3.0-r1-mistral-24b:free": { name: "OpenRouter: Dolphin 3.0 R1 Mistral 24B (Free)", description: "Dolphin 3.0 R1 Mistral 24B gratuito via OpenRouter." },
+            "openrouter:cognitivecomputations/dolphin3.0-r1-mistral-24b": { name: "OpenRouter: Dolphin 3.0 R1 Mistral 24B", description: "Dolphin 3.0 R1 Mistral 24B via OpenRouter." },
+            "openrouter:cognitivecomputations/dolphin3.0-mistral-24b:free": { name: "OpenRouter: Dolphin 3.0 Mistral 24B (Free)", description: "Dolphin 3.0 Mistral 24B gratuito via OpenRouter." },
+            "openrouter:cognitivecomputations/dolphin3.0-mistral-24b": { name: "OpenRouter: Dolphin 3.0 Mistral 24B", description: "Dolphin 3.0 Mistral 24B via OpenRouter." },
+            "openrouter:meta-llama/llama-guard-3-8b": { name: "OpenRouter: Llama Guard 3 8B", description: "Llama Guard 3 8B via OpenRouter." },
+            "openrouter:openai/o3-mini-high": { name: "OpenRouter: O3 Mini High", description: "O3 Mini High via OpenRouter." },
+            "openrouter:deepseek/deepseek-r1-distill-llama-8b": { name: "OpenRouter: DeepSeek R1 Distill Llama 8B", description: "DeepSeek R1 Distill Llama 8B via OpenRouter." },
+            "openrouter:google/gemini-2.0-flash-001": { name: "OpenRouter: Gemini 2.0 Flash (001)", description: "Gemini 2.0 Flash (001) via OpenRouter." },
+            "openrouter:qwen/qwen-vl-plus": { name: "OpenRouter: Qwen VL Plus", description: "Qwen VL Plus via OpenRouter." },
+            "openrouter:aion-labs/aion-1.0": { name: "OpenRouter: Aion 1.0", description: "Aion 1.0 via OpenRouter." },
+            "openrouter:aion-labs/aion-1.0-mini": { name: "OpenRouter: Aion 1.0 Mini", description: "Aion 1.0 Mini via OpenRouter." },
+            "openrouter:aion-labs/aion-rp-llama-3.1-8b": { name: "OpenRouter: Aion RP Llama 3.1 8B", description: "Aion RP Llama 3.1 8B via OpenRouter." },
+            "openrouter:qwen/qwen-vl-max": { name: "OpenRouter: Qwen VL Max", description: "Qwen VL Max via OpenRouter." },
+            "openrouter:qwen/qwen-turbo": { name: "OpenRouter: Qwen Turbo", description: "Qwen Turbo via OpenRouter." },
+            "openrouter:qwen/qwen2.5-vl-72b-instruct:free": { name: "OpenRouter: Qwen 2.5 VL 72B Instruct (Free)", description: "Qwen 2.5 VL 72B Instruct gratuito via OpenRouter." },
+            "openrouter:qwen/qwen2.5-vl-72b-instruct": { name: "OpenRouter: Qwen 2.5 VL 72B Instruct", description: "Qwen 2.5 VL 72B Instruct via OpenRouter." },
+            "openrouter:qwen/qwen-plus": { name: "OpenRouter: Qwen Plus", description: "Qwen Plus via OpenRouter." },
+            "openrouter:qwen/qwen-max": { name: "OpenRouter: Qwen Max", description: "Qwen Max via OpenRouter." },
+            "openrouter:openai/o3-mini": { name: "OpenRouter: O3 Mini", description: "O3 Mini via OpenRouter." },
+            "openrouter:deepseek/deepseek-r1-distill-qwen-1.5b": { name: "OpenRouter: DeepSeek R1 Distill Qwen 1.5B", description: "DeepSeek R1 Distill Qwen 1.5B via OpenRouter." },
+            "openrouter:mistralai/mistral-small-24b-instruct-2501:free": { name: "OpenRouter: Mistral Small 24B Instruct (2501) (Free)", description: "Mistral Small 24B Instruct (2501) gratuito via OpenRouter." },
+            "openrouter:mistralai/mistral-small-24b-instruct-2501": { name: "OpenRouter: Mistral Small 24B Instruct (2501)", description: "Mistral Small 24B Instruct (2501) via OpenRouter." },
+            "openrouter:deepseek/deepseek-r1-distill-qwen-32b": { name: "OpenRouter: DeepSeek R1 Distill Qwen 32B", description: "DeepSeek R1 Distill Qwen 32B via OpenRouter." },
+            "openrouter:deepseek/deepseek-r1-distill-qwen-14b:free": { name: "OpenRouter: DeepSeek R1 Distill Qwen 14B (Free)", description: "DeepSeek R1 Distill Qwen 14B gratuito via OpenRouter." },
+            "openrouter:deepseek/deepseek-r1-distill-qwen-14b": { name: "OpenRouter: DeepSeek R1 Distill Qwen 14B", description: "DeepSeek R1 Distill Qwen 14B via OpenRouter." },
+            "openrouter:perplexity/sonar-reasoning": { name: "OpenRouter: Perplexity Sonar Reasoning", description: "Sonar Reasoning da Perplexity via OpenRouter." },
+            "openrouter:perplexity/sonar": { name: "OpenRouter: Perplexity Sonar", description: "Sonar da Perplexity via OpenRouter." },
+            "openrouter:liquid/lfm-7b": { name: "OpenRouter: Liquid LFM 7B", description: "LFM 7B da Liquid via OpenRouter." },
+            "openrouter:liquid/lfm-3b": { name: "OpenRouter: Liquid LFM 3B", description: "LFM 3B da Liquid via OpenRouter." },
+            "openrouter:deepseek/deepseek-r1-distill-llama-70b:free": { name: "OpenRouter: DeepSeek R1 Distill Llama 70B (Free)", description: "DeepSeek R1 Distill Llama 70B gratuito via OpenRouter." },
+            "openrouter:deepseek/deepseek-r1-distill-llama-70b": { name: "OpenRouter: DeepSeek R1 Distill Llama 70B", description: "DeepSeek R1 Distill Llama 70B via OpenRouter." },
+            "openrouter:deepseek/deepseek-r1:free": { name: "OpenRouter: DeepSeek R1 (Free)", description: "DeepSeek R1 gratuito via OpenRouter." },
+            "openrouter:deepseek/deepseek-r1": { name: "OpenRouter: DeepSeek R1", description: "DeepSeek R1 via OpenRouter." },
+            "openrouter:minimax/minimax-01": { name: "OpenRouter: MiniMax 01", description: "MiniMax 01 via OpenRouter." },
+            "openrouter:mistralai/codestral-2501": { name: "OpenRouter: Codestral (2501)", description: "Codestral (2501) via OpenRouter." },
+            "openrouter:microsoft/phi-4": { name: "OpenRouter: Phi-4", description: "Phi-4 da Microsoft via OpenRouter." },
+            "openrouter:deepseek/deepseek-chat": { name: "OpenRouter: DeepSeek Chat", description: "DeepSeek Chat via OpenRouter." },
+            "openrouter:sao10k/l3.3-euryale-70b": { name: "OpenRouter: L3.3 Euryale 70B", description: "L3.3 Euryale 70B via OpenRouter." },
+            "openrouter:openai/o1": { name: "OpenRouter: O1", description: "O1 via OpenRouter." },
+            "openrouter:x-ai/grok-2-vision-1212": { name: "OpenRouter: Grok 2 Vision (1212)", description: "Grok 2 Vision (1212) via OpenRouter." },
+            "openrouter:x-ai/grok-2-1212": { name: "OpenRouter: Grok 2 (1212)", description: "Grok 2 (1212) via OpenRouter." },
+            "openrouter:cohere/command-r7b-12-2024": { name: "OpenRouter: Cohere Command R7B (12-2024)", description: "Command R7B (12-2024) da Cohere via OpenRouter." },
+            "openrouter:google/gemini-2.0-flash-exp:free": { name: "OpenRouter: Gemini 2.0 Flash Exp (Free)", description: "Gemini 2.0 Flash Exp gratuito via OpenRouter." },
+            "openrouter:meta-llama/llama-3.3-70b-instruct:free": { name: "OpenRouter: Llama 3.3 70B Instruct (Free)", description: "Llama 3.3 70B Instruct gratuito via OpenRouter." },
+            "openrouter:meta-llama/llama-3.3-70b-instruct": { name: "OpenRouter: Llama 3.3 70B Instruct", description: "Llama 3.3 70B Instruct via OpenRouter." },
+            "openrouter:amazon/nova-lite-v1": { name: "OpenRouter: Amazon Nova Lite v1", description: "Nova Lite v1 da Amazon via OpenRouter." },
+            "openrouter:amazon/nova-micro-v1": { name: "OpenRouter: Amazon Nova Micro v1", description: "Nova Micro v1 da Amazon via OpenRouter." },
+            "openrouter:amazon/nova-pro-v1": { name: "OpenRouter: Amazon Nova Pro v1", description: "Nova Pro v1 da Amazon via OpenRouter." },
+            "openrouter:qwen/qwq-32b-preview": { name: "OpenRouter: QwQ 32B Preview", description: "QwQ 32B Preview via OpenRouter." },
+            "openrouter:openai/gpt-4o-2024-11-20": { name: "OpenRouter: GPT-4o (2024-11-20)", description: "GPT-4o (2024-11-20) via OpenRouter." },
+            "openrouter:mistralai/mistral-large-2411": { name: "OpenRouter: Mistral Large (2411)", description: "Mistral Large (2411) via OpenRouter." },
+            "openrouter:mistralai/mistral-large-2407": { name: "OpenRouter: Mistral Large (2407)", description: "Mistral Large (2407) via OpenRouter." },
+            "openrouter:mistralai/pixtral-large-2411": { name: "OpenRouter: Pixtral Large (2411)", description: "Pixtral Large (2411) via OpenRouter." },
+            "openrouter:x-ai/grok-vision-beta": { name: "OpenRouter: Grok Vision Beta", description: "Grok Vision Beta via OpenRouter." },
+            "openrouter:infermatic/mn-inferor-12b": { name: "OpenRouter: Infermatic MN Inferor 12B", description: "MN Inferor 12B da Infermatic via OpenRouter." },
+            "openrouter:qwen/qwen-2.5-coder-32b-instruct:free": { name: "OpenRouter: Qwen 2.5 Coder 32B Instruct (Free)", description: "Qwen 2.5 Coder 32B Instruct gratuito via OpenRouter." },
+            "openrouter:qwen/qwen-2.5-coder-32b-instruct": { name: "OpenRouter: Qwen 2.5 Coder 32B Instruct", description: "Qwen 2.5 Coder 32B Instruct via OpenRouter." },
+            "openrouter:raifle/sorcererlm-8x22b": { name: "OpenRouter: Raifle SorcererLM 8x22B", description: "SorcererLM 8x22B da Raifle via OpenRouter." },
+            "openrouter:thedrummer/unslopnemo-12b": { name: "OpenRouter: Unslopnemo 12B", description: "Unslopnemo 12B via OpenRouter." },
+            "openrouter:anthropic/claude-3.5-haiku:beta": { name: "OpenRouter: Claude 3.5 Haiku (Beta)", description: "Claude 3.5 Haiku (Beta) via OpenRouter." },
+            "openrouter:anthropic/claude-3.5-haiku": { name: "OpenRouter: Claude 3.5 Haiku", description: "Claude 3.5 Haiku via OpenRouter." },
+            "openrouter:anthropic/claude-3.5-haiku-20241022": { name: "OpenRouter: Claude 3.5 Haiku (20241022)", description: "Claude 3.5 Haiku (20241022) via OpenRouter." },
+            "openrouter:anthropic/claude-3.5-sonnet:beta": { name: "OpenRouter: Claude 3.5 Sonnet (Beta)", description: "Claude 3.5 Sonnet (Beta) via OpenRouter." },
+            "openrouter:anthropic/claude-3.5-sonnet": { name: "OpenRouter: Claude 3.5 Sonnet", description: "Claude 3.5 Sonnet via OpenRouter." },
+            "openrouter:anthracite-org/magnum-v4-72b": { name: "OpenRouter: Anthracite Magnum v4 72B", description: "Magnum v4 72B da Anthracite via OpenRouter." },
+            "openrouter:mistralai/ministral-3b": { name: "OpenRouter: Minustral 3B", description: "Minustral 3B via OpenRouter." },
+            "openrouter:mistralai/ministral-8b": { name: "OpenRouter: Minustral 8B", description: "Minustral 8B via OpenRouter." },
+            "openrouter:qwen/qwen-2.5-7b-instruct": { name: "OpenRouter: Qwen 2.5 7B Instruct", description: "Qwen 2.5 7B Instruct via OpenRouter." },
+            "openrouter:nvidia/llama-3.1-nemotron-70b-instruct": { name: "OpenRouter: NVIDIA Llama 3.1 Nemotron 70B Instruct", description: "Llama 3.1 Nemotron 70B Instruct da NVIDIA via OpenRouter." },
+            "openrouter:inflection/inflection-3-pi": { name: "OpenRouter: Inflection 3 Pi", description: "Inflection 3 Pi via OpenRouter." },
+            "openrouter:inflection/inflection-3-productivity": { name: "OpenRouter: Inflection 3 Productivity", description: "Inflection 3 Productivity via OpenRouter." },
+            "openrouter:google/gemini-flash-1.5-8b": { name: "OpenRouter: Gemini Flash 1.5 8B", description: "Gemini Flash 1.5 8B via OpenRouter." },
+            "openrouter:thedrummer/rocinante-12b": { name: "OpenRouter: Rocinante 12B", description: "Rocinante 12B via OpenRouter." },
+            "openrouter:anthracite-org/magnum-v2-72b": { name: "OpenRouter: Anthracite Magnum v2 72B", description: "Magnum v2 72B da Anthracite via OpenRouter." },
+            "openrouter:liquid/lfm-40b": { name: "OpenRouter: Liquid LFM 40B", description: "LFM 40B da Liquid via OpenRouter." },
+            "openrouter:meta-llama/llama-3.2-3b-instruct:free": { name: "OpenRouter: Llama 3.2 3B Instruct (Free)", description: "Llama 3.2 3B Instruct gratuito via OpenRouter." },
+            "openrouter:meta-llama/llama-3.2-3b-instruct": { name: "OpenRouter: Llama 3.2 3B Instruct", description: "Llama 3.2 3B Instruct via OpenRouter." },
+            "openrouter:meta-llama/llama-3.2-11b-vision-instruct:free": { name: "OpenRouter: Llama 3.2 11B Vision Instruct (Free)", description: "Llama 3.2 11B Vision Instruct gratuito via OpenRouter." },
+            "openrouter:meta-llama/llama-3.2-11b-vision-instruct": { name: "OpenRouter: Llama 3.2 11B Vision Instruct", description: "Llama 3.2 11B Vision Instruct via OpenRouter." },
+            "openrouter:meta-llama/llama-3.2-90b-vision-instruct": { name: "OpenRouter: Llama 3.2 90B Vision Instruct", description: "Llama 3.2 90B Vision Instruct via OpenRouter." },
+            "openrouter:meta-llama/llama-3.2-1b-instruct": { name: "OpenRouter: Llama 3.2 1B Instruct", description: "Llama 3.2 1B Instruct via OpenRouter." },
+            "openrouter:qwen/qwen-2.5-72b-instruct:free": { name: "OpenRouter: Qwen 2.5 72B Instruct (Free)", description: "Qwen 2.5 72B Instruct gratuito via OpenRouter." },
+            "openrouter:qwen/qwen-2.5-72b-instruct": { name: "OpenRouter: Qwen 2.5 72B Instruct", description: "Qwen 2.5 72B Instruct via OpenRouter." },
+            "openrouter:neversleep/llama-3.1-lumimaid-8b": { name: "OpenRouter: Llama 3.1 Lumimaid 8B", description: "Llama 3.1 Lumimaid 8B via OpenRouter." },
+            "openrouter:openai/o1-mini": { name: "OpenRouter: O1 Mini", description: "O1 Mini via OpenRouter." },
+            "openrouter:openai/o1-mini-2024-09-12": { name: "OpenRouter: O1 Mini (2024-09-12)", description: "O1 Mini (2024-09-12) via OpenRouter." },
+            "openrouter:mistralai/pixtral-12b": { name: "OpenRouter: Pixtral 12B", description: "Pixtral 12B via OpenRouter." },
+            "openrouter:cohere/command-r-plus-08-2024": { name: "OpenRouter: Cohere Command R Plus (08-2024)", description: "Command R Plus (08-2024) da Cohere via OpenRouter." },
+            "openrouter:cohere/command-r-08-2024": { name: "OpenRouter: Cohere Command R (08-2024)", description: "Command R (08-2024) da Cohere via OpenRouter." },
+            "openrouter:qwen/qwen-2.5-vl-7b-instruct": { name: "OpenRouter: Qwen 2.5 VL 7B Instruct", description: "Qwen 2.5 VL 7B Instruct via OpenRouter." },
+            "openrouter:sao10k/l3.1-euryale-70b": { name: "OpenRouter: L3.1 Euryale 70B", description: "L3.1 Euryale 70B via OpenRouter." },
+            "openrouter:microsoft/phi-3.5-mini-128k-instruct": { name: "OpenRouter: Phi 3.5 Mini 128K Instruct", description: "Phi 3.5 Mini 128K Instruct da Microsoft via OpenRouter." },
+            "openrouter:nousresearch/hermes-3-llama-3.1-70b": { name: "OpenRouter: Hermes 3 Llama 3.1 70B", description: "Hermes 3 Llama 3.1 70B via OpenRouter." },
+            "openrouter:nousresearch/hermes-3-llama-3.1-405b": { name: "OpenRouter: Hermes 3 Llama 3.1 405B", description: "Hermes 3 Llama 3.1 405B via OpenRouter." },
+            "openrouter:openai/chatgpt-4o-latest": { name: "OpenRouter: ChatGPT-4o (Latest)", description: "ChatGPT-4o mais recente via OpenRouter." },
+            "openrouter:sao10k/l3-lunaris-8b": { name: "OpenRouter: L3 Lunaris 8B", description: "L3 Lunaris 8B via OpenRouter." },
+            "openrouter:openai/gpt-4o-2024-08-06": { name: "OpenRouter: GPT-4o (2024-08-06)", description: "GPT-4o (2024-08-06) via OpenRouter." },
+            "openrouter:meta-llama/llama-3.1-405b": { name: "OpenRouter: Llama 3.1 405B", description: "Llama 3.1 405B via OpenRouter." },
+            "openrouter:meta-llama/llama-3.1-70b-instruct": { name: "OpenRouter: Llama 3.1 70B Instruct", description: "Llama 3.1 70B Instruct via OpenRouter." },
+            "openrouter:meta-llama/llama-3.1-405b-instruct:free": { name: "OpenRouter: Llama 3.1 405B Instruct (Free)", description: "Llama 3.1 405B Instruct gratuito via OpenRouter." },
+            "openrouter:meta-llama/llama-3.1-405b-instruct": { name: "OpenRouter: Llama 3.1 405B Instruct", description: "Llama 3.1 405B Instruct via OpenRouter." },
+            "openrouter:meta-llama/llama-3.1-8b-instruct": { name: "OpenRouter: Llama 3.1 8B Instruct", description: "Llama 3.1 8B Instruct via OpenRouter." },
+            "openrouter:mistralai/mistral-nemo:free": { name: "OpenRouter: Mistral Nemo (Free)", description: "Mistral Nemo gratuito via OpenRouter." },
+            "openrouter:mistralai/mistral-nemo": { name: "OpenRouter: Mistral Nemo", description: "Mistral Nemo via OpenRouter." },
+            "openrouter:openai/gpt-4o-mini": { name: "OpenRouter: GPT-4o Mini", description: "GPT-4o Mini via OpenRouter." },
+            "openrouter:openai/gpt-4o-mini-2024-07-18": { name: "OpenRouter: GPT-4o Mini (2024-07-18)", description: "GPT-4o Mini (2024-07-18) via OpenRouter." },
+            "openrouter:google/gemma-2-27b-it": { name: "OpenRouter: Gemma 2 27B IT", description: "Gemma 2 27B IT via OpenRouter." },
+            "openrouter:google/gemma-2-9b-it:free": { name: "OpenRouter: Gemma 2 9B IT (Free)", description: "Gemma 2 9B IT gratuito via OpenRouter." },
+            "openrouter:google/gemma-2-9b-it": { name: "OpenRouter: Gemma 2 9B IT", description: "Gemma 2 9B IT via OpenRouter." },
+            "openrouter:anthropic/claude-3.5-sonnet-20240620:beta": { name: "OpenRouter: Claude 3.5 Sonnet (20240620) (Beta)", description: "Claude 3.5 Sonnet (20240620) (Beta) via OpenRouter." },
+            "openrouter:anthropic/claude-3.5-sonnet-20240620": { name: "OpenRouter: Claude 3.5 Sonnet (20240620)", description: "Claude 3.5 Sonnet (20240620) via OpenRouter." },
+            "openrouter:sao10k/l3-euryale-70b": { name: "OpenRouter: L3 Euryale 70B", description: "L3 Euryale 70B via OpenRouter." },
+            "openrouter:cognitivecomputations/dolphin-mixtral-8x22b": { name: "OpenRouter: Dolphin Mixtral 8x22B", description: "Dolphin Mixtral 8x22B via OpenRouter." },
+            "openrouter:qwen/qwen-2-72b-instruct": { name: "OpenRouter: Qwen 2 72B Instruct", description: "Qwen 2 72B Instruct via OpenRouter." },
+            "openrouter:mistralai/mistral-7b-instruct:free": { name: "OpenRouter: Mistral 7B Instruct (Free)", description: "Mistral 7B Instruct gratuito via OpenRouter." },
+            "openrouter:mistralai/mistral-7b-instruct": { name: "OpenRouter: Mistral 7B Instruct", description: "Mistral 7B Instruct via OpenRouter." },
+            "openrouter:mistralai/mistral-7b-instruct-v0.3": { name: "OpenRouter: Mistral 7B Instruct v0.3", description: "Mistral 7B Instruct v0.3 via OpenRouter." },
+            "openrouter:nousresearch/hermes-2-pro-llama-3-8b": { name: "OpenRouter: Hermes 2 Pro Llama 3 8B", description: "Hermes 2 Pro Llama 3 8B via OpenRouter." },
+            "openrouter:microsoft/phi-3-mini-128k-instruct": { name: "OpenRouter: Phi 3 Mini 128K Instruct", description: "Phi 3 Mini 128K Instruct da Microsoft via OpenRouter." },
+            "openrouter:microsoft/phi-3-medium-128k-instruct": { name: "OpenRouter: Phi 3 Medium 128K Instruct", description: "Phi 3 Medium 128K Instruct da Microsoft via OpenRouter." },
+            "openrouter:neversleep/llama-3-lumimaid-70b": { name: "OpenRouter: Llama 3 Lumimaid 70B", description: "Llama 3 Lumimaid 70B via OpenRouter." },
+            "openrouter:google/gemini-flash-1.5": { name: "OpenRouter: Gemini Flash 1.5", description: "Gemini Flash 1.5 via OpenRouter." },
+            "openrouter:openai/gpt-4o-2024-05-13": { name: "OpenRouter: GPT-4o (2024-05-13)", description: "GPT-4o (2024-05-13) via OpenRouter." },
+            "openrouter:meta-llama/llama-guard-2-8b": { name: "OpenRouter: Llama Guard 2 8B", description: "Llama Guard 2 8B via OpenRouter." },
+            "openrouter:openai/gpt-4o": { name: "OpenRouter: GPT-4o", description: "GPT-4o via OpenRouter." },
+            "openrouter:openai/gpt-4o:extended": { name: "OpenRouter: GPT-4o (Extended)", description: "GPT-4o (Extended) via OpenRouter." },
+            "openrouter:meta-llama/llama-3-70b-instruct": { name: "OpenRouter: Llama 3 70B Instruct", description: "Llama 3 70B Instruct via OpenRouter." },
+            "openrouter:meta-llama/llama-3-8b-instruct": { name: "OpenRouter: Llama 3 8B Instruct", description: "Llama 3 8B Instruct via OpenRouter." },
+            "openrouter:mistralai/mixtral-8x22b-instruct": { name: "OpenRouter: Mixtral 8x22B Instruct", description: "Mixtral 8x22B Instruct via OpenRouter." },
+            "openrouter:microsoft/wizardlm-2-8x22b": { name: "OpenRouter: WizardLM 2 8x22B", description: "WizardLM 2 8x22B da Microsoft via OpenRouter." },
+            "openrouter:openai/gpt-4-turbo": { name: "OpenRouter: GPT-4 Turbo", description: "GPT-4 Turbo via OpenRouter." },
+            "openrouter:google/gemini-pro-1.5": { name: "OpenRouter: Gemini Pro 1.5", description: "Gemini Pro 1.5 via OpenRouter." },
+            "openrouter:cohere/command-r-plus": { name: "OpenRouter: Cohere Command R Plus", description: "Command R Plus da Cohere via OpenRouter." },
+            "openrouter:cohere/command-r-plus-04-2024": { name: "OpenRouter: Cohere Command R Plus (04-2024)", description: "Command R Plus (04-2024) da Cohere via OpenRouter." },
+            "openrouter:sophosympatheia/midnight-rose-70b": { name: "OpenRouter: Sophosympatheia Midnight Rose 70B", description: "Midnight Rose 70B da Sophosympatheia via OpenRouter." },
+            "openrouter:cohere/command-r": { name: "OpenRouter: Cohere Command R", description: "Command R da Cohere via OpenRouter." },
+            "openrouter:cohere/command": { name: "OpenRouter: Cohere Command", description: "Command da Cohere via OpenRouter." },
+            "openrouter:anthropic/claude-3-haiku:beta": { name: "OpenRouter: Claude 3 Haiku (Beta)", description: "Claude 3 Haiku (Beta) via OpenRouter." },
+            "openrouter:anthropic/claude-3-haiku": { name: "OpenRouter: Claude 3 Haiku", description: "Claude 3 Haiku via OpenRouter." },
+            "openrouter:anthropic/claude-3-opus:beta": { name: "OpenRouter: Claude 3 Opus (Beta)", description: "Claude 3 Opus (Beta) via OpenRouter." },
+            "openrouter:anthropic/claude-3-opus": { name: "OpenRouter: Claude 3 Opus", description: "Claude 3 Opus via OpenRouter." },
+            "openrouter:cohere/command-r-03-2024": { name: "OpenRouter: Cohere Command R (03-2024)", description: "Command R (03-2024) da Cohere via OpenRouter." },
+            "openrouter:mistralai/mistral-large": { name: "OpenRouter: Mistral Large", description: "Mistral Large via OpenRouter." },
+            "openrouter:openai/gpt-3.5-turbo-0613": { name: "OpenRouter: GPT-3.5 Turbo (0613)", description: "GPT-3.5 Turbo (0613) via OpenRouter." },
+            "openrouter:openai/gpt-4-turbo-preview": { name: "OpenRouter: GPT-4 Turbo Preview", description: "GPT-4 Turbo Preview via OpenRouter." },
+            "openrouter:nousresearch/nous-hermes-2-mixtral-8x7b-dpo": { name: "OpenRouter: Nous Hermes 2 Mixtral 8x7B DPO", description: "Nous Hermes 2 Mixtral 8x7B DPO via OpenRouter." },
+            "openrouter:mistralai/mistral-small": { name: "OpenRouter: Mistral Small", description: "Mistral Small via OpenRouter." },
+            "openrouter:mistralai/mistral-tiny": { name: "OpenRouter: Mistral Tiny", description: "Mistral Tiny via OpenRouter." },
+            "openrouter:mistralai/mistral-7b-instruct-v0.2": { name: "OpenRouter: Mistral 7B Instruct v0.2", description: "Mistral 7B Instruct v0.2 via OpenRouter." },
+            "openrouter:mistralai/mixtral-8x7b-instruct": { name: "OpenRouter: Mixtral 8x7B Instruct", description: "Mixtral 8x7B Instruct via OpenRouter." },
+            "openrouter:neversleep/noromaid-20b": { name: "OpenRouter: Noromaid 20B", description: "Noromaid 20B via OpenRouter." },
+            "openrouter:alpindale/goliath-120b": { name: "OpenRouter: Goliath 120B", description: "Goliath 120B via OpenRouter." },
+            "openrouter:openrouter/auto": { name: "OpenRouter: Auto", description: "Permite ao OpenRouter selecionar automaticamente o melhor modelo." },
+            "openrouter:openai/gpt-4-1106-preview": { name: "OpenRouter: GPT-4 1106 Preview", description: "GPT-4 1106 Preview via OpenRouter." },
+            "openrouter:openai/gpt-3.5-turbo-instruct": { name: "OpenRouter: GPT-3.5 Turbo Instruct", description: "GPT-3.5 Turbo Instruct via OpenRouter." },
+            "openrouter:mistralai/mistral-7b-instruct-v0.1": { name: "OpenRouter: Mistral 7B Instruct v0.1", description: "Mistral 7B Instruct v0.1 via OpenRouter." },
+            "openrouter:pygmalionai/mythalion-13b": { name: "OpenRouter: PygmalionAI Mythalion 13B", description: "Mythalion 13B da PygmalionAI via OpenRouter." },
+            "openrouter:openai/gpt-3.5-turbo-16k": { name: "OpenRouter: GPT-3.5 Turbo 16K", description: "GPT-3.5 Turbo 16K via OpenRouter." },
+            "openrouter:mancer/weaver": { name: "OpenRouter: Mancer Weaver", description: "Weaver da Mancer via OpenRouter." },
+            "openrouter:undi95/remm-slerp-l2-13b": { name: "OpenRouter: Undi95 REMM Slerp L2 13B", description: "REMM Slerp L2 13B da Undi95 via OpenRouter." },
+            "openrouter:gryphe/mythomax-l2-13b": { name: "OpenRouter: Gryphe Mythomax L2 13B", description: "Mythomax L2 13B da Gryphe via OpenRouter." },
+            "openrouter:openai/gpt-3.5-turbo": { name: "OpenRouter: GPT-3.5 Turbo", description: "GPT-3.5 Turbo via OpenRouter." },
+            "openrouter:openai/gpt-4-0314": { name: "OpenRouter: GPT-4 (0314)", description: "GPT-4 (0314) via OpenRouter." },
+            "openrouter:openai/gpt-4": { name: "OpenRouter: GPT-4", description: "GPT-4 via OpenRouter." },
+            "fake": { name: "Modelo de Teste: Fake", description: "Um modelo de teste que retorna respostas falsas." },
+            "costly": { name: "Modelo de Teste: Custoso", description: "Um modelo de teste que simula ser muito custoso para usar." },
+            "abuse": { name: "Modelo de Teste: Abuso", description: "Um modelo de teste para simular conteúdo abusivo." }
         };
 
         // Variáveis globais
@@ -559,19 +829,37 @@
             // Agrupar modelos por provedor
             const providers = {};
             for (const [id, data] of Object.entries(models)) {
-                const provider = id.split(':')[1].split('/')[0];
-                if (!providers[provider]) {
-                    providers[provider] = [];
+                // Tenta extrair o provedor de IDs com o formato "provedor/modelo" ou "openrouter:provedor/modelo"
+                let providerName;
+                if (id.startsWith('openrouter:')) {
+                    providerName = 'OpenRouter (' + id.split(':')[1].split('/')[0] + ')';
+                } else {
+                    providerName = id.split('/')[0];
+                    if (!providerName.includes('-') && !providerName.includes('.')) { // Tenta pegar o nome direto para modelos simples
+                        providerName = id.split('-')[0].replace(/\d.*$/, ''); // Tenta pegar o nome antes de números
+                        if (providerName.includes('gpt')) providerName = 'OpenAI';
+                        if (providerName.includes('claude')) providerName = 'Anthropic';
+                        if (providerName.includes('gemma')) providerName = 'Google';
+                        if (providerName.includes('llama')) providerName = 'Meta (Llama)';
+                        if (providerName.includes('mistral')) providerName = 'Mistral AI';
+                        if (providerName.includes('qwen')) providerName = 'Qwen';
+                        if (providerName === 'o') providerName = 'OpenAI'; // Modelos o1, o3, etc.
+                        if (providerName === 'fake' || providerName === 'costly' || providerName === 'abuse') providerName = 'Test Models';
+                    }
                 }
-                providers[provider].push({id, ...data});
+
+                if (!providers[providerName]) {
+                    providers[providerName] = [];
+                }
+                providers[providerName].push({id, ...data});
             }
             
             // Adicionar modelos ao seletor
-            for (const [provider, models] of Object.entries(providers)) {
+            for (const [provider, modelsGroup] of Object.entries(providers)) {
                 const optgroup = document.createElement('optgroup');
                 optgroup.label = provider;
                 
-                models.forEach(model => {
+                modelsGroup.forEach(model => {
                     const option = document.createElement('option');
                     option.value = model.id;
                     option.textContent = model.name;
@@ -619,12 +907,6 @@
             const message = userInput.value.trim();
             
             if (!message) return;
-            // Removed currentModel check here to allow /gerarvideo without a selected chat model
-            // If you want /gerarvideo to only work when a model is selected, uncomment below:
-            // if (!currentModel && !message.toLowerCase().startsWith('/gerarvideo')) {
-            //     alert("Por favor, selecione um modelo primeiro para chat ou use /gerarvideo.");
-            //     return;
-            // }
             
             // Adicionar mensagem do usuário ao chat
             addMessage(message, 'user');
@@ -787,11 +1069,6 @@
                 ]
             };
 
-            // Você pode adicionar a lógica de "upsample" aqui se desejar
-            // if (prompt.toLowerCase().startsWith('upsample ')) {
-            //     requestBody.messages[0].content = prompt; // Assume que a API entende "upsample" no prompt
-            // }
-
             try {
                 const response = await fetch(COMETAPI_URL, {
                     method: "POST",
@@ -805,138 +1082,91 @@
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error(`Erro na CometAPI! Status: ${response.status}, Resposta: ${errorText}`);
-                    addMessage(`❌ Erro ao gerar vídeo: ${response.status} - ${errorText}. Verifique o console.`, 'ai');
+                    addMessage(`Erro ao gerar vídeo: ${errorText}.`, 'ai');
                     return;
                 }
 
                 const data = await response.json();
-                console.log("Resposta da CometAPI:", data);
+                console.log("Resposta da CometAPI para vídeo:", data);
 
-                let videoUrl = null;
-                // Tentativas de encontrar o URL do vídeo na resposta (baseado em padrões comuns)
-                if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
-                    // Se o URL estiver embutido no texto da resposta (e.g., "Aqui está seu vídeo: [URL]")
-                    // Isso é uma suposição, a API real pode ter um formato diferente.
-                    const content = data.choices[0].message.content;
-                    const urlRegex = /(https?:\/\/[^\s]+[.mp4|.mov|.webm])/; // Regex simples para URLs de vídeo
-                    const match = content.match(urlRegex);
-                    if (match) {
-                        videoUrl = match[0];
-                    }
-                } else if (data.url) { // Alguns APIs retornam o URL diretamente no campo 'url'
-                    videoUrl = data.url;
-                } else if (data.video_url) { // Ou no campo 'video_url'
-                    videoUrl = data.video_url;
-                }
-                // Você pode precisar ajustar esta lógica de parsing de acordo com a resposta real da API
+                // A CometAPI para geração de vídeo pode retornar a URL do vídeo em 'choices[0].message.content'
+                // ou em algum outro campo. É preciso verificar a estrutura da resposta.
+                const videoUrl = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
 
-                if (videoUrl) {
-                    addMessageWithDownload(videoUrl, 'ai', 'video', `Vídeo gerado: "${prompt}"`);
+                if (videoUrl && videoUrl.startsWith('http')) {
+                    addMessageWithDownload(videoUrl, 'ai', 'video', `Vídeo gerado para: "${prompt}"`);
                     currentConversation.push({role: 'assistant', content: `[Vídeo gerado: ${prompt}]`, url: videoUrl, type: 'video'});
                 } else {
-                    addMessage("Não consegui encontrar o URL do vídeo na resposta da API. Verifique o console para mais detalhes.", 'ai');
-                    currentConversation.push({role: 'assistant', content: `[Vídeo gerado (URL não encontrada): ${prompt}]`, type: 'video'});
+                    addMessage("Não foi possível obter a URL do vídeo da CometAPI. Tente novamente ou verifique o prompt.", 'ai');
+                    console.warn("Resposta da CometAPI não contém URL de vídeo esperado:", data);
                 }
 
             } catch (error) {
-                console.error("Erro ao chamar CometAPI:", error);
-                addMessage("Ocorreu um erro ao conectar ou processar a resposta da API de vídeo. Verifique sua conexão e o console.", 'ai');
+                console.error("Erro ao chamar a CometAPI para gerar vídeo:", error);
+                addMessage("Desculpe, ocorreu um erro ao se comunicar com a CometAPI para gerar vídeo.", 'ai');
             }
         }
         // --- Fim da Nova Função ---
 
-        // Função para salvar conversa no histórico
+        // Funções de histórico de conversas (existentes)
         function saveConversation() {
-            if (currentConversation.length === 0) return;
-            
-            const conversation = {
-                id: Date.now(),
-                model: currentModel,
-                title: currentConversation[0].content.substring(0, 30) + (currentConversation[0].content.length > 30 ? "..." : ""),
-                messages: currentConversation.map(msg => {
-                    // Ao salvar, apenas armazene o texto do prompt/resposta e, se houver, a URL e tipo
-                    const savedMsg = { role: msg.role, content: msg.content };
-                    if (msg.url) savedMsg.url = msg.url;
-                    if (msg.type) savedMsg.type = msg.type;
-                    return savedMsg;
-                }),
-                timestamp: new Date().toISOString()
-            };
-            
-            // Adicionar ao histórico
-            conversationHistory.unshift(conversation);
-            
-            // Manter apenas as últimas 20 conversas
-            if (conversationHistory.length > 20) {
-                conversationHistory = conversationHistory.slice(0, 20);
+            if (currentConversation.length > 1) { // Salva se houver pelo menos uma troca (usuário e IA)
+                const timestamp = new Date().toLocaleString();
+                conversationHistory.unshift({ id: Date.now(), title: currentConversation[0].content.substring(0, 50) + "...", messages: currentConversation, timestamp: timestamp });
+                localStorage.setItem('conversationHistory', JSON.stringify(conversationHistory));
+                renderConversationHistory();
             }
-            
-            // Salvar no localStorage
-            localStorage.setItem('alloneai_conversations', JSON.stringify(conversationHistory));
-            
-            // Atualizar lista de histórico
-            updateHistoryList();
         }
-        
-        // Função para carregar histórico do localStorage
+
         function loadConversationHistory() {
-            const saved = localStorage.getItem('alloneai_conversations');
-            if (saved) {
-                conversationHistory = JSON.parse(saved);
-                updateHistoryList();
+            const storedHistory = localStorage.getItem('conversationHistory');
+            if (storedHistory) {
+                conversationHistory = JSON.parse(storedHistory);
+                renderConversationHistory();
             }
         }
-        
-        // Função para atualizar a lista de histórico
-        function updateHistoryList() {
+
+        function renderConversationHistory() {
             const historyList = document.getElementById('history-list');
-            historyList.innerHTML = '';
-            
+            historyList.innerHTML = ''; // Limpa a lista antes de renderizar
             conversationHistory.forEach(conv => {
-                const item = document.createElement('div');
-                item.classList.add('history-item');
-                item.innerHTML = `
-                    <strong>${conv.title}</strong><br>
-                    <small>${models[conv.model]?.name || conv.model || 'N/A'} • ${new Date(conv.timestamp).toLocaleString()}</small>
-                `;
-                
-                item.addEventListener('click', () => {
-                    loadConversation(conv);
-                });
-                
-                historyList.appendChild(item);
+                const historyItem = document.createElement('div');
+                historyItem.classList.add('history-item');
+                historyItem.textContent = conv.title + ` (${conv.timestamp})`;
+                historyItem.dataset.id = conv.id;
+                historyItem.addEventListener('click', () => loadSpecificConversation(conv.id));
+                historyList.appendChild(historyItem);
             });
         }
-        
-        // Função para carregar uma conversa do histórico
-        function loadConversation(conversation) {
-            const chatHistory = document.getElementById('chat-history');
-            chatHistory.innerHTML = '';
-            
-            currentConversation = []; // Limpa e reconstrói a conversa atual
-            currentModel = conversation.model;
-            
-            // Atualizar seletor de modelo
-            document.getElementById('model-selector').value = currentModel;
-            document.getElementById('model-info').innerHTML = `
-                <strong>${models[currentModel]?.name || currentModel || 'N/A'}</strong><br>
-                ${models[currentModel]?.description || 'Sem descrição disponível'}
-            `;
-            
-            // Mostrar todas as mensagens da conversa
-            conversation.messages.forEach(msg => {
-                currentConversation.push(msg); // Adiciona ao currentConversation para manter o contexto
-                if (msg.type === 'image' && msg.url) {
-                    addMessageWithDownload(msg.url, 'ai', 'image');
-                } else if (msg.type === 'audio' && msg.url) {
-                    addMessageWithDownload(msg.url, 'ai', 'audio', msg.content.replace('[Áudio reproduzido: ', '').slice(0, -1));
-                } else if (msg.type === 'video' && msg.url) {
-                    addMessageWithDownload(msg.url, 'ai', 'video', msg.content.replace('[Vídeo gerado: ', '').slice(0, -1));
+
+        function loadSpecificConversation(id) {
+            const selectedConversation = conversationHistory.find(conv => conv.id === id);
+            if (selectedConversation) {
+                currentConversation = JSON.parse(JSON.stringify(selectedConversation.messages)); // Deep copy
+                document.getElementById('chat-history').innerHTML = ''; // Limpa o chat atual
+                currentConversation.forEach(msg => {
+                    if (msg.type === 'image' || msg.type === 'audio' || msg.type === 'video') {
+                        addMessageWithDownload(msg.url, msg.role, msg.type, msg.content.replace(/\[Imagem gerada: |\[Áudio reproduzido: |\[Vídeo gerado: |\]/g, ''));
+                    } else {
+                        addMessage(msg.content, msg.role);
+                    }
+                });
+                document.getElementById('chat-history').scrollTop = document.getElementById('chat-history').scrollHeight;
+                
+                // Tenta selecionar o modelo correto no dropdown se for uma conversa de chat normal
+                const lastAiMessage = currentConversation.findLast(msg => msg.role === 'assistant');
+                if (lastAiMessage && lastAiMessage.modelUsed) { // Supondo que você adicionaria `modelUsed` ao objeto `assistant`
+                    document.getElementById('model-selector').value = lastAiMessage.modelUsed;
+                    currentModel = lastAiMessage.modelUsed;
+                    const modelData = models[currentModel];
+                    if (modelData) {
+                        document.getElementById('model-info').innerHTML = `<strong>${modelData.name}</strong><br>${modelData.description}`;
+                    }
+                } else {
+                     document.getElementById('model-selector').value = ''; // Reseta a seleção se não houver modelo associado
+                     document.getElementById('model-info').textContent = "Selecione um modelo para ver sua descrição";
                 }
-                else {
-                    addMessage(msg.content, msg.role === 'user' ? 'user' : 'ai');
-                }
-            });
+            }
         }
     </script>
 </body>
