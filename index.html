@@ -40,7 +40,7 @@
             padding: 15px 25px;
             border-radius: 0.75rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
+            z-index: 10000; /* Super alto para garantir que esteja na frente */
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
             pointer-events: none; /* Permite cliques quando escondido */
@@ -59,7 +59,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 999;
+            z-index: 9999; /* Alto, mas abaixo do message-box */
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
@@ -92,7 +92,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 1001; /* Acima de tudo */
+            z-index: 9998; /* Acima do container principal, mas abaixo dos overlays de loading/message */
             transition: opacity 0.3s ease-in-out;
         }
         .login-box {
@@ -207,16 +207,16 @@
     </script>
     <!-- Bibliotecas Firebase -->
     <script type="module">
-        // Importa as funções necessárias dos SDKs Firebase (versão 12.1.0)
+        // Importa as funções necessárias dos SDKs Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
         import { getFirestore, collection, query, where, getDocs, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
-        // APP_ID FIXO - AGORA COM O VALOR DO SEU NOVO FIREBASE APP_ID
-        const appId = "1:1055585794088:web:0c7eab96a4e696cd6f9d1d"; 
-
+        // APP_ID e Configuração Firebase DIRETO NO CÓDIGO (para máxima confiabilidade)
+        // Estes valores foram extraídos de suas configurações anteriores e são específicos do seu projeto 'isiskd'.
+        const appId = "1:1055585794088:web:0c7eab96a4e696cd6f9d1d";
         const firebaseConfig = {
-            apiKey: "AIzaSyCov5xP4aFRo3QPFCxCRQGN7X59dR9ZLF4", // Confirme se esta chave está correta no seu Firebase
+            apiKey: "AIzaSyCov5xP4aFRo3QPFCxCRQGN7X59dR9ZLF4", 
             authDomain: "isiskd.firebaseapp.com",
             projectId: "isiskd",
             storageBucket: "isiskd.firebasestorage.app",
@@ -224,18 +224,24 @@
             appId: "1:1055585794088:web:0c7eab96a4e696cd6f9d1d",
             measurementId: "G-5S8S16K6KF"
         };
+        // O token inicial do Canvas ainda pode ser usado se disponível para login personalizado
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         // Inicializa o Firebase
+        console.log("CHAT APP: Inicializando Firebase com config:", firebaseConfig);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        console.log("CHAT APP: Firebase App, Auth e DB inicializados.");
+
 
         let userId = null;
-        let deviceId = null; // Variável para armazenar o ID do dispositivo
+        let deviceId = null; 
         let isAuthReady = false;
-        let keyCheckInterval = null; // Para armazenar o ID do intervalo de verificação da chave
-        let chatHistory = []; // Array para armazenar o histórico de chat
+        let keyCheckInterval = null; 
+        let chatHistory = []; 
+        let currentAccessKeyId = null; 
+        let keyListenerUnsubscribe = null; 
 
         // Elementos DOM
         const loginOverlay = document.getElementById('login-overlay');
@@ -244,31 +250,30 @@
         const loginErrorMessage = document.getElementById('login-error-message');
         const chatContainer = document.getElementById('chat-container');
         const userIdDisplay = document.getElementById('user-id-display');
-        const welcomeMessage = document.getElementById('welcome-message'); // Novo elemento para a mensagem de boas-vindas
+        const welcomeMessage = document.getElementById('welcome-message'); 
         const modelSelect = document.getElementById('model-select');
-        const modelDescriptionArea = document.getElementById('model-description-area'); // Novo elemento para descrição do modelo
-        const messagesArea = document.getElementById('messages-area'); // Área para exibir mensagens
+        const modelDescriptionArea = document.getElementById('model-description-area');
+        const messagesArea = document.getElementById('messages-area'); 
         const promptInput = document.getElementById('prompt-input');
         const sendButton = document.getElementById('send-button');
 
-        // Função para exibir caixa de mensagem personalizada
+        // Funções de Utilidade
         function showMessage(message, type = 'info') {
             const messageBox = document.getElementById('message-box');
             messageBox.textContent = message;
-            messageBox.className = 'message-box show'; // Reseta classes e mostra
+            messageBox.className = 'message-box show'; 
             if (type === 'error') {
-                messageBox.style.backgroundColor = '#dc2626'; // Vermelho
+                messageBox.style.backgroundColor = '#dc2626'; 
             } else if (type === 'success') {
-                messageBox.style.backgroundColor = '#16a34a'; // Verde
+                messageBox.style.backgroundColor = '#16a34a'; 
             } else {
-                messageBox.style.backgroundColor = '#333'; // Cinza escuro padrão
+                messageBox.style.backgroundColor = '#333'; 
             }
             setTimeout(() => {
                 messageBox.classList.remove('show');
             }, 3000);
         }
 
-        // Função para mostrar/esconder sobreposição de carregamento
         function toggleLoading(show) {
             const loadingOverlay = document.getElementById('loading-overlay');
             if (show) {
@@ -278,9 +283,42 @@
             }
         }
 
+        // Função para forçar o logout do usuário e limpar o estado
+        function forceLogout(message) {
+            // Para de escutar o documento da chave
+            if (keyListenerUnsubscribe) {
+                keyListenerUnsubscribe();
+                keyListenerUnsubscribe = null;
+                console.log("CHAT APP: Firestore listener para chave de acesso desativado.");
+            }
+            // Limpa o intervalo de verificação de expiração
+            if (keyCheckInterval) {
+                clearInterval(keyCheckInterval);
+                keyCheckInterval = null;
+                console.log("CHAT APP: Intervalo de verificação de expiração limpo.");
+            }
+
+            loginOverlay.style.opacity = '1';
+            loginOverlay.classList.remove('hidden');
+            chatContainer.classList.add('hidden');
+            showMessage(message, 'error');
+            console.log(`CHAT APP: Forçando logout: ${message}`);
+
+            // Limpa o estado do chat
+            chatHistory = [];
+            renderMessages();
+            userIdDisplay.textContent = 'N/A';
+            welcomeMessage.textContent = '';
+            welcomeMessage.classList.add('hidden');
+            accessKeyInput.value = ''; // Limpa o campo de entrada da chave
+            currentAccessKeyId = null; // Limpa o ID da chave atual para impedir reuso inválido
+            modelDescriptionArea.classList.add('hidden'); // Esconde a descrição do modelo
+            modelDescriptionArea.textContent = 'Selecione um modelo para ver a descrição.';
+        }
+
         // Função para renderizar as mensagens no DOM
         function renderMessages() {
-            messagesArea.innerHTML = ''; // Limpa a área de mensagens
+            messagesArea.innerHTML = ''; 
             chatHistory.forEach(msg => {
                 const messageDiv = document.createElement('div');
                 messageDiv.classList.add('chat-message');
@@ -293,7 +331,7 @@
                 }
                 messagesArea.appendChild(messageDiv);
             });
-            messagesArea.scrollTop = messagesArea.scrollHeight; // Rola para o final
+            messagesArea.scrollTop = messagesArea.scrollHeight; 
         }
 
         // Função para salvar o histórico de chat no Firestore
@@ -304,7 +342,6 @@
             }
             const chatHistoryDocRef = doc(db, `/artifacts/${appId}/users/${userId}/userState`, 'chatHistoryDoc');
             try {
-                // Salva o histórico completo como uma string JSON para evitar problemas com tipos de dados complexos
                 await setDoc(chatHistoryDocRef, { history: JSON.stringify(chatHistory) }, { merge: true });
                 console.log("CHAT APP: Histórico de chat salvo com sucesso.");
             } catch (error) {
@@ -321,31 +358,29 @@
             }
             const chatHistoryDocRef = doc(db, `/artifacts/${appId}/users/${userId}/userState`, 'chatHistoryDoc');
 
-            // Usa onSnapshot para escutar em tempo real as mudanças no documento
             onSnapshot(chatHistoryDocRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     if (data.history) {
                         try {
-                            // Parse a string JSON de volta para um array
                             chatHistory = JSON.parse(data.history);
                             console.log("CHAT APP: Histórico de chat carregado:", chatHistory);
-                            renderMessages(); // Renderiza as mensagens carregadas
+                            renderMessages(); 
                         } catch (e) {
                             console.error("CHAT APP: Erro ao fazer parse do histórico de chat:", e);
-                            chatHistory = []; // Reseta se houver erro de parse
+                            chatHistory = []; 
                         }
                     } else {
-                        chatHistory = []; // Inicia vazio se não houver histórico
+                        chatHistory = []; 
                     }
                 } else {
-                    chatHistory = []; // Inicia vazio se o documento não existir
+                    chatHistory = []; 
                 }
-                renderMessages(); // Garante que a área de mensagens esteja atualizada
+                renderMessages(); 
             }, (error) => {
                 console.error("CHAT APP: Erro ao escutar o histórico de chat:", error);
                 showMessage("Erro ao carregar o histórico de chat.", 'error');
-                chatHistory = []; // Reseta em caso de erro
+                chatHistory = []; 
                 renderMessages();
             });
         }
@@ -367,31 +402,33 @@
         onAuthStateChanged(auth, async (user) => {
             console.log("CHAT APP: onAuthStateChanged acionado. User:", user ? user.uid : 'null');
             if (!user) {
+                console.log("CHAT APP: Nenhum usuário autenticado, tentando login anônimo ou com token.");
                 try {
                     if (initialAuthToken) {
                         await signInWithCustomToken(auth, initialAuthToken);
-                        console.log("CHAT APP: Firebase: Login com token personalizado.");
+                        console.log("CHAT APP: Firebase: Login com token personalizado realizado.");
                     } else {
                         await signInAnonymously(auth);
-                        console.log("CHAT APP: Firebase: Login anônimo.");
+                        console.log("CHAT APP: Firebase: Login anônimo realizado.");
                     }
                 } catch (error) {
-                    console.error("CHAT APP: Firebase Auth Error:", error);
+                    console.error("CHAT APP: Firebase Auth Error durante onAuthStateChanged:", error);
                     showMessage(`Erro de autenticação Firebase: ${error.message}`, 'error');
                 }
+            } else {
+                console.log("CHAT APP: Usuário já autenticado:", user.uid);
             }
             userId = auth.currentUser?.uid || crypto.randomUUID();
             userIdDisplay.textContent = userId.substring(0, 8) + '...';
-            deviceId = getOrCreateDeviceId(); // Obter ou gerar o ID do dispositivo
+            deviceId = getOrCreateDeviceId(); 
             console.log("CHAT APP: ID do Dispositivo:", deviceId);
 
-            isAuthReady = true;
+            isAuthReady = true; // Define como true após a tentativa de autenticação
             console.log("CHAT APP: Firebase Auth Pronto. UID do Usuário Atual:", auth.currentUser?.uid);
-            console.log("CHAT APP: App ID em uso (FIXO):", appId);
+            console.log("CHAT APP: App ID em uso:", appId);
             
             if (isAuthReady) {
-                loadStaticModels();
-                loadChatHistory(); 
+                loadStaticModels(); // Carrega os modelos uma vez que a autenticação está pronta
             }
         });
 
@@ -465,7 +502,7 @@
             { id: "openrouter:mistralai/mistral-7b-instruct:free", name: "Mistral 7B Instruct (Free)", category: "Mistral AI", description: "Versão gratuita do Mistral 7B Instruct para testes." },
             { id: "openrouter:mistralai/mistral-large-2407", name: "Mistral Large 2407", category: "Mistral AI", description: "Atualização de Julho de 2024 do Mistral Large." },
             { id: "openrouter:mistralai/mistral-large-2411", name: "Mistral Large 2411", category: "Mistral AI", description: "Atualização de Novembro de 2024 do Mistral Large." },
-            { id: "openrouter:mistralai/mistral-medium-3", name: "Mistral Medium 3", category: "Mistral AI", description: "Terceira versão do modelo médio da Mistral AI, equilibrado para diversas tarefas." },
+            { id: "openrouter:mistralai/mistral-medium-3", name: "Mistral Medium 3", category: "Mistral AI", description: "Terceira versão do modelo médio da Mistral AI, equilibrado para diversas tarefas."不斷地測試，以確保穩定性." },
             { id: "openrouter:mistralai/mistral-nemo", name: "Mistral Nemo", category: "Mistral AI", description: "Modelo otimizado da Mistral AI, com foco em eficiência e desempenho." },
             { id: "openrouter:mistralai/mistral-nemo:free", name: "Mistral Nemo (Free)", category: "Mistral AI", description: "Versão gratuita do Mistral Nemo." },
             { id: "openrouter:mistralai/mistral-saba", name: "Mistral Saba", category: "Mistral AI", description: "Um modelo específico da Mistral AI, para aplicações especializadas." },
@@ -511,7 +548,7 @@
             { id: "openrouter:qwen/qwen3-coder", name: "Qwen 3 Coder", category: "Qwen", description: "Modelo da Qwen 3 especializado em tarefas de codificação e programação." },
             { id: "openrouter:qwq-32b", name: "QWQ 32B", category: "Qwen", description: "Um modelo de 32 bilhões de parâmetros (provavelmente relacionado à Qwen ou um modelo afiliado)." },
             { id: "openrouter:qwq-32b-preview", name: "QWQ 32B Preview", category: "Qwen", description: "Pré-visualização do modelo QWQ de 32 bilhões de parâmetros." },
-            { id: "openrouter:qwq-32b:free", name: "QWQ 32B (Free)", category: "Qwen", description: "Versão gratuita do modelo QWQ 32B." },
+            { id: "openrouter:qwq-32b:free", name: "QWQ 32B (Free)", category: "Qwen", description: "Versão gratuita do QWQ 32B." },
 
             // Groq (Modelos populares para inferência de alta velocidade com Groq)
             // Estes são modelos Llama e Mixtral que são comumente executados na infraestrutura Groq.
@@ -576,43 +613,28 @@
                 modelDescriptionArea.textContent = description;
                 modelDescriptionArea.classList.remove('hidden');
             } else {
-                modelDescriptionArea.textContent = 'Nenhuma descrição disponível para este modelo.';
+                modelDescriptionArea.textContent = 'Selecione um modelo para ver a descrição.';
                 modelDescriptionArea.classList.add('hidden'); // Esconde se não houver descrição
             }
         });
 
 
-        // Função para verificar a expiração da chave periodicamente
+        // Função para verificar a expiração da chave periodicamente (ainda ativa para redundância)
         async function checkKeyExpiration(expiresAtMs) {
             if (keyCheckInterval) {
                 clearInterval(keyCheckInterval); // Limpa qualquer intervalo anterior
             }
-            keyCheckInterval = setInterval(async () => {
+            keyCheckInterval = setInterval(() => {
                 const currentTime = Date.now();
                 if (currentTime >= expiresAtMs) {
-                    // Chave expirada, força logout
-                    clearInterval(keyCheckInterval);
-                    loginOverlay.style.opacity = '1'; // Garante que esteja visível
-                    loginOverlay.classList.remove('hidden');
-                    chatContainer.classList.add('hidden');
-                    showMessage("Sua chave de acesso expirou. Por favor, faça login novamente.", 'error');
-                    console.log("CHAT APP: Chave expirou. Usuário desconectado.");
-                    // Limpar histórico local e redefinir estado
-                    chatHistory = [];
-                    renderMessages();
-                    userIdDisplay.textContent = 'N/A';
-                    welcomeMessage.textContent = ''; // Limpa a mensagem de boas-vindas
-                    welcomeMessage.classList.add('hidden'); // Esconde a mensagem de boas-vindas
-                    // Opcional: desconecta o usuário Firebase (isso irá acionar onAuthStateChanged novamente)
-                    // await auth.signOut();
-                } else {
-                    // console.log(`CHAT APP: Chave ativa. Tempo restante: ${(expiresAtMs - currentTime) / 1000} segundos.`);
+                    forceLogout("Sua chave de acesso expirou. Por favor, faça login novamente.");
                 }
             }, 5000); // Verifica a cada 5 segundos
         }
 
         // Listener de Eventos para o Botão de Login
         loginButton.addEventListener('click', async () => {
+            console.log("CHAT APP: Botão de login clicado.");
             if (!isAuthReady) {
                 showMessage("Autenticando com Firebase, por favor, aguarde...", 'info');
                 console.log("CHAT APP: Tentativa de Login: Firebase não pronto.");
@@ -631,25 +653,25 @@
             toggleLoading(true);
 
             try {
-                // Consulta a coleção de chaves públicas usando o appId FIXO
                 const keysCollectionRef = collection(db, `/artifacts/${appId}/public/data/accessKeys`);
                 console.log(`CHAT APP: Consultando Firestore collection: /artifacts/${appId}/public/data/accessKeys para a chave: ${enteredKey}`);
                 const q = query(keysCollectionRef, where("key", "==", enteredKey));
                 const querySnapshot = await getDocs(q);
 
                 if (querySnapshot.empty) {
-                    loginErrorMessage.textContent = "Chave de acesso inválida.";
-                    loginErrorMessage.classList.remove('hidden');
                     console.log("CHAT APP: Chave NÃO encontrada no Firestore (querySnapshot.empty é true).");
+                    forceLogout("Chave de acesso inválida ou não encontrada.");
                 } else {
                     let keyIsValid = false;
                     let expiresAtTimestamp = 0;
-                    let keyDocRefToUpdate = null; // Referência para o documento da chave
-                    let keyDataFromFirestore = null; // Dados da chave do Firestore
+                    let keyDocRefToUpdate = null; 
+                    let keyDataFromFirestore = null; 
+                    let keyDocId = null; // Para armazenar o ID do documento da chave
 
                     querySnapshot.forEach((docSnap) => {
                         keyDataFromFirestore = docSnap.data();
-                        keyDocRefToUpdate = doc(db, `/artifacts/${appId}/public/data/accessKeys`, docSnap.id); // Pega a referência do doc
+                        keyDocId = docSnap.id; // Captura o ID do documento
+                        keyDocRefToUpdate = doc(db, `/artifacts/${appId}/public/data/accessKeys`, keyDocId); 
                         
                         const currentTime = Date.now();
                         console.log("CHAT APP: Dados da chave encontrados:", keyDataFromFirestore);
@@ -671,61 +693,90 @@
 
                         if (keyDataFromFirestore.status === 'active' && expiresAtMs > currentTime) {
                             keyIsValid = true;
-                            expiresAtTimestamp = expiresAtMs; // Salva o timestamp de expiração
-                            console.log("CHAT APP: Chave é válida! Todas as condições TRUE.");
-                        } else {
-                            console.log("CHAT APP: Chave é INVÁLIDA. Verifique as condições acima.");
+                            expiresAtTimestamp = expiresAtMs; 
                         }
                     });
 
-                    if (keyIsValid && keyDataFromFirestore && keyDocRefToUpdate) {
-                        // Lógica de bloqueio por dispositivo
+                    if (keyIsValid && keyDataFromFirestore && keyDocRefToUpdate && keyDocId) {
                         if (keyDataFromFirestore.lockedToDeviceId && keyDataFromFirestore.lockedToDeviceId !== deviceId) {
-                            loginErrorMessage.textContent = "Esta chave já está em uso em outro dispositivo.";
-                            loginErrorMessage.classList.remove('hidden');
-                            console.log("CHAT APP: Tentativa de login negada: Chave já bloqueada para outro dispositivo.");
-                            toggleLoading(false); // Esconde o spinner
-                            return; // Sai da função
-                        } else if (keyDataFromFirestore.status === 'inactive') { // Verifica se a chave foi desativada no gerador
-                             loginErrorMessage.textContent = "Esta chave está inativa. Por favor, entre em contato com o administrador.";
-                             loginErrorMessage.classList.remove('hidden');
-                             console.log("CHAT APP: Tentativa de login negada: Chave inativa.");
-                             toggleLoading(false); // Esconde o spinner
-                             return; // Sai da função
+                            forceLogout("Esta chave já está em uso em outro dispositivo.");
+                            return; 
+                        } else if (keyDataFromFirestore.status === 'inactive') { 
+                            forceLogout("Esta chave está inativa. Por favor, entre em contato com o administrador.");
+                            return; 
                         } else if (!keyDataFromFirestore.lockedToDeviceId) {
-                            // Chave não está bloqueada para nenhum dispositivo, bloqueá-la para o atual
                             await updateDoc(keyDocRefToUpdate, { lockedToDeviceId: deviceId });
                             console.log("CHAT APP: Chave bloqueada para este dispositivo:", deviceId);
                         } else {
-                            // Chave já está bloqueada para este dispositivo (DeviceId corresponde), continuar
                             console.log("CHAT APP: Chave já bloqueada para este dispositivo, permitindo login.");
                         }
 
-                        // Se a chave for válida e a lógica de bloqueio permitiu, esconde a sobreposição de login
+                        // Login bem-sucedido
+                        currentAccessKeyId = keyDocId; // Armazena o ID do documento da chave
                         loginOverlay.style.opacity = '0';
                         setTimeout(() => {
                             loginOverlay.classList.add('hidden');
                             chatContainer.classList.remove('hidden');
 
-                            // Exibe a mensagem de boas-vindas
                             if (keyDataFromFirestore.personName) {
                                 welcomeMessage.textContent = `Olá ${keyDataFromFirestore.personName}!`;
                                 welcomeMessage.classList.remove('hidden');
                             }
-                        }, 300); // Dá tempo para a transição
+                            loadChatHistory(); // Carrega o histórico de chat após o login
+                        }, 300); 
                         showMessage("Login bem-sucedido!", 'success');
-                        // Inicia a verificação de expiração da chave
-                        checkKeyExpiration(expiresAtTimestamp);
+                        checkKeyExpiration(expiresAtTimestamp); // Inicia a verificação de expiração
+
+                        // Configura o listener em tempo real para o documento da chave
+                        if (keyListenerUnsubscribe) { 
+                            keyListenerUnsubscribe(); // Desinscreve de qualquer listener anterior
+                        }
+                        console.log("CHAT APP: Configurando onSnapshot para o documento da chave:", keyDocId);
+                        keyListenerUnsubscribe = onSnapshot(keyDocRefToUpdate, (docSnap) => {
+                            const updatedKeyData = docSnap.data();
+                            const currentTime = Date.now();
+                            let updatedExpiresAtMs;
+
+                            // Verifica se updatedKeyData existe e se expiresAt está presente e tem o método toMillis
+                            if (updatedKeyData && updatedKeyData.expiresAt) {
+                                if (typeof updatedKeyData.expiresAt.toMillis === 'function') {
+                                    updatedExpiresAtMs = updatedKeyData.expiresAt.toMillis();
+                                } else if (typeof updatedKeyData.expiresAt === 'number') {
+                                    updatedExpiresAtMs = updatedKeyData.expiresAt;
+                                }
+                            } else {
+                                updatedExpiresAtMs = 0; // Se não houver dados ou expiresAt, assume 0 para expirar
+                            }
+
+                            if (!docSnap.exists()) {
+                                console.log("CHAT APP: Chave de acesso foi excluída (docSnap.exists() é false).");
+                                forceLogout("Sua chave de acesso foi excluída. Por favor, solicite uma nova chave.");
+                            } else if (updatedKeyData && updatedKeyData.status === 'inactive') { // Garante updatedKeyData não é nulo
+                                console.log("CHAT APP: Chave de acesso foi desativada (status 'inactive').");
+                                forceLogout("Sua chave de acesso foi desativada pelo administrador. Por favor, entre em contato.");
+                            } else if (updatedExpiresAtMs <= currentTime) {
+                                console.log("CHAT APP: Chave de acesso expirou (expiraAt <= currentTime).");
+                                forceLogout("Sua chave de acesso expirou. Por favor, faça login novamente.");
+                            } else {
+                                console.log("CHAT APP: Chave ainda válida e ativa. Nenhuma ação necessária.");
+                                // Se a chave foi reativada, o usuário já está logado,
+                                // e a verificação de expiração continua.
+                                checkKeyExpiration(updatedExpiresAtMs); // Reassegura que o monitoramento de tempo está ativo
+                            }
+                        }, (error) => {
+                            console.error("CHAT APP: Erro no listener de chave de acesso:", error);
+                            // Este erro pode indicar problemas de permissão ou rede.
+                            forceLogout("Erro de conexão com o Firebase. Por favor, tente novamente.");
+                        });
 
                     } else {
-                        loginErrorMessage.textContent = "Chave de acesso expirada ou inativa.";
-                        loginErrorMessage.classList.remove('hidden');
+                        console.log("CHAT APP: Chave é inválida ou expirada na validação inicial.");
+                        forceLogout("Chave de acesso expirada ou inativa.");
                     }
                 }
             } catch (error) {
-                console.error("CHAT APP: Erro de Validação de Chave Firebase:", error);
-                loginErrorMessage.textContent = "Erro ao verificar a chave. Tente novamente.";
-                loginErrorMessage.classList.remove('hidden');
+                console.error("CHAT APP: Erro de Validação de Chave Firebase (catch externo):", error);
+                forceLogout(`Erro ao verificar a chave: ${error.message}. Tente novamente.`);
             } finally {
                 toggleLoading(false);
             }
@@ -741,28 +792,25 @@
                 return;
             }
             
-            // Log detalhado sobre o objeto puter antes de usar
             console.log("CHAT APP: >>> Verificando objeto Puter antes da chamada AI:");
             console.log("CHAT APP: typeof puter:", typeof puter);
             console.log("CHAT APP: puter.ai:", typeof puter !== 'undefined' ? puter.ai : 'undefined');
             console.log("CHAT APP: puter.ai.chat:", (typeof puter !== 'undefined' && puter.ai) ? puter.ai.chat : 'undefined');
 
 
-            // Verifica se puter e puter.ai.chat estão disponíveis
             if (typeof puter === 'undefined' || !puter.ai || typeof puter.ai.chat !== 'function') {
                 showMessage("Puter SDK não carregado ou não funcional. Verifique a conexão e o console.", 'error');
                 console.error("CHAT APP: Erro: Puter SDK não está disponível para chat. Verifique se o script 'https://js.puter.com/v2/' foi carregado e se o objeto 'puter' foi inicializado corretamente.");
                 return;
             }
 
-            toggleLoading(true); // Mostra indicador de carregamento
+            toggleLoading(true); 
 
-            // Adiciona a mensagem do usuário ao histórico e renderiza
             chatHistory.push({ role: 'user', text: promptInputValue });
             renderMessages();
-            saveChatHistory(); // Salva o histórico atualizado
+            saveChatHistory(); 
 
-            promptInput.value = ''; // Limpa a área de entrada
+            promptInput.value = ''; 
 
             try {
                 console.log(`CHAT APP: Chamando puter.ai.chat com modelo: ${selectedModel}, Prompt: "${promptInputValue.substring(0, 50)}..."`);
@@ -771,35 +819,31 @@
                 });
                 console.log("CHAT APP: Resposta da Puter API recebida:", response);
 
-                // Adiciona a resposta da IA ao histórico e renderiza
                 chatHistory.push({ role: 'ai', text: response.message.content });
                 renderMessages();
-                saveChatHistory(); // Salva o histórico atualizado
+                saveChatHistory(); 
 
             } catch (error) {
                 console.error("CHAT APP: Erro direto no Puter API call:", error);
                 let errorMessage = "Erro desconhecido ao obter resposta da IA.";
                 if (error instanceof Error) {
                     errorMessage = error.message;
-                    // Se for um objeto Error, tente pegar o stack trace também
                     console.error("CHAT APP: Stack trace do erro:", error.stack);
                 } else if (typeof error === 'object' && error !== null) {
                     try {
-                        // Tenta stringify o erro para obter mais detalhes
                         errorMessage = JSON.stringify(error, Object.getOwnPropertyNames(error));
                     } catch (e) {
-                        errorMessage = String(error); // Último recurso
+                        errorMessage = String(e); 
                     }
                 } else {
-                    errorMessage = String(error); // Converte para string se não for um objeto
+                    errorMessage = String(error); 
                 }
                 
-                // Adiciona uma mensagem de erro ao histórico se falhar
                 chatHistory.push({ role: 'ai', text: `Erro: Não foi possível obter resposta da IA. Detalhes: ${errorMessage}` });
                 renderMessages();
                 showMessage("Erro ao obter resposta da IA. Verifique o console para mais detalhes.", 'error');
             } finally {
-                toggleLoading(false); // Esconde indicador de carregamento
+                toggleLoading(false); 
             }
         });
     </script>
