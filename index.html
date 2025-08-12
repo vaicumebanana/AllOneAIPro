@@ -1,368 +1,524 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AllOneAI</title>
-    <!-- Tailwind CSS CDN para estilização -->
+    <title>All-in-One AI Chat</title>
+    <!-- Tailwind CSS CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f0f2f5;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* Alinha ao topo */
             min-height: 100vh;
-            margin: 0;
-            padding: 1rem;
+            padding: 2rem;
             box-sizing: border-box;
+            overflow-y: auto; /* Permite rolagem para conteúdo */
         }
         .container {
             background-color: #ffffff;
-            padding: 2.5rem;
-            border-radius: 1rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-radius: 1.5rem; /* Mais cantos arredondados */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            max-width: 900px; /* Largura máxima aumentada */
             width: 100%;
-            max-width: 48rem; /* Aumenta a largura máxima para uma melhor experiência de chat */
+            padding: 2.5rem;
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
         }
-        .input-field {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-        }
-        .btn-primary {
-            background-color: #4f46e5;
+        .message-box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #333;
             color: white;
-            padding: 0.8rem 1.5rem;
-            border-radius: 0.5rem;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 600;
-            transition: background-color 0.2s ease-in-out;
-        }
-        .btn-primary:hover {
-            background-color: #4338ca;
-        }
-        .chat-container {
-            border: 1px solid #e5e7eb;
+            padding: 15px 25px;
             border-radius: 0.75rem;
-            padding: 1rem;
-            background-color: #f9fafb;
-            min-height: 300px;
-            max-height: 500px;
-            overflow-y: auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none; /* Permite cliques quando escondido */
+        }
+        .message-box.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+        }
+        .loading-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Estilos da Sobreposição de Login */
+        #login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001; /* Acima de tudo */
+            transition: opacity 0.3s ease-in-out;
+        }
+        .login-box {
+            background-color: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+            max-width: 450px;
+            width: 90%;
+            padding: 2.5rem;
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
-            text-align: left;
-        }
-        .chat-message {
-            padding: 0.6rem 1rem;
-            border-radius: 0.75rem;
-            max-width: 80%;
-        }
-        .user-message {
-            background-color: #dbeafe;
-            color: #1e40af;
-            align-self: flex-end;
-        }
-        .ai-message {
-            background-color: #e0f2fe;
-            color: #0c4a6e;
-            align-self: flex-start;
-        }
-        .loading-indicator {
-            text-align: center;
-            padding: 1rem;
-            color: #4b5563;
-        }
-        .error-message {
-            background-color: #fee2e2;
-            color: #991b1b;
-            padding: 1rem;
-            border-radius: 0.5rem;
+            gap: 1.5rem;
             text-align: center;
         }
-        .access-card {
-            background-color: #fff;
-            padding: 2rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            margin-bottom: 1.5rem;
-        }
-        /* Remover a exibição do ID do usuário no chat */
-        .user-id-display {
-            display: none; /* Oculta totalmente o elemento */
-        }
-        .info-message {
-            background-color: #ecfdf5; /* Esverdeado para sucesso/informação */
-            color: #065f46;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            text-align: center;
+        .hidden {
+            display: none !important;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <h1 class="text-3xl font-bold mb-4 text-gray-800 text-center">AI Chat Multi-LLM</h1>
-        
-        <div id="authSection" class="access-card">
-            <h2 class="text-xl font-semibold mb-4 text-gray-700">Acesso ao Chat AI</h2>
-            <div class="mb-4">
-                <label for="accessKeyInput" class="block text-gray-700 text-sm font-semibold mb-2 text-left">
-                    Seu ID de Usuário (Chave de Acesso):
-                </label>
-                <input type="text" id="accessKeyInput" class="input-field" placeholder="Cole seu ID de usuário aqui">
-            </div>
-            <button id="validateAccessBtn" class="btn-primary w-full">Validar Acesso</button>
-            <div id="accessMessage" class="message-box hidden mt-4"></div>
-            <!-- O elemento currentUserIdDisplay foi ocultado via CSS e o preenchimento automático removido -->
-            <div class="user-id-display mt-4 hidden" id="currentUserIdDisplay">
-                <strong>Seu ID de Usuário (Firebase):</strong> <span id="displayedUserId"></span>
-            </div>
-        </div>
-
-        <div id="chatSection" class="hidden">
-            <div class="mb-4">
-                <label for="modelSelect" class="block text-gray-700 text-sm font-semibold mb-2 text-left">
-                    Selecione o Modelo LLM:
-                </label>
-                <select id="modelSelect" class="input-field">
-                    <!-- Lista de modelos fornecida pelo usuário -->
-                    <option value="google/gemini-2.0-flash-001">google/gemini-2.0-flash-001</option>
-                    <option value="google/gemini-2.0-flash-exp:free">google/gemini-2.0-flash-exp:free</option>
-                    <option value="google/gemini-2.0-flash-lite-001">google/gemini-2.0-flash-lite-001</option>
-                    <option value="google/gemini-2.5-flash">google/gemini-2.5-flash</option>
-                    <option value="google/gemini-2.5-flash-lite-preview-06-17">google/gemini-2.5-flash-lite-preview-06-17</option>
-                    <option value="google/gemini-2.5-flash-preview">google/gemini-2.5-flash-preview</option>
-                    <option value="google/gemini-2.5-flash-preview-05-20">google/gemini-2.5-flash-preview-05-20</option>
-                    <option value="google/gemini-2.5-flash-preview-05-20:thinking">google/gemini-2.5-flash-preview-05-20:thinking</option>
-                    <option value="google/gemini-2.5-flash-preview:thinking">google/gemini-2.5-flash-preview:thinking</option>
-                    <option value="google/gemini-2.5-pro">google/gemini-2.5-pro</option>
-                    <option value="google/gemini-2.5-pro-exp-03-25">google/gemini-2.5-pro-exp-03-25</option>
-                    <option value="google/gemini-2.5-pro-preview">google/gemini-2.5-pro-preview</option>
-                    <option value="google/gemini-2.5-pro-preview-05-06">google/gemini-2.5-pro-preview-05-06</option>
-                    <option value="google/gemini-flash-1.5">google/gemini-flash-1.5</option>
-                    <option value="google/gemini-flash-1.5-8b">google/gemini-flash-1.5-8b</option>
-                    <option value="google/gemini-pro-1.5">google/gemini-pro-1.5</option>
-                    <option value="gpt-5">gpt-5</option>
-                    <option value="gpt-5-mini">gpt-5-mini</option>
-                    <option value="gpt-5-nano">gpt-5-nano</option>
-                    <option value="gpt-5-chat-latest">gpt-5-chat-latest</option>
-                    <option value="gpt-4.1">gpt-4.1</option>
-                    <option value="gpt-4.1-mini">gpt-4.1-mini</option>
-                    <option value="gpt-4.1-nano">gpt-4.1-nano</option>
-                    <option value="gpt-4.5-preview">gpt-4.5-preview</option>
-                    <option value="gpt-4o">gpt-4o</option>
-                    <option value="gpt-4o-mini">gpt-4o-mini</option>
-                    <option value="o1">o1</option>
-                    <option value="o1-mini">o1-mini</option>
-                    <option value="o1-pro">o1-pro</option>
-                    <option value="o3">o3</option>
-                    <option value="o3-mini">o3-mini</option>
-                    <option value="o4-mini">o4-mini</option>
-                    <option value="x-ai/grok-3">x-ai/grok-3</option>
-                    <option value="x-ai/grok-3-beta">x-ai/grok-3-beta</option>
-                    <option value="x-ai/grok-3-mini">x-ai/grok-3-mini</option>
-                    <option value="x-ai/grok-3-mini-beta">x-ai/grok-3-mini-beta</option>
-                    <option value="x-ai/grok-4">x-ai/grok-4</option>
-                </select>
-            </div>
-
-            <div id="chatHistory" class="chat-container">
-                <!-- As mensagens do chat serão adicionadas aqui -->
-            </div>
-
-            <div class="flex items-center gap-4 mt-4">
-                <input type="text" id="promptInput" class="input-field flex-grow" placeholder="Digite sua mensagem...">
-                <button id="sendBtn" class="btn-primary">Enviar</button>
-            </div>
-            <div id="chatLoadingIndicator" class="loading-indicator hidden">Carregando...</div>
+<body class="selection:bg-blue-200">
+    <!-- Sobreposição de Login -->
+    <div id="login-overlay">
+        <div class="login-box">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">🔐 Acesso à IA</h1>
+            <p class="text-gray-600 mb-6">Por favor, insira sua chave de acesso para continuar.</p>
+            <input type="text" id="access-key-input" class="p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-800 shadow-sm text-center" placeholder="Sua Chave de Acesso">
+            <button id="login-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
+                Entrar
+            </button>
+            <p id="login-error-message" class="text-red-600 mt-4 hidden">Mensagem de erro aqui.</p>
         </div>
     </div>
 
-    <!-- SDK do Puter -->
-    <script src="https://js.puter.com/v2/"></script>
-    
-    <!-- SDKs do Firebase -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <!-- Container Principal do Chat (Inicialmente Escondido) -->
+    <div id="chat-container" class="container hidden">
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-4">🤖 All-in-One AI Chat</h1>
 
-        // Configuração do Firebase
-        // O __firebase_config e __initial_auth_token são fornecidos pelo ambiente Canvas.
-        // Se estiver rodando fora do Canvas, você precisará defini-los.
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "AIzaSyAGE6USqp6YwLpGinnMqZD_eO_gF7m9TRw",
-            authDomain: "alloneai-d6ba6.firebaseapp.com",
-            databaseURL: "https://alloneai-d6ba6-default-rtdb.firebaseio.com",
-            projectId: "alloneai-d6ba6",
-            storageBucket: "alloneai-d6ba6.firebasestorage.app",
-            messagingSenderId: "695268266235",
-            appId: "1:695268266235:web:b8c9a1b96efbfa180e205e",
-            measurementId: "G-P4XBLRYG5Y"
+        <!-- Seleção do Modelo -->
+        <div class="flex flex-col gap-2">
+            <label for="model-select" class="text-lg font-semibold text-gray-700">Selecione o Modelo:</label>
+            <select id="model-select" class="p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-800 shadow-sm">
+                <!-- Os modelos serão preenchidos dinamicamente pelo JavaScript -->
+                <option value="" disabled selected>Carregando modelos...</option>
+            </select>
+        </div>
+
+        <!-- Entrada do Usuário -->
+        <div class="flex flex-col gap-2">
+            <label for="prompt-input" class="text-lg font-semibold text-gray-700">Seu Prompt:</label>
+            <textarea id="prompt-input" rows="6" class="p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-800 resize-y shadow-sm" placeholder="Digite sua pergunta ou comando aqui..."></textarea>
+        </div>
+
+        <!-- Botão de Ação -->
+        <button id="send-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
+            Enviar Prompt
+        </button>
+
+        <!-- Área de Resposta da IA -->
+        <div class="flex flex-col gap-2 mt-4">
+            <h2 class="text-2xl font-bold text-gray-800">Resposta da IA:</h2>
+            <div id="response-area" class="p-4 bg-gray-100 border border-gray-200 rounded-lg min-h-[150px] text-gray-700 leading-relaxed overflow-auto shadow-inner">
+                Sua resposta aparecerá aqui.
+            </div>
+        </div>
+    </div>
+
+    <!-- Caixa de Mensagem para alertas -->
+    <div id="message-box" class="message-box"></div>
+
+    <!-- Sobreposição de Carregamento -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Biblioteca Puter.js -->
+    <script src="https://js.puter.com/v2/"></script>
+    <!-- Bibliotecas Firebase -->
+    <script type="module">
+        // Importa as funções necessárias dos SDKs Firebase (versão 12.1.0)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+        // APP_ID FIXO - AGORA COM O VALOR DO SEU NOVO FIREBASE APP_ID
+        const appId = "1:1055585794088:web:0c7eab96a4e696cd6f9d1d"; 
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCov5xP4aFRo3QPFCxCRQGN7X59dR9ZLF4",
+            authDomain: "isiskd.firebaseapp.com",
+            projectId: "isiskd",
+            storageBucket: "isiskd.firebasestorage.app",
+            messagingSenderId: "1055585794088",
+            appId: "1:1055585794088:web:0c7eab96a4e696cd6f9d1d",
+            measurementId: "G-5S8S16K6KF"
         };
-        
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
         // Inicializa o Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Obtém o ID do aplicativo fornecido pelo ambiente Canvas ou usa um padrão
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        let isAuthReady = false;
 
-        const authSection = document.getElementById('authSection');
-        const chatSection = document.getElementById('chatSection');
-        const accessKeyInput = document.getElementById('accessKeyInput');
-        const validateAccessBtn = document.getElementById('validateAccessBtn');
-        const accessMessage = document.getElementById('accessMessage');
-        const currentUserIdDisplay = document.getElementById('currentUserIdDisplay'); // Este elemento está oculto via CSS
+        // Elementos DOM
+        const loginOverlay = document.getElementById('login-overlay');
+        const accessKeyInput = document.getElementById('access-key-input');
+        const loginButton = document.getElementById('login-button');
+        const loginErrorMessage = document.getElementById('login-error-message');
+        const chatContainer = document.getElementById('chat-container');
+        const modelSelect = document.getElementById('model-select');
+        const promptInput = document.getElementById('prompt-input');
+        const sendButton = document.getElementById('send-button');
+        const responseArea = document.getElementById('response-area');
 
-        const modelSelect = document.getElementById('modelSelect');
-        const promptInput = document.getElementById('promptInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const chatHistory = document.getElementById('chatHistory');
-        const chatLoadingIndicator = document.getElementById('chatLoadingIndicator');
-
-        // Função para exibir mensagens na seção de acesso
-        function showAccessMessage(text, isError = false) {
-            accessMessage.textContent = text;
-            accessMessage.classList.remove('hidden');
-            if (isError) {
-                accessMessage.style.backgroundColor = '#fee2e2';
-                accessMessage.style.color = '#991b1b';
+        // Função para exibir caixa de mensagem personalizada
+        function showMessage(message, type = 'info') {
+            const messageBox = document.getElementById('message-box');
+            messageBox.textContent = message;
+            messageBox.className = 'message-box show'; // Reseta classes e mostra
+            if (type === 'error') {
+                messageBox.style.backgroundColor = '#dc2626'; // Vermelho
+            } else if (type === 'success') {
+                messageBox.style.backgroundColor = '#16a34a'; // Verde
             } else {
-                accessMessage.style.backgroundColor = '#e0f2fe';
-                accessMessage.style.color = '#0c4a6e';
+                messageBox.style.backgroundColor = '#333'; // Cinza escuro padrão
+            }
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 3000);
+        }
+
+        // Função para mostrar/esconder sobreposição de carregamento
+        function toggleLoading(show) {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if (show) {
+                loadingOverlay.classList.add('show');
+            } else {
+                loadingOverlay.classList.remove('show');
             }
         }
 
-        // Função para mostrar o indicador de carregamento do chat
-        function showChatLoading(show) {
-            chatLoadingIndicator.classList.toggle('hidden', !show);
-        }
-
-        // Função para adicionar uma mensagem ao histórico do chat
-        function addMessageToChat(message, sender) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('chat-message');
-            if (sender === 'user') {
-                messageDiv.classList.add('user-message');
-            } else {
-                messageDiv.classList.add('ai-message');
+        // Autentica com Firebase
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                try {
+                    // Tenta fazer login com token personalizado se disponível
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                        console.log("CHAT APP: Firebase: Login com token personalizado.");
+                    } else {
+                        // Caso contrário, faz login anonimamente
+                        await signInAnonymously(auth);
+                        console.log("CHAT APP: Firebase: Login anônimo.");
+                    }
+                } catch (error) {
+                    console.error("CHAT APP: Firebase Auth Error:", error);
+                    showMessage(`Erro de autenticação Firebase: ${error.message}`, 'error');
+                }
             }
-            messageDiv.textContent = message;
-            chatHistory.appendChild(messageDiv);
-            chatHistory.scrollTop = chatHistory.scrollHeight; // Rola para o final do chat
+            isAuthReady = true;
+            console.log("CHAT APP: Firebase Auth Pronto. UID do Usuário Atual:", auth.currentUser?.uid);
+            console.log("CHAT APP: App ID em uso (FIXO):", appId); // Loga o appId fixo
+            
+            // Carrega os modelos após a autenticação estar pronta
+            if (isAuthReady) {
+                loadStaticModels(); // Chama a nova função de carregamento estático
+            }
+        });
+
+        // LISTA DE MODELOS FORNECIDA PELO USUÁRIO (adaptada para uso direto)
+        const allAvailableModels = [
+            "gpt-5-2025-08-07","gpt-5","gpt-5-mini-2025-08-07","gpt-5-mini","gpt-5-nano-2025-08-07","gpt-5-nano","gpt-5-chat-latest","gpt-4o","gpt-4o-mini","o1","o1-mini","o1-pro","o3","o3-mini","o4-mini","gpt-4.1","gpt-4.1-mini","gpt-4.1-nano","gpt-4.5-preview","claude-opus-4-1-20250805","claude-opus-4-1","claude-opus-4-20250514","claude-opus-4","claude-opus-4-latest","claude-sonnet-4-20250514","claude-sonnet-4","claude-sonnet-4-latest","claude-3-7-sonnet-20250219","claude-3-7-sonnet-latest","claude-3-5-sonnet-20241022","claude-3-5-sonnet-latest","claude-3-5-sonnet-20240620","claude-3-haiku-20240307","cartesia/sonic","mistralai/Mistral-7B-Instruct-v0.3","cartesia/sonic-2","togethercomputer/MoA-1","meta-llama/Meta-Llama-Guard-3-8B","meta-llama/LlamaGuard-2-8b","meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo","meta-llama/Llama-3.2-3B-Instruct-Turbo","deepseek-ai/DeepSeek-R1","meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo","Qwen/Qwen2.5-7B-Instruct-Turbo","Qwen/Qwen2.5-72B-Instruct-Turbo","meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo","arize-ai/qwen-2-1.5b-instruct","meta-llama/Llama-3.3-70B-Instruct-Turbo","black-forest-labs/FLUX.1-pro","black-forest-labs/FLUX.1.1-pro","meta-llama/Llama-Guard-3-11B-Vision-Turbo","meta-llama/Llama-3-8b-chat-hf","Qwen/Qwen3-235B-A22B-Thinking-2507","Qwen/Qwen2.5-Coder-32B-Instruct","black-forest-labs/FLUX.1-krea-dev","togethercomputer/MoA-1-Turbo","black-forest-labs/FLUX.1-redux","Qwen/Qwen3-235B-A22B-Instruct-2507-tput","arcee_ai/arcee-spotlight","meta-llama/Llama-3.3-70B-Instruct-Turbo-Free","black-forest-labs/FLUX.1-dev-lora","meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo","meta-llama/Meta-Llama-3-70B-Instruct-Turbo","openai/whisper-large-v3","Qwen/Qwen3-235B-A22B-fp8-tput","Qwen/Qwen2.5-VL-72B-Instruct","openai/gpt-oss-120b","black-forest-labs/FLUX.1-schnell","deepcogito/cogito-v2-preview-llama-70B","deepcogito/cogito-v2-preview-llama-405B","lgai/exaone-3-5-32b-instruct","meta-llama/Llama-3-70b-chat-hf","mistralai/Mixtral-8x7B-Instruct-v0.1","black-forest-labs/FLUX.1-depth","black-forest-labs/FLUX.1-kontext-dev","mixedbread-ai/Mxbai-Rerank-Large-V2","google/gemma-2-27b-it","black-forest-labs/FLUX.1-dev","Qwen/Qwen2-72B-Instruct","meta-llama/Llama-2-70b-hf","black-forest-labs/FLUX.1-canny","togethercomputer/m2-bert-80M-32k-retrieval","Salesforce/Llama-Rank-V1","mistralai/Mistral-Small-24B-Instruct-2501","Qwen/Qwen2-VL-72B-Instruct","deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B","meta-llama/Llama-Vision-Free","deepcogito/cogito-v2-preview-deepseek-671b","perplexity-ai/r1-1776","scb10x/scb10x-llama3-1-typhoon2-70b-instruct","arcee_ai/arcee-spotlight","togethercomputer/Refuel-Llm-V2-Small","arcee_ai/coder-large","Qwen/QwQ-32B","deepseek-ai/DeepSeek-R1-0528-tput","marin-community/marin-8b-instruct","lgai/exaone-deep-32b","deepcogito/cogito-v2-preview-llama-109B-MoE","google/gemma-3-27b-it","deepseek-ai/DeepSeek-R1-Distill-Llama-70B","NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO","mistralai/Mistral-7B-Instruct-v0.1","meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8","deepseek-ai/DeepSeek-R1-Distill-Qwen-14B","deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free","scb10x/scb10x-typhoon-2-1-gemma3-12b","meta-llama/Llama-Guard-4-12B","togethercomputer/Refuel-Llm-V2","meta-llama/Meta-Llama-3-8B-Instruct-Lite","intfloat/multilingual-e5-large-instruct","meta-llama/Llama-4-Scout-17B-16E-Instruct","black-forest-labs/FLUX.1-kontext-max","Alibaba-NLP/gte-modernbert-base","nvidia/Llama-3.1-Nemotron-70B-Instruct-HF","deepseek-ai/DeepSeek-V3","black-forest-labs/FLUX.1-schnell-Free","Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8","black-forest-labs/FLUX.1-kontext-pro","Virtue-AI/VirtueGuard-Text-Lite","meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo","arcee-ai/virtuoso-large","google/gemma-3n-E4B-it","moonshotai/Kimi-K2-Instruct","openai/gpt-oss-20b","mistralai/Mistral-7B-Instruct-v0.2","zai-org/GLM-4.5-Air-FP8","model-fallback-test-1","mistral-medium-2505","mistral-medium-latest","mistral-medium","mistral-large-latest","ministral-3b-2410","ministral-3b-latest","ministral-8b-2410","ministral-8b-latest","open-mistral-7b","mistral-tiny","mistral-tiny-2312","open-mistral-nemo","open-mistral-nemo-2407","mistral-tiny-2407","mistral-tiny-latest","open-mixtral-8x7b","mistral-small","mistral-small-2312","open-mixtral-8x22b","open-mixtral-8x22b-2404","pixtral-large-2411","pixtral-large-latest","mistral-large-pixtral-2411","codestral-2508","codestral-latest","devstral-small-2507","devstral-small-latest","pixtral-12b-2409","pixtral-12b","pixtral-12b-latest","mistral-small-2506","mistral-small-latest","mistral-saba-2502","mistral-saba-latest","magistral-medium-2507","magistral-medium-latest","magistral-small-2507","magistral-small-latest","mistral-moderation-2411","mistral-moderation-latest","mistral-ocr-2505","mistral-ocr-latest","grok-beta","grok-vision-beta","grok-3","grok-3-fast","grok-3-mini","grok-3-mini-fast","grok-2-vision","grok-2","deepseek-chat","deepseek-reasoner","gemini-1.5-flash","gemini-2.0-flash","openrouter:z-ai/glm-4.5v","openrouter:ai21/jamba-mini-1.7","openrouter:ai21/jamba-large-1.7","openrouter:openai/gpt-5-chat","openrouter:openai/gpt-5","openrouter:openai/gpt-5-mini","openrouter:openai/gpt-5-nano","openrouter:openai/gpt-oss-120b","openrouter:openai/gpt-oss-20b:free","openrouter:openai/gpt-oss-20b","openrouter:anthropic/claude-opus-4.1","openrouter:mistralai/codestral-2508","openrouter:qwen/qwen3-30b-a3b-instruct-2507","openrouter:z-ai/glm-4.5","openrouter:z-ai/glm-4.5-air:free","openrouter:z-ai/glm-4.5-air","openrouter:qwen/qwen3-235b-a22b-thinking-2507","openrouter:z-ai/glm-4-32b","openrouter:qwen/qwen3-coder:free","openrouter:qwen/qwen3-coder","openrouter:bytedance/ui-tars-1.5-7b","openrouter:google/gemini-2.5-flash-lite","openrouter:qwen/qwen3-235b-a22b-2507","openrouter:switchpoint/router","openrouter:moonshotai/kimi-k2:free","openrouter:moonshotai/kimi-k2","openrouter:thudm/glm-4.1v-9b-thinking","openrouter:mistralai/devstral-medium","openrouter:mistralai/devstral-small","openrouter:cognitivecomputations/dolphin-mistral-24b-venice-edition:free","openrouter:x-ai/grok-4","openrouter:google/gemma-3n-e2b-it:free","openrouter:tencent/hunyuan-a13b-instruct:free","openrouter:tencent/hunyuan-a13b-instruct","openrouter:tngtech/deepseek-r1t2-chimera:free","openrouter:morph/morph-v3-large","openrouter:morph/morph-v3-fast","openrouter:baidu/ernie-4.5-300b-a47b","openrouter:thedrummer/anubis-70b-v1.1","openrouter:inception/mercury","openrouter:mistralai/mistral-small-3.2-24b-instruct:free","openrouter:mistralai/mistral-small-3.2-24b-instruct","openrouter:minimax/minimax-m1","openrouter:google/gemini-2.5-flash-lite-preview-06-17","openrouter:google/gemini-2.5-flash","openrouter:google/gemini-2.5-pro","openrouter:moonshotai/kimi-dev-72b:free","openrouter:openai/o3-pro","openrouter:x-ai/grok-3-mini","openrouter:x-ai/grok-3","openrouter:mistralai/magistral-small-2506","openrouter:mistralai/magistral-medium-2506","openrouter:mistralai/magistral-medium-2506:thinking","openrouter:google/gemini-2.5-pro-preview","openrouter:deepseek/deepseek-r1-distill-qwen-7b","openrouter:deepseek/deepseek-r1-0528-qwen3-8b:free","openrouter:deepseek/deepseek-r1-0528-qwen3-8b","openrouter:deepseek/deepseek-r1-0528:free","openrouter:deepseek/deepseek-r1-0528","openrouter:sarvamai/sarvam-m:free","openrouter:thedrummer/valkyrie-49b-v1","openrouter:anthropic/claude-opus-4","openrouter:anthropic/claude-sonnet-4","openrouter:mistralai/devstral-small-2505:free","openrouter:mistralai/devstral-small-2505","openrouter:google/gemma-3n-e4b-it:free","openrouter:google/gemma-3n-e4b-it","openrouter:openai/codex-mini","openrouter:nousresearch/deephermes-3-mistral-24b-preview","openrouter:mistralai/mistral-medium-3","openrouter:google/gemini-2.5-pro-preview-05-06","openrouter:arcee-ai/spotlight","openrouter:arcee-ai/maestro-reasoning","openrouter:arcee-ai/virtuoso-large","openrouter:arcee-ai/coder-large","openrouter:microsoft/phi-4-reasoning-plus","openrouter:inception/mercury-coder","openrouter:qwen/qwen3-4b:free","openrouter:opengvlab/internvl3-14b","openrouter:deepseek/deepseek-prover-v2","openrouter:meta-llama/llama-guard-4-12b","openrouter:qwen/qwen3-30b-a3b:free","openrouter:qwen/qwen3-30b-a3b","openrouter:qwen/qwen3-8b:free","openrouter:qwen/qwen3-8b","openrouter:qwen/qwen3-14b:free","openrouter:qwen/qwen3-14b","openrouter:qwen/qwen3-32b","openrouter:qwen/qwen3-235b-a22b:free","openrouter:qwen/qwen3-235b-a22b","openrouter:tngtech/deepseek-r1t-chimera:free","openrouter:tngtech/deepseek-r1t-chimera","openrouter:microsoft/mai-ds-r1:free","openrouter:microsoft/mai-ds-r1","openrouter:thudm/glm-z1-32b:free","openrouter:thudm/glm-z1-32b","openrouter:thudm/glm-4-32b","openrouter:openai/o4-mini-high","openrouter:openai/o3","openrouter:openai/o4-mini","openrouter:shisa-ai/shisa-v2-llama3.3-70b:free","openrouter:shisa-ai/shisa-v2-llama3.3-70b","openrouter:openai/gpt-4.1","openrouter:openai/gpt-4.1-mini","openrouter:openai/gpt-4.1-nano","openrouter:eleutherai/llemma_7b","openrouter:alfredpros/codellama-7b-instruct-solidity","openrouter:arliai/qwq-32b-arliai-rpr-v1:free","openrouter:arliai/qwq-32b-arliai-rpr-v1","openrouter:agentica-org/deepcoder-14b-preview:free","openrouter:agentica-org/deepcoder-14b-preview","openrouter:moonshotai/kimi-vl-a3b-thinking:free","openrouter:moonshotai/kimi-vl-a3b-thinking","openrouter:x-ai/grok-3-mini-beta","openrouter:x-ai/grok-3-beta","openrouter:nvidia/llama-3.3-nemotron-super-49b-v1","openrouter:nvidia/llama-3.1-nemotron-ultra-253b-v1:free","openrouter:nvidia/llama-3.1-nemotron-ultra-253b-v1","openrouter:meta-llama/llama-4-maverick","openrouter:meta-llama/llama-4-scout","openrouter:deepseek/deepseek-v3-base","openrouter:scb10x/llama3.1-typhoon2-70b-instruct","openrouter:google/gemini-2.5-pro-exp-03-25","openrouter:qwen/qwen2.5-vl-32b-instruct:free","openrouter:qwen/qwen2.5-vl-32b-instruct","openrouter:deepseek/deepseek-chat-v3-0324:free","openrouter:deepseek/deepseek-chat-v3-0324","openrouter:featherless/qwerky-72b:free","openrouter:openai/o1-pro","openrouter:mistralai/mistral-small-3.1-24b-instruct:free","openrouter:mistralai/mistral-small-3.1-24b-instruct","openrouter:google/gemma-3-4b-it:free","openrouter:google/gemma-3-4b-it","openrouter:google/gemma-3-12b-it:free","openrouter:google/gemma-3-12b-it","openrouter:cohere/command-a","openrouter:openai/gpt-4o-mini-search-preview","openrouter:openai/gpt-4o-search-preview","openrouter:rekaai/reka-flash-3:free","openrouter:google/gemma-3-27b-it:free","openrouter:google/gemma-3-27b-it","openrouter:thedrummer/anubis-pro-105b-v1","openrouter:thedrummer/skyfall-36b-v2","openrouter:microsoft/phi-4-multimodal-instruct","openrouter:perplexity/sonar-reasoning-pro","openrouter:perplexity/sonar-pro","openrouter:perplexity/sonar-deep-research","openrouter:qwen/qwq-32b:free","openrouter:qwen/qwq-32b","openrouter:nousresearch/deephermes-3-llama-3-8b-preview:free","openrouter:google/gemini-2.0-flash-lite-001","openrouter:anthropic/claude-3.7-sonnet","openrouter:anthropic/claude-3.7-sonnet:thinking","openrouter:anthropic/claude-3.7-sonnet:beta","openrouter:perplexity/r1-1776","openrouter:mistralai/mistral-saba","openrouter:cognitivecomputations/dolphin3.0-r1-mistral-24b:free","openrouter:cognitivecomputations/dolphin3.0-r1-mistral-24b","openrouter:cognitivecomputations/dolphin3.0-mistral-24b:free","openrouter:cognitivecomputations/dolphin3.0-mistral-24b","openrouter:meta-llama/llama-guard-3-8b","openrouter:openai/o3-mini-high","openrouter:deepseek/deepseek-r1-distill-llama-8b","openrouter:google/gemini-2.0-flash-001","openrouter:qwen/qwen-vl-plus","openrouter:aion-labs/aion-1.0","openrouter:aion-labs/aion-1.0-mini","openrouter:aion-labs/aion-rp-llama-3.1-8b","openrouter:qwen/qwen-vl-max","openrouter:qwen/qwen-turbo","openrouter:qwen/qwen2.5-vl-72b-instruct:free","openrouter:qwen/qwen2.5-vl-72b-instruct","openrouter:qwen/qwen-plus","openrouter:qwen/qwen-max","openrouter:openai/o3-mini","openrouter:deepseek/deepseek-r1-distill-qwen-1.5b","openrouter:mistralai/mistral-small-24b-instruct-2501:free","openrouter:mistralai/mistral-small-24b-instruct-2501","openrouter:deepseek/deepseek-r1-distill-qwen-32b","openrouter:deepseek/deepseek-r1-distill-qwen-14b:free","openrouter:deepseek/deepseek-r1-distill-qwen-14b","openrouter:perplexity/sonar-reasoning","openrouter:perplexity/sonar","openrouter:liquid/lfm-7b","openrouter:liquid/lfm-3b","openrouter:deepseek/deepseek-r1-distill-llama-70b:free","openrouter:deepseek/deepseek-r1-distill-llama-70b","openrouter:deepseek/deepseek-r1:free","openrouter:deepseek/deepseek-r1","openrouter:minimax/minimax-01","openrouter:mistralai/codestral-2501","openrouter:microsoft/phi-4","openrouter:deepseek/deepseek-chat","openrouter:sao10k/l3.3-euryale-70b","openrouter:openai/o1","openrouter:x-ai/grok-2-vision-1212","openrouter:x-ai/grok-2-1212","openrouter:cohere/command-r7b-12-2024","openrouter:google/gemini-2.0-flash-exp:free","openrouter:meta-llama/llama-3.3-70b-instruct:free","openrouter:meta-llama/llama-3.3-70b-instruct","openrouter:amazon/nova-lite-v1","openrouter:amazon/nova-micro-v1","openrouter:amazon/nova-pro-v1","openrouter:qwen/qwq-32b-preview","openrouter:openai/gpt-4o-2024-11-20","openrouter:mistralai/mistral-large-2411","openrouter:mistralai/mistral-large-2407","openrouter:mistralai/pixtral-large-2411","openrouter:x-ai/grok-vision-beta","openrouter:infermatic/mn-inferor-12b","openrouter:qwen/qwen-2.5-coder-32b-instruct:free","openrouter:qwen/qwen-2.5-coder-32b-instruct","openrouter:raifle/sorcererlm-8x22b","openrouter:thedrummer/unslopnemo-12b","openrouter:anthropic/claude-3.5-haiku","openrouter:anthropic/claude-3.5-haiku-20241022","openrouter:anthropic/claude-3.5-sonnet","openrouter:anthracite-org/magnum-v4-72b","openrouter:mistralai/ministral-8b","openrouter:mistralai/ministral-3b","openrouter:qwen/qwen-2.5-7b-instruct","openrouter:nvidia/llama-3.1-nemotron-70b-instruct","openrouter:inflection/inflection-3-productivity","openrouter:inflection/inflection-3-pi","openrouter:google/gemini-flash-1.5-8b","openrouter:thedrummer/rocinante-12b","openrouter:anthracite-org/magnum-v2-72b","openrouter:liquid/lfm-40b","openrouter:meta-llama/llama-3.2-11b-vision-instruct:free","openrouter:meta-llama/llama-3.2-11b-vision-instruct","openrouter:meta-llama/llama-3.2-3b-instruct:free","openrouter:meta-llama/llama-3.2-3b-instruct","openrouter:meta-llama/llama-3.2-1b-instruct","openrouter:meta-llama/llama-3.2-90b-vision-instruct","openrouter:qwen/qwen-2.5-72b-instruct:free","openrouter:qwen/qwen-2.5-72b-instruct","openrouter:neversleep/llama-3.1-lumimaid-8b","openrouter:openai/o1-mini","openrouter:openai/o1-mini-2024-09-12","openrouter:mistralai/pixtral-12b","openrouter:cohere/command-r-plus-08-2024","openrouter:cohere/command-r-08-2024","openrouter:qwen/qwen-2.5-vl-7b-instruct","openrouter:sao10k/l3.1-euryale-70b","openrouter:microsoft/phi-3.5-mini-128k-instruct","openrouter:nousresearch/hermes-3-llama-3.1-70b","openrouter:nousresearch/hermes-3-llama-3.1-405b","openrouter:openai/chatgpt-4o-latest","openrouter:sao10k/l3-lunaris-8b","openrouter:openai/gpt-4o-2024-08-06","openrouter:meta-llama/llama-3.1-405b","openrouter:meta-llama/llama-3.1-405b-instruct:free","openrouter:meta-llama/llama-3.1-405b-instruct","openrouter:meta-llama/llama-3.1-8b-instruct","openrouter:meta-llama/llama-3.1-70b-instruct","openrouter:mistralai/mistral-nemo:free","openrouter:mistralai/mistral-nemo","openrouter:openai/gpt-4o-mini-2024-07-18","openrouter:openai/gpt-4o-mini","openrouter:google/gemma-2-27b-it","openrouter:google/gemma-2-9b-it:free","openrouter:google/gemma-2-9b-it","openrouter:anthropic/claude-3.5-sonnet-20240620","openrouter:sao10k/l3-euryale-70b","openrouter:cognitivecomputations/dolphin-mixtral-8x22b","openrouter:qwen/qwen-2-72b-instruct","openrouter:mistralai/mistral-7b-instruct-v0.3","openrouter:nousresearch/hermes-2-pro-llama-3-8b","openrouter:mistralai/mistral-7b-instruct:free","openrouter:mistralai/mistral-7b-instruct","openrouter:microsoft/phi-3-mini-128k-instruct","openrouter:microsoft/phi-3-medium-128k-instruct","openrouter:neversleep/llama-3-lumimaid-70b","openrouter:google/gemini-flash-1.5","openrouter:openai/gpt-4o","openrouter:openai/gpt-4o:extended","openrouter:meta-llama/llama-guard-2-8b","openrouter:openai/gpt-4o-2024-05-13","openrouter:meta-llama/llama-3-70b-instruct","openrouter:meta-llama/llama-3-8b-instruct","openrouter:mistralai/mixtral-8x22b-instruct","openrouter:microsoft/wizardlm-2-8x22b","openrouter:openai/gpt-4-turbo","openrouter:google/gemini-pro-1.5","openrouter:cohere/command-r-plus","openrouter:cohere/command-r-plus-04-2024","openrouter:sophosympatheia/midnight-rose-70b","openrouter:cohere/command","openrouter:cohere/command-r","openrouter:anthropic/claude-3-haiku","openrouter:anthropic/claude-3-opus","openrouter:cohere/command-r-03-2024","openrouter:mistralai/mistral-large","openrouter:openai/gpt-3.5-turbo-0613","openrouter:openai/gpt-4-turbo-preview","openrouter:nousresearch/nous-hermes-2-mixtral-8x7b-dpo","openrouter:mistralai/mistral-tiny","openrouter:mistralai/mistral-small","openrouter:mistralai/mistral-7b-instruct-v0.2","openrouter:mistralai/mixtral-8x7b-instruct","openrouter:neversleep/noromaid-20b","openrouter:alpindale/goliath-120b","openrouter:openrouter/auto","openrouter:openai/gpt-4-1106-preview","openrouter:mistralai/mistral-7b-instruct-v0.1","openrouter:openai/gpt-3.5-turbo-instruct","openrouter:pygmalionai/mythalion-13b","openrouter:openai/gpt-3.5-turbo-16k","openrouter:mancer/weaver","openrouter:undi95/remm-slerp-l2-13b","openrouter:gryphe/mythomax-l2-13b","openrouter:openai/gpt-4","openrouter:openai/gpt-3.5-turbo","openrouter:openai/gpt-4-0314"
+        ];
+
+        // Função para carregar e preencher os modelos da lista estática
+        function loadStaticModels() {
+            console.log("CHAT APP: Carregando modelos da lista estática...");
+            modelSelect.innerHTML = '<option value="" disabled selected>Filtrando modelos...</option>'; // Placeholder
+            toggleLoading(true);
+
+            const filteredModels = new Set(); // Usar um Set para evitar duplicatas
+
+            // Modelos prioritários/famosos
+            const preferredModels = [
+                // OpenAI
+                "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-chat-latest", "gpt-4o", "gpt-4o-mini",
+                "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano", "gpt-4.5-preview",
+                "openai/gpt-5-chat", "openai/gpt-5", "openai/gpt-5-mini", "openai/gpt-5-nano",
+                "openai/gpt-4o", "openai/gpt-4o-mini", "openai/gpt-4o-2024-05-13",
+                "openai/gpt-4-turbo", "openai/gpt-4-turbo-preview", "openai/gpt-4",
+                "openai/gpt-3.5-turbo", "openai/gpt-3.5-turbo-0613", "openai/gpt-3.5-turbo-16k",
+                "openai/gpt-oss-120b", "openai/gpt-oss-20b",
+
+                // Gemini (Google)
+                "gemini-1.5-flash", "gemini-2.0-flash", "gemini-2.5-flash", "gemini-2.5-pro",
+                "google/gemini-2.5-flash-lite", "google/gemini-2.5-flash-lite-preview-06-17",
+                "google/gemini-2.5-flash", "google/gemini-2.5-pro",
+                "google/gemini-pro-1.5", "google/gemini-flash-1.5", "google/gemini-flash-1.5-8b",
+                "google/gemini-2.0-flash-exp:free", "google/gemini-2.0-flash-lite-001",
+                "google/gemma-2-27b-it", "google/gemma-3-27b-it", "google/gemma-3-12b-it",
+                "google/gemma-3-4b-it", "google/gemma-2-9b-it", "google/gemma-3n-e4b-it",
+
+                // Claude (Anthropic)
+                "claude-opus-4-1", "claude-opus-4", "claude-opus-4-latest",
+                "claude-sonnet-4", "claude-sonnet-4-latest", "claude-3-7-sonnet-20250219",
+                "claude-3-5-sonnet-20241022", "claude-3-5-sonnet-latest", "claude-3-5-sonnet-20240620",
+                "claude-3-haiku-20240307", "anthropic/claude-3-haiku", "anthropic/claude-3-opus",
+                "anthropic/claude-3.5-haiku", "anthropic/claude-3.5-sonnet",
+
+                // Qwen (Alibaba)
+                "Qwen/Qwen2.5-7B-Instruct-Turbo", "Qwen/Qwen2.5-72B-Instruct-Turbo",
+                "Qwen/Qwen3-235B-A22B-Thinking-2507", "Qwen/Qwen2.5-Coder-32B-Instruct",
+                "Qwen/Qwen3-235B-A22B-Instruct-2507-tput", "Qwen/Qwen3-235B-A22B-fp8-tput",
+                "Qwen/Qwen2.5-VL-72B-Instruct", "Qwen/QwQ-32B", "Qwen/Qwen2-72B-Instruct",
+                "Qwen/Qwen2-VL-72B-Instruct", "Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8",
+                "Qwen/Qwen-vl-plus", "Qwen/Qwen-vl-max", "Qwen/Qwen-turbo", "Qwen/Qwen-plus", "Qwen/Qwen-max",
+
+                // Grok (x-ai)
+                "grok-beta", "grok-vision-beta", "grok-3", "grok-3-fast", "grok-3-mini",
+                "grok-3-mini-fast", "grok-2-vision", "grok-2", "x-ai/grok-4", "x-ai/grok-3-mini-beta",
+                "x-ai/grok-3-beta",
+
+                // Mistral (Mistral AI)
+                "mistralai/Mistral-7B-Instruct-v0.3", "mistralai/Mixtral-8x7B-Instruct-v0.1",
+                "mistral-medium-2505", "mistral-medium-latest", "mistral-medium",
+                "mistral-large-latest", "mistral-large", "mistral-large-pixtral-2411",
+                "mistralai/mistral-large-2411", "mistralai/mistral-large-2407",
+                "mistral-tiny", "mistral-tiny-2312", "mistral-tiny-2407", "mistral-tiny-latest",
+                "mistral-small", "mistral-small-2312", "mistral-small-2506", "mistral-small-latest",
+                "open-mistral-7b", "open-mistral-nemo", "open-mistral-nemo-2407",
+                "open-mixtral-8x7b", "open-mixtral-8x22b", "open-mixtral-8x22b-2404",
+                "mistralai/codestral-2508", "codestral-latest", "mistralai/codestral-2501",
+                "mistralai/devstral-small-2507", "devstral-small-latest",
+                "mistralai/pixtral-12b-2409", "pixtral-12b", "pixtral-12b-latest", "pixtral-large-2411",
+                "mistralai/magistral-medium-2507", "magistral-medium-latest", "magistral-small-2507",
+                "magistral-small-latest",
+
+                // Llama (Meta)
+                "meta-llama/Meta-Llama-Guard-3-8B", "meta-llama/LlamaGuard-2-8b",
+                "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo", "meta-llama/Llama-3.2-3B-Instruct-Turbo",
+                "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo", "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+                "meta-llama/Llama-3.3-70B-Instruct-Turbo", "meta-llama/Llama-Guard-3-11B-Vision-Turbo",
+                "meta-llama/Llama-3-8b-chat-hf", "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo",
+                "meta-llama/Meta-Llama-3-70B-Instruct-Turbo", "meta-llama/Llama-3-70b-chat-hf",
+                "meta-llama/Llama-Guard-4-12B", "meta-llama/Meta-Llama-3-8B-Instruct-Lite",
+                "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8", "meta-llama/Llama-4-Scout-17B-16E-Instruct",
+
+                // Outros notáveis da sua lista que não são de marcas Puter-specific
+                "deepseek-chat", "deepseek-reasoner", "deepseek-ai/DeepSeek-R1",
+                "deepseek-ai/DeepSeek-V3", "togethercomputer/MoA-1", "togethercomputer/MoA-1-Turbo",
+                "moonshotai/Kimi-K2-Instruct", "moonshotai/kimi-k2", "moonshotai/kimi-dev-72b",
+                "cartesia/sonic", "cartesia/sonic-2", "mixedbread-ai/Mxbai-Rerank-Large-V2",
+                "lgai/exaone-3-5-32b-instruct", "lgai/exaone-deep-32b",
+                "black-forest-labs/FLUX.1-pro", "black-forest-labs/FLUX.1.1-pro",
+                "black-forest-labs/FLUX.1-krea-dev", "black-forest-labs/FLUX.1-redux",
+                "black-forest-labs/FLUX.1-dev-lora", "black-forest-labs/FLUX.1-schnell",
+                "black-forest-labs/FLUX.1-depth", "black-forest-labs/FLUX.1-kontext-dev",
+                "black-forest-labs/FLUX.1-dev", "black-forest-labs/FLUX.1-canny",
+                "black-forest-labs/FLUX.1-kontext-max", "black-forest-labs/FLUX.1-schnell-Free",
+                "black-forest-labs/FLUX.1-kontext-pro", "arcee_ai/arcee-spotlight",
+                "arcee_ai/coder-large", "arcee_ai/virtuoso-large", "arcee-ai/maestro-reasoning",
+                "microsoft/phi-4", "microsoft/phi-3.5-mini-128k-instruct",
+                "microsoft/phi-3-medium-128k-instruct",
+            ];
+
+            // Adicionar modelos prioritários (mantendo a ordem)
+            preferredModels.forEach(model => {
+                if (allAvailableModels.includes(model) || allAvailableModels.includes(`openai/${model}`)) { // Verifica prefixos se necessário
+                    filteredModels.add(model.startsWith('openai/') ? model : `openai/${model}`); // Adiciona prefixo para modelos sem
+                }
+            });
+
+            // Adicionar modelos gerais da lista do usuário que não são do OpenRouter:
+            allAvailableModels.forEach(model => {
+                if (!model.startsWith('openrouter:') && !filteredModels.has(model)) {
+                    filteredModels.add(model);
+                }
+            });
+
+            // Converter para array e ordenar o restante alfabeticamente
+            let finalModels = Array.from(filteredModels).sort();
+
+            // Reorganizar para colocar os modelos preferidos no topo, na ordem definida
+            const reorderedFinalModels = [];
+            preferredModels.forEach(pModel => {
+                if (finalModels.includes(pModel)) {
+                    reorderedFinalModels.push(pModel);
+                    finalModels = finalModels.filter(m => m !== pModel); // Remover para não duplicar
+                }
+            });
+            // Adicionar o restante dos modelos (já ordenados alfabeticamente)
+            reorderedFinalModels.push(...finalModels);
+
+            if (reorderedFinalModels.length > 0) {
+                modelSelect.innerHTML = ''; // Limpa o placeholder
+                reorderedFinalModels.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = model;
+                    modelSelect.appendChild(option);
+                });
+                console.log("CHAT APP: Modelos preenchidos com sucesso:", reorderedFinalModels);
+            } else {
+                modelSelect.innerHTML = '<option value="" disabled selected>Nenhum modelo encontrado ou compatível.</option>';
+                showMessage("Nenhum modelo compatível encontrado da lista fornecida.", 'info');
+                console.warn("CHAT APP: Nenhum modelo compatível encontrado da lista.");
+            }
+            toggleLoading(false);
         }
 
-        // Valida a chave de acesso
-        validateAccessBtn.addEventListener('click', async () => {
-            const enteredKey = accessKeyInput.value.trim();
-            if (!enteredKey) {
-                showAccessMessage("Por favor, insira um ID de Usuário (chave de acesso).", true);
+
+        // Listener de Eventos para o Botão de Login
+        loginButton.addEventListener('click', async () => {
+            if (!isAuthReady) {
+                showMessage("Autenticando com Firebase, por favor, aguarde...", 'info');
+                console.log("CHAT APP: Tentativa de Login: Firebase não pronto.");
                 return;
             }
 
-            const accessKeysRef = collection(db, `artifacts/${appId}/public/data/access_keys`);
-            const q = query(accessKeysRef, where("userId", "==", enteredKey));
+            const enteredKey = accessKeyInput.value.trim();
+            if (!enteredKey) {
+                loginErrorMessage.textContent = "Por favor, insira uma chave de acesso.";
+                loginErrorMessage.classList.remove('hidden');
+                console.log("CHAT APP: Tentativa de Login: Nenhuma chave inserida.");
+                return;
+            }
+            loginErrorMessage.classList.add('hidden'); // Esconde erro anterior
+
+            toggleLoading(true);
 
             try {
+                // Consulta a coleção de chaves públicas usando o appId FIXO
+                const keysCollectionRef = collection(db, `/artifacts/${appId}/public/data/accessKeys`);
+                console.log(`CHAT APP: Consultando Firestore collection: /artifacts/${appId}/public/data/accessKeys para a chave: ${enteredKey}`);
+                const q = query(keysCollectionRef, where("key", "==", enteredKey));
                 const querySnapshot = await getDocs(q);
-                let accessGranted = false;
-                if (!querySnapshot.empty) {
-                    querySnapshot.forEach(doc => {
-                        const data = doc.data();
-                        const expirationTime = data.expiration;
-                        if (expirationTime && Date.now() < expirationTime) {
-                            accessGranted = true;
+
+                if (querySnapshot.empty) {
+                    loginErrorMessage.textContent = "Chave de acesso inválida.";
+                    loginErrorMessage.classList.remove('hidden');
+                    console.log("CHAT APP: Chave NÃO encontrada no Firestore (querySnapshot.empty é true).");
+                } else {
+                    let keyIsValid = false;
+                    querySnapshot.forEach((doc) => {
+                        const keyData = doc.data();
+                        const currentTime = Date.now();
+                        console.log("CHAT APP: Dados da chave encontrados:", keyData);
+
+                        // Converte expiresAt para milissegundos se for um objeto Timestamp do Firestore
+                        let expiresAtMs;
+                        if (keyData.expiresAt && typeof keyData.expiresAt.toMillis === 'function') {
+                            expiresAtMs = keyData.expiresAt.toMillis();
+                            console.log("CHAT APP: expiresAt é um Timestamp. Convertido para MS:", expiresAtMs);
+                        } else if (typeof keyData.expiresAt === 'number') {
+                            expiresAtMs = keyData.expiresAt;
+                            console.log("CHAT APP: expiresAt já é um número (MS):", expiresAtMs);
+                        } else {
+                            console.warn("CHAT APP: Tipo de expiresAt inesperado:", typeof keyData.expiresAt, keyData.expiresAt);
+                            expiresAtMs = 0; // Assume que expirou ou é inválido
+                        }
+                        
+                        console.log("CHAT APP: Status da chave:", keyData.status);
+                        console.log("CHAT APP: Hora atual (MS):", currentTime);
+                        console.log("CHAT APP: Expira em (MS):", expiresAtMs);
+                        console.log("CHAT APP: Condição 1 (status === 'active'):", keyData.status === 'active');
+                        console.log("CHAT APP: Condição 2 (expiresAtMs > currentTime):", expiresAtMs > currentTime);
+
+                        if (keyData.status === 'active' && expiresAtMs > currentTime) {
+                            keyIsValid = true;
+                            console.log("CHAT APP: Chave é válida! Todas as condições TRUE.");
+                        } else {
+                            console.log("CHAT APP: Chave é INVÁLIDA. Verifique as condições acima.");
                         }
                     });
-                }
 
-                if (accessGranted) {
-                    showAccessMessage("Acesso concedido! Você pode começar a conversar com a IA.", false);
-                    authSection.classList.add('hidden');
-                    chatSection.classList.remove('hidden');
-                } else {
-                    showAccessMessage("Chave de acesso inválida ou expirada. Por favor, tente novamente ou gere uma nova chave.", true);
-                    chatSection.classList.add('hidden');
-                    authSection.classList.remove('hidden');
-                }
-
-            } catch (error) {
-                console.error("Erro ao validar chave de acesso:", error);
-                showAccessMessage(`Erro ao validar chave de acesso: ${error.message}. Por favor, verifique suas Regras de Segurança do Firestore.`, true);
-                chatSection.classList.add('hidden');
-                authSection.classList.remove('hidden');
-            }
-        });
-
-        // Lida com o envio de mensagens do chat
-        sendBtn.addEventListener('click', async () => {
-            const prompt = promptInput.value.trim();
-            if (!prompt) return;
-
-            const selectedModel = modelSelect.value;
-            addMessageToChat(`Você: ${prompt}`, 'user');
-            promptInput.value = '';
-            showChatLoading(true);
-
-            try {
-                let retryCount = 0;
-                const maxRetries = 5;
-                const baseDelay = 1000;
-
-                let response;
-                while (retryCount < maxRetries) {
-                    try {
-                        response = await puter.ai.chat(prompt, {
-                            model: selectedModel
-                        });
-                        break;
-                    } catch (error) {
-                        if (error.status === 429 && retryCount < maxRetries - 1) {
-                            const delay = baseDelay * Math.pow(2, retryCount);
-                            console.warn(`Limite de taxa excedido. Tentando novamente em ${delay / 1000} segundos...`);
-                            await new Promise(resolve => setTimeout(resolve, delay));
-                            retryCount++;
-                        } else {
-                            throw error;
-                        }
+                    if (keyIsValid) {
+                        loginOverlay.style.opacity = '0';
+                        setTimeout(() => {
+                            loginOverlay.classList.add('hidden');
+                            chatContainer.classList.remove('hidden');
+                        }, 300); // Dá tempo para a transição
+                        showMessage("Login bem-sucedido!", 'success');
+                    } else {
+                        loginErrorMessage.textContent = "Chave de acesso expirada ou inativa.";
+                        loginErrorMessage.classList.remove('hidden');
                     }
                 }
-
-                if (response && response.message && response.message.content) {
-                    addMessageToChat(`IA (${selectedModel}): ${response.message.content}`, 'ai');
-                } else {
-                    addMessageToChat(`IA (${selectedModel}): Não foi possível obter uma resposta válida.`, 'ai');
-                }
             } catch (error) {
-                console.error("Erro ao chamar a API Puter AI:", error);
-                addMessageToChat(`IA (${selectedModel}): Ocorreu um erro ao processar sua solicitação: ${error.message}`, 'ai');
+                console.error("CHAT APP: Erro de Validação de Chave Firebase:", error);
+                loginErrorMessage.textContent = "Erro ao verificar a chave. Tente novamente.";
+                loginErrorMessage.classList.remove('hidden');
             } finally {
-                showChatLoading(false);
+                toggleLoading(false);
             }
         });
 
-        // Inicializa a Autenticação Firebase (apenas para obter o UID para criar chaves, não para exibir)
-        onAuthStateChanged(auth, (user) => {
-            if (!user) {
-                console.log("Nenhum usuário Firebase autenticado. Tentando autenticação anônima...");
-                signInAnonymously(auth).catch(error => {
-                    console.error("Erro na autenticação anônima Firebase:", error);
-                    showAccessMessage(`Erro na autenticação Firebase: ${error.message}. Verifique a configuração do Firebase.`, true);
-                    validateAccessBtn.disabled = true;
+        // Listener de Eventos para enviar o prompt (somente após o login)
+        sendButton.addEventListener('click', async () => {
+            const selectedModel = modelSelect.value;
+            const promptInputValue = promptInput.value.trim();
+
+            if (!promptInputValue) {
+                showMessage("Por favor, digite um prompt para a IA.", 'error');
+                return;
+            }
+
+            if (!puter) {
+                showMessage("Puter SDK não carregado. Verifique a conexão com a internet.", 'error');
+                return;
+            }
+
+            toggleLoading(true); // Mostra indicador de carregamento
+            responseArea.textContent = "Pensando..."; // Limpa e define mensagem de pensamento
+
+            try {
+                const response = await puter.ai.chat(promptInputValue, {
+                    model: selectedModel
                 });
+                responseArea.textContent = response.message.content;
+            } catch (error) {
+                console.error("CHAT APP: Erro no Chat da IA Puter:", error);
+                responseArea.textContent = "Erro ao obter resposta da IA. Por favor, tente novamente. Detalhes: " + error.message;
+                showMessage("Erro ao obter resposta da IA.", 'error');
+            } finally {
+                toggleLoading(false); // Esconde indicador de carregamento
             }
         });
     </script>
