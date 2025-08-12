@@ -110,6 +110,23 @@
         .hidden {
             display: none !important;
         }
+        .chat-message {
+            margin-bottom: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            max-width: 80%;
+            word-wrap: break-word; /* Garante que o texto quebre linhas */
+        }
+        .user-message {
+            background-color: #dbeafe; /* bg-blue-100 */
+            align-self: flex-end;
+            margin-left: auto;
+        }
+        .ai-message {
+            background-color: #e2e8f0; /* bg-gray-200 */
+            align-self: flex-start;
+            margin-right: auto;
+        }
     </style>
 </head>
 <body class="selection:bg-blue-200">
@@ -128,7 +145,8 @@
 
     <!-- Container Principal do Chat (Inicialmente Escondido) -->
     <div id="chat-container" class="container hidden">
-        <h1 class="text-4xl font-bold text-center text-gray-800 mb-4">🤖 All-in-One AI Chat</h1>
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-2">🤖 All-in-One AI Chat</h1>
+        <p class="text-center text-gray-500 text-sm mb-4">Usuário: <span id="user-id-display" class="font-mono text-gray-600">N/A</span></p>
 
         <!-- Seleção do Modelo -->
         <div class="flex flex-col gap-2">
@@ -139,24 +157,21 @@
             </select>
         </div>
 
+        <!-- Área de Mensagens do Chat -->
+        <div id="messages-area" class="p-4 bg-gray-100 border border-gray-200 rounded-lg min-h-[300px] max-h-[500px] overflow-y-auto flex flex-col gap-3 shadow-inner">
+            <!-- Mensagens do histórico serão carregadas aqui -->
+        </div>
+
         <!-- Entrada do Usuário -->
         <div class="flex flex-col gap-2">
             <label for="prompt-input" class="text-lg font-semibold text-gray-700">Seu Prompt:</label>
-            <textarea id="prompt-input" rows="6" class="p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-800 resize-y shadow-sm" placeholder="Digite sua pergunta ou comando aqui..."></textarea>
+            <textarea id="prompt-input" rows="3" class="p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-800 resize-y shadow-sm" placeholder="Digite sua pergunta ou comando aqui..."></textarea>
         </div>
 
         <!-- Botão de Ação -->
         <button id="send-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
             Enviar Prompt
         </button>
-
-        <!-- Área de Resposta da IA -->
-        <div class="flex flex-col gap-2 mt-4">
-            <h2 class="text-2xl font-bold text-gray-800">Resposta da IA:</h2>
-            <div id="response-area" class="p-4 bg-gray-100 border border-gray-200 rounded-lg min-h-[150px] text-gray-700 leading-relaxed overflow-auto shadow-inner">
-                Sua resposta aparecerá aqui.
-            </div>
-        </div>
     </div>
 
     <!-- Caixa de Mensagem para alertas -->
@@ -174,7 +189,7 @@
         // Importa as funções necessárias dos SDKs Firebase (versão 12.1.0)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+        import { getFirestore, collection, query, where, getDocs, doc, setDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
         // APP_ID FIXO - AGORA COM O VALOR DO SEU NOVO FIREBASE APP_ID
         const appId = "1:1055585794088:web:0c7eab96a4e696cd6f9d1d"; 
@@ -195,7 +210,10 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        let userId = null;
         let isAuthReady = false;
+        let keyCheckInterval = null; // Para armazenar o ID do intervalo de verificação da chave
+        let chatHistory = []; // Array para armazenar o histórico de chat
 
         // Elementos DOM
         const loginOverlay = document.getElementById('login-overlay');
@@ -203,10 +221,11 @@
         const loginButton = document.getElementById('login-button');
         const loginErrorMessage = document.getElementById('login-error-message');
         const chatContainer = document.getElementById('chat-container');
+        const userIdDisplay = document.getElementById('user-id-display');
         const modelSelect = document.getElementById('model-select');
+        const messagesArea = document.getElementById('messages-area'); // Área para exibir mensagens
         const promptInput = document.getElementById('prompt-input');
         const sendButton = document.getElementById('send-button');
-        const responseArea = document.getElementById('response-area');
 
         // Função para exibir caixa de mensagem personalizada
         function showMessage(message, type = 'info') {
@@ -235,6 +254,79 @@
             }
         }
 
+        // Função para renderizar as mensagens no DOM
+        function renderMessages() {
+            messagesArea.innerHTML = ''; // Limpa a área de mensagens
+            chatHistory.forEach(msg => {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('chat-message');
+                if (msg.role === 'user') {
+                    messageDiv.classList.add('user-message');
+                    messageDiv.textContent = `Você: ${msg.text}`;
+                } else if (msg.role === 'ai') {
+                    messageDiv.classList.add('ai-message');
+                    messageDiv.textContent = `IA: ${msg.text}`;
+                }
+                messagesArea.appendChild(messageDiv);
+            });
+            messagesArea.scrollTop = messagesArea.scrollHeight; // Rola para o final
+        }
+
+        // Função para salvar o histórico de chat no Firestore
+        async function saveChatHistory() {
+            if (!userId) {
+                console.warn("CHAT APP: Não é possível salvar o histórico: userId não definido.");
+                return;
+            }
+            const chatHistoryDocRef = doc(db, `/artifacts/${appId}/users/${userId}/userState`, 'chatHistoryDoc');
+            try {
+                // Salva o histórico completo como uma string JSON
+                await setDoc(chatHistoryDocRef, { history: JSON.stringify(chatHistory) }, { merge: true });
+                console.log("CHAT APP: Histórico de chat salvo com sucesso.");
+            } catch (error) {
+                console.error("CHAT APP: Erro ao salvar histórico de chat:", error);
+                showMessage("Erro ao salvar o histórico de chat.", 'error');
+            }
+        }
+
+        // Função para carregar o histórico de chat do Firestore
+        function loadChatHistory() {
+            if (!userId) {
+                console.warn("CHAT APP: Não é possível carregar o histórico: userId não definido.");
+                return;
+            }
+            const chatHistoryDocRef = doc(db, `/artifacts/${appId}/users/${userId}/userState`, 'chatHistoryDoc');
+
+            // Usa onSnapshot para escutar em tempo real as mudanças no documento
+            onSnapshot(chatHistoryDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.history) {
+                        try {
+                            // Parse a string JSON de volta para um array
+                            chatHistory = JSON.parse(data.history);
+                            console.log("CHAT APP: Histórico de chat carregado:", chatHistory);
+                            renderMessages(); // Renderiza as mensagens carregadas
+                        } catch (e) {
+                            console.error("CHAT APP: Erro ao fazer parse do histórico de chat:", e);
+                            chatHistory = []; // Reseta se houver erro de parse
+                        }
+                    } else {
+                        chatHistory = []; // Inicia vazio se não houver histórico
+                    }
+                } else {
+                    chatHistory = []; // Inicia vazio se o documento não existir
+                }
+                renderMessages(); // Garante que a área de mensagens esteja atualizada
+            }, (error) => {
+                console.error("CHAT APP: Erro ao escutar o histórico de chat:", error);
+                showMessage("Erro ao carregar o histórico de chat.", 'error');
+                chatHistory = []; // Reseta em caso de erro
+                renderMessages();
+            });
+        }
+
+
         // Autentica com Firebase
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
@@ -253,13 +345,17 @@
                     showMessage(`Erro de autenticação Firebase: ${error.message}`, 'error');
                 }
             }
+            userId = auth.currentUser?.uid || crypto.randomUUID(); // Obtém o userId ou gera um se anônimo
+            userIdDisplay.textContent = userId.substring(0, 8) + '...'; // Exibe parte do ID para privacidade
             isAuthReady = true;
             console.log("CHAT APP: Firebase Auth Pronto. UID do Usuário Atual:", auth.currentUser?.uid);
             console.log("CHAT APP: App ID em uso (FIXO):", appId); // Loga o appId fixo
             
             // Carrega os modelos após a autenticação estar pronta
             if (isAuthReady) {
-                loadStaticModels(); // Chama a nova função de carregamento estático
+                loadStaticModels();
+                // Carrega o histórico de chat apenas após o userId estar definido e autenticação pronta
+                loadChatHistory(); 
             }
         });
 
@@ -279,8 +375,8 @@
             // Modelos prioritários/famosos
             const preferredModels = [
                 // OpenAI
-                "gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-5-chat-latest", "gpt-4o", "gpt-4o-mini",
-                "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano", "gpt-4.5-preview",
+                "gpt-5-2025-08-07","gpt-5","gpt-5-mini-2025-08-07","gpt-5-mini","gpt-5-nano-2025-08-07","gpt-5-nano","gpt-5-chat-latest","gpt-4o","gpt-4o-mini",
+                "gpt-4.1","gpt-4.1-mini","gpt-4.1-nano","gpt-4.5-preview",
                 "openai/gpt-5-chat", "openai/gpt-5", "openai/gpt-5-mini", "openai/gpt-5-nano",
                 "openai/gpt-4o", "openai/gpt-4o-mini", "openai/gpt-4o-2024-05-13",
                 "openai/gpt-4-turbo", "openai/gpt-4-turbo-preview", "openai/gpt-4",
@@ -297,10 +393,10 @@
                 "google/gemma-3-4b-it", "google/gemma-2-9b-it", "google/gemma-3n-e4b-it",
 
                 // Claude (Anthropic)
-                "claude-opus-4-1", "claude-opus-4", "claude-opus-4-latest",
-                "claude-sonnet-4", "claude-sonnet-4-latest", "claude-3-7-sonnet-20250219",
-                "claude-3-5-sonnet-20241022", "claude-3-5-sonnet-latest", "claude-3-5-sonnet-20240620",
-                "claude-3-haiku-20240307", "anthropic/claude-3-haiku", "anthropic/claude-3-opus",
+                "claude-opus-4-1-20250805","claude-opus-4-1","claude-opus-4-20250514","claude-opus-4","claude-opus-4-latest",
+                "claude-sonnet-4-20250514","claude-sonnet-4","claude-sonnet-4-latest","claude-3-7-sonnet-20250219","claude-3-7-sonnet-latest",
+                "claude-3-5-sonnet-20241022","claude-3-5-sonnet-latest","claude-3-5-sonnet-20240620","claude-3-haiku-20240307",
+                "anthropic/claude-3-haiku", "anthropic/claude-3-opus",
                 "anthropic/claude-3.5-haiku", "anthropic/claude-3.5-sonnet",
 
                 // Qwen (Alibaba)
@@ -359,51 +455,85 @@
                 "microsoft/phi-3-medium-128k-instruct",
             ];
 
-            // Adicionar modelos prioritários (mantendo a ordem)
-            preferredModels.forEach(model => {
-                if (allAvailableModels.includes(model) || allAvailableModels.includes(`openai/${model}`)) { // Verifica prefixos se necessário
-                    filteredModels.add(model.startsWith('openai/') ? model : `openai/${model}`); // Adiciona prefixo para modelos sem
-                }
-            });
+            // Função para carregar e preencher os modelos da lista estática
+            function loadStaticModels() {
+                console.log("CHAT APP: Carregando modelos da lista estática...");
+                modelSelect.innerHTML = '<option value="" disabled selected>Filtrando modelos...</option>'; // Placeholder
+                toggleLoading(true);
 
-            // Adicionar modelos gerais da lista do usuário que não são do OpenRouter:
-            allAvailableModels.forEach(model => {
-                if (!model.startsWith('openrouter:') && !filteredModels.has(model)) {
-                    filteredModels.add(model);
-                }
-            });
+                const filteredModels = new Set(); // Usar um Set para evitar duplicatas
 
-            // Converter para array e ordenar o restante alfabeticamente
-            let finalModels = Array.from(filteredModels).sort();
-
-            // Reorganizar para colocar os modelos preferidos no topo, na ordem definida
-            const reorderedFinalModels = [];
-            preferredModels.forEach(pModel => {
-                if (finalModels.includes(pModel)) {
-                    reorderedFinalModels.push(pModel);
-                    finalModels = finalModels.filter(m => m !== pModel); // Remover para não duplicar
-                }
-            });
-            // Adicionar o restante dos modelos (já ordenados alfabeticamente)
-            reorderedFinalModels.push(...finalModels);
-
-            if (reorderedFinalModels.length > 0) {
-                modelSelect.innerHTML = ''; // Limpa o placeholder
-                reorderedFinalModels.forEach(model => {
-                    const option = document.createElement('option');
-                    option.value = model;
-                    option.textContent = model;
-                    modelSelect.appendChild(option);
+                // Adicionar modelos prioritários (mantendo a ordem)
+                preferredModels.forEach(model => {
+                    if (allAvailableModels.includes(model) && !filteredModels.has(model)) {
+                        filteredModels.add(model);
+                    }
                 });
-                console.log("CHAT APP: Modelos preenchidos com sucesso:", reorderedFinalModels);
-            } else {
-                modelSelect.innerHTML = '<option value="" disabled selected>Nenhum modelo encontrado ou compatível.</option>';
-                showMessage("Nenhum modelo compatível encontrado da lista fornecida.", 'info');
-                console.warn("CHAT APP: Nenhum modelo compatível encontrado da lista.");
-            }
-            toggleLoading(false);
-        }
 
+                // Adicionar modelos gerais da lista do usuário que não são do OpenRouter:
+                allAvailableModels.forEach(model => {
+                    if (!model.startsWith('openrouter:') && !filteredModels.has(model)) {
+                        filteredModels.add(model);
+                    }
+                });
+
+                // Converter para array e ordenar o restante alfabeticamente
+                let finalModels = Array.from(filteredModels).sort();
+
+                // Reorganizar para colocar os modelos preferidos no topo, na ordem definida
+                const reorderedFinalModels = [];
+                preferredModels.forEach(pModel => {
+                    if (finalModels.includes(pModel)) {
+                        reorderedFinalModels.push(pModel);
+                        finalModels = finalModels.filter(m => m !== pModel); // Remover para não duplicar
+                    }
+                });
+                // Adicionar o restante dos modelos (já ordenados alfabeticamente)
+                reorderedFinalModels.push(...finalModels);
+
+
+                if (reorderedFinalModels.length > 0) {
+                    modelSelect.innerHTML = ''; // Limpa o placeholder
+                    reorderedFinalModels.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model;
+                        option.textContent = model;
+                        modelSelect.appendChild(option);
+                    });
+                    console.log("CHAT APP: Modelos preenchidos com sucesso:", reorderedFinalModels);
+                } else {
+                    modelSelect.innerHTML = '<option value="" disabled selected>Nenhum modelo encontrado ou compatível.</option>';
+                    showMessage("Nenhum modelo compatível encontrado da lista fornecida.", 'info');
+                    console.warn("CHAT APP: Nenhum modelo compatível encontrado da lista.");
+                }
+                toggleLoading(false);
+            }
+
+        // Função para verificar a expiração da chave periodicamente
+        async function checkKeyExpiration(expiresAtMs) {
+            if (keyCheckInterval) {
+                clearInterval(keyCheckInterval); // Limpa qualquer intervalo anterior
+            }
+            keyCheckInterval = setInterval(async () => {
+                const currentTime = Date.now();
+                if (currentTime >= expiresAtMs) {
+                    // Chave expirada, força logout
+                    clearInterval(keyCheckInterval);
+                    loginOverlay.style.opacity = '1'; // Garante que esteja visível
+                    loginOverlay.classList.remove('hidden');
+                    chatContainer.classList.add('hidden');
+                    showMessage("Sua chave de acesso expirou. Por favor, faça login novamente.", 'error');
+                    console.log("CHAT APP: Chave expirou. Usuário desconectado.");
+                    // Limpar histórico local e redefinir estado
+                    chatHistory = [];
+                    renderMessages();
+                    userIdDisplay.textContent = 'N/A';
+                    await auth.signOut(); // Opcional: desconecta o usuário Firebase
+                } else {
+                    // console.log(`CHAT APP: Chave ativa. Tempo restante: ${(expiresAtMs - currentTime) / 1000} segundos.`);
+                }
+            }, 5000); // Verifica a cada 5 segundos
+        }
 
         // Listener de Eventos para o Botão de Login
         loginButton.addEventListener('click', async () => {
@@ -437,32 +567,24 @@
                     console.log("CHAT APP: Chave NÃO encontrada no Firestore (querySnapshot.empty é true).");
                 } else {
                     let keyIsValid = false;
+                    let expiresAtTimestamp = 0;
                     querySnapshot.forEach((doc) => {
                         const keyData = doc.data();
                         const currentTime = Date.now();
                         console.log("CHAT APP: Dados da chave encontrados:", keyData);
 
-                        // Converte expiresAt para milissegundos se for um objeto Timestamp do Firestore
                         let expiresAtMs;
                         if (keyData.expiresAt && typeof keyData.expiresAt.toMillis === 'function') {
                             expiresAtMs = keyData.expiresAt.toMillis();
-                            console.log("CHAT APP: expiresAt é um Timestamp. Convertido para MS:", expiresAtMs);
                         } else if (typeof keyData.expiresAt === 'number') {
                             expiresAtMs = keyData.expiresAt;
-                            console.log("CHAT APP: expiresAt já é um número (MS):", expiresAtMs);
                         } else {
-                            console.warn("CHAT APP: Tipo de expiresAt inesperado:", typeof keyData.expiresAt, keyData.expiresAt);
-                            expiresAtMs = 0; // Assume que expirou ou é inválido
+                            expiresAtMs = 0;
                         }
                         
-                        console.log("CHAT APP: Status da chave:", keyData.status);
-                        console.log("CHAT APP: Hora atual (MS):", currentTime);
-                        console.log("CHAT APP: Expira em (MS):", expiresAtMs);
-                        console.log("CHAT APP: Condição 1 (status === 'active'):", keyData.status === 'active');
-                        console.log("CHAT APP: Condição 2 (expiresAtMs > currentTime):", expiresAtMs > currentTime);
-
                         if (keyData.status === 'active' && expiresAtMs > currentTime) {
                             keyIsValid = true;
+                            expiresAtTimestamp = expiresAtMs; // Salva o timestamp de expiração
                             console.log("CHAT APP: Chave é válida! Todas as condições TRUE.");
                         } else {
                             console.log("CHAT APP: Chave é INVÁLIDA. Verifique as condições acima.");
@@ -470,12 +592,16 @@
                     });
 
                     if (keyIsValid) {
+                        // Inicia a verificação de expiração
+                        checkKeyExpiration(expiresAtTimestamp);
+
                         loginOverlay.style.opacity = '0';
                         setTimeout(() => {
                             loginOverlay.classList.add('hidden');
                             chatContainer.classList.remove('hidden');
                         }, 300); // Dá tempo para a transição
                         showMessage("Login bem-sucedido!", 'success');
+
                     } else {
                         loginErrorMessage.textContent = "Chave de acesso expirada ou inativa.";
                         loginErrorMessage.classList.remove('hidden');
@@ -506,16 +632,28 @@
             }
 
             toggleLoading(true); // Mostra indicador de carregamento
-            responseArea.textContent = "Pensando..."; // Limpa e define mensagem de pensamento
+
+            // Adiciona a mensagem do usuário ao histórico e renderiza
+            chatHistory.push({ role: 'user', text: promptInputValue });
+            renderMessages();
+            saveChatHistory(); // Salva o histórico atualizado
+
+            promptInput.value = ''; // Limpa a área de entrada
 
             try {
                 const response = await puter.ai.chat(promptInputValue, {
                     model: selectedModel
                 });
-                responseArea.textContent = response.message.content;
+                // Adiciona a resposta da IA ao histórico e renderiza
+                chatHistory.push({ role: 'ai', text: response.message.content });
+                renderMessages();
+                saveChatHistory(); // Salva o histórico atualizado
+
             } catch (error) {
                 console.error("CHAT APP: Erro no Chat da IA Puter:", error);
-                responseArea.textContent = "Erro ao obter resposta da IA. Por favor, tente novamente. Detalhes: " + error.message;
+                // Adiciona uma mensagem de erro ao histórico se falhar
+                chatHistory.push({ role: 'ai', text: `Erro: Não foi possível obter resposta da IA. Detalhes: ${error.message}` });
+                renderMessages();
                 showMessage("Erro ao obter resposta da IA.", 'error');
             } finally {
                 toggleLoading(false); // Esconde indicador de carregamento
