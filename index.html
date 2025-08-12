@@ -1,1086 +1,370 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AllOneAI Pro - Todos os Modelos de IA em Um Lugar</title>
+    <title>AllOneAI</title>
+    <!-- Tailwind CSS CDN para estilização -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --primary: #6e48aa;
-            --secondary: #9d50bb;
-            --dark: #1a1a2e;
-            --light: #f8f9fa;
-            --success: #28a745;
-        }
-        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5f5;
-            color: #333;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 20px 0;
-            text-align: center;
-            border-radius: 0 0 10px 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 30px;
-        }
-        
-        h1 {
-            margin: 0;
-            font-size: 2.5rem;
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-        
-        .main-content {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
             display: flex;
-            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
         }
-        
-        .chat-container {
-            flex: 2;
-            background: white;
-            border-radius: 900px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
+        .container {
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 48rem; /* Aumenta a largura máxima para uma melhor experiência de chat */
             display: flex;
             flex-direction: column;
-            height: 70vh;
+            gap: 1.5rem;
         }
-        
-        .chat-history {
-            flex: 1;
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+        .btn-primary {
+            background-color: #4f46e5;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+        }
+        .chat-container {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            background-color: #f9fafb;
+            min-height: 300px;
+            max-height: 500px;
             overflow-y: auto;
-            margin-bottom: 20px;
-            padding: 10px;
-            border: 1px solid #eee;
-            border-radius: 5px;
-        }
-        
-        .message {
-            margin-bottom: 15px;
-            padding: 10px 15px;
-            border-radius: 18px;
-            max-width: 80%;
-            word-wrap: break-word;
-        }
-        
-        .user-message {
-            background-color: var(--primary);
-            color: white;
-            margin-left: auto;
-            border-bottom-right-radius: 5px;
-        }
-        
-        .ai-message {
-            background-color: #f1f1f1;
-            margin-right: auto;
-            border-bottom-left-radius: 5px;
-        }
-
-        .ai-message img {
-            max-width: 100%;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-
-        .ai-message video {
-            max-width: 100%;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-
-        .ai-message .download-button {
-            background-color: var(--secondary);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 10px;
-            margin-top: 10px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: background-color 0.3s;
-            display: inline-block;
-            margin-left: 5px;
-        }
-
-        .ai-message .download-button:hover {
-            background-color: #7a3a91;
-        }
-
-        .ai-message audio {
-            width: 100%;
-            margin-top: 10px;
-        }
-        
-        .input-area {
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 0.75rem;
+            text-align: left;
         }
-        
-        #user-input {
-            flex: 1;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 25px;
-            font-size: 1rem;
-            outline: none;
-            transition: border 0.3s;
+        .chat-message {
+            padding: 0.6rem 1rem;
+            border-radius: 0.75rem;
+            max-width: 80%;
         }
-        
-        #user-input:focus {
-            border-color: var(--primary);
+        .user-message {
+            background-color: #dbeafe;
+            color: #1e40af;
+            align-self: flex-end;
         }
-        
-        #send-button {
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            padding: 0 25px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.3s;
+        .ai-message {
+            background-color: #e0f2fe;
+            color: #0c4a6e;
+            align-self: flex-start;
         }
-        
-        #send-button:hover {
-            background-color: var(--secondary);
+        .loading-indicator {
+            text-align: center;
+            padding: 1rem;
+            color: #4b5563;
         }
-
-        .command-hint {
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 10px;
-            width: 100%;
+        .error-message {
+            background-color: #fee2e2;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 0.5rem;
             text-align: center;
         }
-
-        .command-hint span {
-            font-family: 'Courier New', Courier, monospace;
-            background-color: #e0e0e0;
-            padding: 2px 5px;
-            border-radius: 3px;
+        .access-card {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 1.5rem;
         }
-        
-        .sidebar {
-            flex: 1;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            height: fit-content;
+        /* Remover a exibição do ID do usuário no chat */
+        .user-id-display {
+            display: none; /* Oculta totalmente o elemento */
         }
-        
-        .model-selector {
-            margin-bottom: 20px;
-        }
-        
-        select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-            margin-bottom: 10px;
-        }
-        
-        .model-info {
-            background-color: #f9f9f9;
-            padding: 15px;
-            border-radius: 5px;
-            border-left: 4px solid var(--primary);
-            margin-top: 10px;
-        }
-        
-        .loading {
-            display: none;
+        .info-message {
+            background-color: #ecfdf5; /* Esverdeado para sucesso/informação */
+            color: #065f46;
+            padding: 1rem;
+            border-radius: 0.5rem;
             text-align: center;
-            margin: 10px 0;
-        }
-        
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-radius: 50%;
-            border-top: 4px solid var(--primary);
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        @media (max-width: 768px) {
-            .main-content {
-                flex-direction: column;
-            }
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>AllOneAI Pro</h1>
-            <p class="subtitle">Todos os modelos de IA em um único lugar</p>
-        </div>
-    </header>
-    
     <div class="container">
-        <div class="main-content">
-            <div class="chat-container">
-                <div class="chat-history" id="chat-history">
-                    <div class="message ai-message">
-                        Olá! Eu sou o AllOneAI Pro. Escolha um modelo no menu à direita e comece a conversar!
-                    </div>
-                </div>
-                
-                <div class="loading" id="loading">
-                    <div class="spinner"></div>
-                    <p>Processando sua mensagem...</p>
-                </div>
-                
-                <div class="input-area">
-                    <input type="text" id="user-input" placeholder="Digite sua mensagem..." autocomplete="off">
-                    <button id="send-button">Enviar</button>
-                    <div class="command-hint">
-                    <span>Use O Chat :D</span>
-                    </div>
-                </div>
+        <h1 class="text-3xl font-bold mb-4 text-gray-800 text-center">AI Chat Multi-LLM</h1>
+        
+        <div id="authSection" class="access-card">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700">Acesso ao Chat AI</h2>
+            <div class="mb-4">
+                <label for="accessKeyInput" class="block text-gray-700 text-sm font-semibold mb-2 text-left">
+                    Seu ID de Usuário (Chave de Acesso):
+                </label>
+                <input type="text" id="accessKeyInput" class="input-field" placeholder="Cole seu ID de usuário aqui">
             </div>
-            
-            <div class="sidebar">
-                <div class="model-selector">
-                    <h3>Selecione o Modelo</h3>
-                    <select id="model-selector">
-                        <option value="">-- Selecione um Modelo --</option>
-                    </select>
-                    <div class="model-info" id="model-info">
-                        Selecione um modelo para ver sua descrição
-                    </div>
-                </div>
+            <button id="validateAccessBtn" class="btn-primary w-full">Validar Acesso</button>
+            <div id="accessMessage" class="message-box hidden mt-4"></div>
+            <!-- O elemento currentUserIdDisplay foi ocultado via CSS e o preenchimento automático removido -->
+            <div class="user-id-display mt-4 hidden" id="currentUserIdDisplay">
+                <strong>Seu ID de Usuário (Firebase):</strong> <span id="displayedUserId"></span>
             </div>
+        </div>
+
+        <div id="chatSection" class="hidden">
+            <div class="mb-4">
+                <label for="modelSelect" class="block text-gray-700 text-sm font-semibold mb-2 text-left">
+                    Selecione o Modelo LLM:
+                </label>
+                <select id="modelSelect" class="input-field">
+                    <!-- Lista de modelos fornecida pelo usuário -->
+                    <option value="google/gemini-2.0-flash-001">google/gemini-2.0-flash-001</option>
+                    <option value="google/gemini-2.0-flash-exp:free">google/gemini-2.0-flash-exp:free</option>
+                    <option value="google/gemini-2.0-flash-lite-001">google/gemini-2.0-flash-lite-001</option>
+                    <option value="google/gemini-2.5-flash">google/gemini-2.5-flash</option>
+                    <option value="google/gemini-2.5-flash-lite-preview-06-17">google/gemini-2.5-flash-lite-preview-06-17</option>
+                    <option value="google/gemini-2.5-flash-preview">google/gemini-2.5-flash-preview</option>
+                    <option value="google/gemini-2.5-flash-preview-05-20">google/gemini-2.5-flash-preview-05-20</option>
+                    <option value="google/gemini-2.5-flash-preview-05-20:thinking">google/gemini-2.5-flash-preview-05-20:thinking</option>
+                    <option value="google/gemini-2.5-flash-preview:thinking">google/gemini-2.5-flash-preview:thinking</option>
+                    <option value="google/gemini-2.5-pro">google/gemini-2.5-pro</option>
+                    <option value="google/gemini-2.5-pro-exp-03-25">google/gemini-2.5-pro-exp-03-25</option>
+                    <option value="google/gemini-2.5-pro-preview">google/gemini-2.5-pro-preview</option>
+                    <option value="google/gemini-2.5-pro-preview-05-06">google/gemini-2.5-pro-preview-05-06</option>
+                    <option value="google/gemini-flash-1.5">google/gemini-flash-1.5</option>
+                    <option value="google/gemini-flash-1.5-8b">google/gemini-flash-1.5-8b</option>
+                    <option value="google/gemini-pro-1.5">google/gemini-pro-1.5</option>
+                    <option value="gpt-5">gpt-5</option>
+                    <option value="gpt-5-mini">gpt-5-mini</option>
+                    <option value="gpt-5-nano">gpt-5-nano</option>
+                    <option value="gpt-5-chat-latest">gpt-5-chat-latest</option>
+                    <option value="gpt-4.1">gpt-4.1</option>
+                    <option value="gpt-4.1-mini">gpt-4.1-mini</option>
+                    <option value="gpt-4.1-nano">gpt-4.1-nano</option>
+                    <option value="gpt-4.5-preview">gpt-4.5-preview</option>
+                    <option value="gpt-4o">gpt-4o</option>
+                    <option value="gpt-4o-mini">gpt-4o-mini</option>
+                    <option value="o1">o1</option>
+                    <option value="o1-mini">o1-mini</option>
+                    <option value="o1-pro">o1-pro</option>
+                    <option value="o3">o3</option>
+                    <option value="o3-mini">o3-mini</option>
+                    <option value="o4-mini">o4-mini</option>
+                    <option value="x-ai/grok-3">x-ai/grok-3</option>
+                    <option value="x-ai/grok-3-beta">x-ai/grok-3-beta</option>
+                    <option value="x-ai/grok-3-mini">x-ai/grok-3-mini</option>
+                    <option value="x-ai/grok-3-mini-beta">x-ai/grok-3-mini-beta</option>
+                    <option value="x-ai/grok-4">x-ai/grok-4</option>
+                </select>
+            </div>
+
+            <div id="chatHistory" class="chat-container">
+                <!-- As mensagens do chat serão adicionadas aqui -->
+            </div>
+
+            <div class="flex items-center gap-4 mt-4">
+                <input type="text" id="promptInput" class="input-field flex-grow" placeholder="Digite sua mensagem...">
+                <button id="sendBtn" class="btn-primary">Enviar</button>
+            </div>
+            <div id="chatLoadingIndicator" class="loading-indicator hidden">Carregando...</div>
         </div>
     </div>
 
+    <!-- SDK do Puter -->
     <script src="https://js.puter.com/v2/"></script>
-    <script>
-        // Objeto com todos os modelos e suas descrições
-        const models = {
-            // Modelos Adicionados
-            "gpt-5-2025-08-07": { name: "GPT-5 (2025-08-07)", description: "Versão futura do GPT-5 com melhorias de agosto de 2025." },
-            "gpt-5": { name: "GPT-5", description: "O mais recente modelo da OpenAI, com capacidades avançadas." },
-            "gpt-5-mini-2025-08-07": { name: "GPT-5 Mini (2025-08-07)", description: "Versão compacta do GPT-5, otimizada para velocidade e eficiência." },
-            "gpt-5-mini": { name: "GPT-5 Mini", description: "Versão compacta do GPT-5, ideal para tarefas rápidas." },
-            "gpt-5-nano-2025-08-07": { name: "GPT-5 Nano (2025-08-07)", description: "Versão ultra-compacta do GPT-5 para uso em recursos limitados." },
-            "gpt-5-nano": { name: "GPT-5 Nano", description: "Versão ultra-compacta do GPT-5." },
-            "gpt-5-chat-latest": { name: "GPT-5 Chat (Latest)", description: "A versão mais recente do GPT-5 otimizada para conversação." },
-            "gpt-4o": { name: "GPT-4o", description: "Modelo multimodal da OpenAI, otimizado para interação natural e em tempo real." },
-            "gpt-4o-mini": { name: "GPT-4o Mini", description: "Versão compacta do GPT-4o, com foco em eficiência e baixo custo." },
-            "o1": { name: "O1 (OpenAI)", description: "Modelo experimental da OpenAI." },
-            "o1-mini": { name: "O1 Mini (OpenAI)", description: "Versão mini do modelo experimental O1." },
-            "o1-pro": { name: "O1 Pro (OpenAI)", description: "Versão Pro do modelo experimental O1." },
-            "o3": { name: "O3 (OpenAI)", description: "Outro modelo experimental da OpenAI." },
-            "o3-mini": { name: "O3 Mini (OpenAI)", description: "Versão mini do modelo experimental O3." },
-            "o4-mini": { name: "O4 Mini (OpenAI)", description: "Versão mini do modelo experimental O4." },
-            "gpt-4.1": { name: "GPT-4.1", description: "Atualização do GPT-4 com pequenas melhorias." },
-            "gpt-4.1-mini": { name: "GPT-4.1 Mini", description: "Versão mini do GPT-4.1." },
-            "gpt-4.1-nano": { name: "GPT-4.1 Nano", description: "Versão nano do GPT-4.1." },
-            "gpt-4.5-preview": { name: "GPT-4.5 Preview", description: "Prévia do próximo modelo GPT-4.5." },
-            "claude-opus-4-1-20250805": { name: "Claude Opus 4.1 (20250805)", description: "Versão futura do Claude Opus 4.1 com data específica." },
-            "claude-opus-4-1": { name: "Claude Opus 4.1", description: "Modelo avançado da Anthropic, focado em segurança e desempenho." },
-            "claude-opus-4-20250514": { name: "Claude Opus 4 (20250514)", description: "Versão específica do Claude Opus 4." },
-            "claude-opus-4": { name: "Claude Opus 4", description: "O modelo mais capaz da Anthropic." },
-            "claude-opus-4-latest": { name: "Claude Opus 4 (Latest)", description: "A versão mais recente do Claude Opus 4." },
-            "claude-sonnet-4-20250514": { name: "Claude Sonnet 4 (20250514)", description: "Versão específica do Claude Sonnet 4." },
-            "claude-sonnet-4": { name: "Claude Sonnet 4", description: "Modelo balanceado da Anthropic, ótimo para tarefas gerais." },
-            "claude-sonnet-4-latest": { name: "Claude Sonnet 4 (Latest)", description: "A versão mais recente do Claude Sonnet 4." },
-            "claude-3-7-sonnet-20250219": { name: "Claude 3.7 Sonnet (20250219)", description: "Versão futura do Claude 3.7 Sonnet." },
-            "claude-3-7-sonnet-latest": { name: "Claude 3.7 Sonnet (Latest)", description: "A versão mais recente do Claude 3.7 Sonnet." },
-            "claude-3-5-sonnet-20241022": { name: "Claude 3.5 Sonnet (20241022)", description: "Versão específica do Claude 3.5 Sonnet." },
-            "claude-3-5-sonnet-latest": { name: "Claude 3.5 Sonnet (Latest)", description: "A versão mais recente do Claude 3.5 Sonnet." },
-            "claude-3-5-sonnet-20240620": { name: "Claude 3.5 Sonnet (20240620)", description: "Versão específica do Claude 3.5 Sonnet." },
-            "claude-3-haiku-20240307": { name: "Claude 3 Haiku (20240307)", description: "Versão específica do Claude 3 Haiku." },
-            "cartesia/sonic": { name: "Cartesia Sonic", description: "Modelo otimizado para velocidade e processamento rápido." },
-            "mistralai/Mistral-7B-Instruct-v0.3": { name: "Mistral 7B Instruct v0.3", description: "Versão atualizada do Mistral 7B para instruções." },
-            "cartesia/sonic-2": { name: "Cartesia Sonic 2", description: "Versão 2 do modelo Sonic da Cartesia." },
-            "togethercomputer/MoA-1": { name: "Together MoA-1", description: "Modelo de Mixture-of-Experts para diversas tarefas." },
-            "meta-llama/Meta-Llama-Guard-3-8B": { name: "Meta Llama Guard 3 8B", description: "Modelo Llama para moderação de conteúdo." },
-            "meta-llama/LlamaGuard-2-8b": { name: "Meta Llama Guard 2 8B", description: "Versão anterior do Llama Guard." },
-            "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo": { name: "Meta Llama 3.1 70B Instruct Turbo", description: "Versão turbo do Llama 3.1 para instruções de 70 bilhões de parâmetros." },
-            "meta-llama/Llama-3.2-3B-Instruct-Turbo": { name: "Meta Llama 3.2 3B Instruct Turbo", description: "Versão compacta e turbo do Llama 3.2 para instruções." },
-            "deepseek-ai/DeepSeek-R1": { name: "DeepSeek R1", description: "Modelo R1 da DeepSeek AI." },
-            "meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo": { name: "Meta Llama 3.1 405B Instruct Turbo", description: "Versão turbo do Llama 3.1 de 405 bilhões de parâmetros para instruções." },
-            "Qwen/Qwen2.5-7B-Instruct-Turbo": { name: "Qwen 2.5 7B Instruct Turbo", description: "Modelo Qwen 2.5 otimizado para instruções e turbo." },
-            "Qwen/Qwen2.5-72B-Instruct-Turbo": { name: "Qwen 2.5 72B Instruct Turbo", description: "Modelo Qwen 2.5 de 72 bilhões de parâmetros para instruções e turbo." },
-            "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo": { name: "Meta Llama 3.1 8B Instruct Turbo", description: "Versão turbo do Llama 3.1 de 8 bilhões de parámetros para instruções." },
-            "arize-ai/qwen-2-1.5b-instruct": { name: "Arize Qwen 2 1.5B Instruct", description: "Modelo Qwen 2 compacto e otimizado para instruções." },
-            "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free": { name: "Meta Llama 3.3 70B Instruct Turbo (Free)", description: "Versão gratuita do Llama 3.3 de 70 bilhões de parâmetros para instruções." },
-            "meta-llama/Llama-3.3-70B-Instruct-Turbo": { name: "Meta Llama 3.3 70B Instruct Turbo", description: "Versão turbo do Llama 3.3 de 70 bilhões de parâmetros para instruções." },
-            "black-forest-labs/FLUX.1-pro": { name: "FLUX.1 Pro", description: "Modelo Pro da Black Forest Labs." },
-            "black-forest-labs/FLUX.1.1-pro": { name: "FLUX.1.1 Pro", description: "Versão 1.1 Pro do FLUX." },
-            "meta-llama/Llama-Guard-3-11B-Vision-Turbo": { name: "Meta Llama Guard 3 11B Vision Turbo", description: "Modelo Llama Guard com capacidade de visão." },
-            "meta-llama/Llama-3-8b-chat-hf": { name: "Meta Llama 3 8B Chat HF", description: "Llama 3 de 8 bilhões de parâmetros para chat." },
-            "Qwen/Qwen3-235B-A22B-Thinking-2507": { name: "Qwen 3 235B Thinking (2507)", description: "Modelo Qwen 3 grande com capacidade de raciocínio." },
-            "Qwen/Qwen2.5-Coder-32B-Instruct": { name: "Qwen 2.5 Coder 32B Instruct", description: "Modelo Qwen 2.5 especializado em codificação." },
-            "black-forest-labs/FLUX.1-krea-dev": { name: "FLUX.1 Krea Dev", description: "Versão de desenvolvimento Krea do FLUX." },
-            "togethercomputer/MoA-1-Turbo": { name: "Together MoA-1 Turbo", description: "Versão turbo do MoA-1." },
-            "black-forest-labs/FLUX.1-redux": { name: "FLUX.1 Redux", description: "Versão Redux do FLUX." },
-            "Qwen/Qwen3-235B-A22B-Instruct-2507-tput": { name: "Qwen 3 235B Instruct Tput (2507)", description: "Modelo Qwen 3 grande com foco em throughput." },
-            "arcee_ai/arcee-spotlight": { name: "Arcee Spotlight", description: "Modelo Arcee com foco em destaque e sumarização." },
-            "black-forest-labs/FLUX.1-dev-lora": { name: "FLUX.1 Dev LoRA", description: "Versão de desenvolvimento LoRA do FLUX." },
-            "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo": { name: "Meta Llama 3.2 11B Vision Instruct Turbo", description: "Modelo Llama 3.2 com capacidade de visão e turbo." },
-            "meta-llama/Meta-Llama-3-70B-Instruct-Turbo": { name: "Meta Llama 3 70B Instruct Turbo", description: "Versão turbo do Llama 3 de 70 bilhões de parâmetros para instruções." },
-            "openai/whisper-large-v3": { name: "OpenAI Whisper Large v3", description: "Modelo de reconhecimento de fala da OpenAI." },
-            "Qwen/Qwen3-235B-A22B-fp8-tput": { name: "Qwen 3 235B FP8 Tput", description: "Modelo Qwen 3 grande otimizado para FP8 e throughput." },
-            "Qwen/Qwen2.5-VL-72B-Instruct": { name: "Qwen 2.5 VL 72B Instruct", description: "Modelo Qwen 2.5 de Visão e Linguagem para instruções." },
-            "openai/gpt-oss-120b": { name: "OpenAI GPT-OSS 120B", description: "Modelo Open-Source da OpenAI de 120 bilhões de parâmetros." },
-            "black-forest-labs/FLUX.1-schnell": { name: "FLUX.1 Schnell", description: "Modelo FLUX otimizado para velocidade." },
-            "lgai/exaone-3-5-32b-instruct": { name: "LGAI ExaOne 3.5 32B Instruct", description: "Modelo ExaOne de 32 bilhões de parâmetros para instruções." },
-            "meta-llama/Llama-3-70b-chat-hf": { name: "Meta Llama 3 70B Chat HF", description: "Llama 3 de 70 bilhões de parâmetros para chat." },
-            "mistralai/Mixtral-8x7B-Instruct-v0.1": { name: "Mixtral 8x7B Instruct v0.1", description: "Versão inicial do Mixtral 8x7B para instruções." },
-            "black-forest-labs/FLUX.1-depth": { name: "FLUX.1 Depth", description: "Modelo FLUX com foco em profundidade de raciocínio." },
-            "black-forest-labs/FLUX.1-kontext-dev": { name: "FLUX.1 Kontext Dev", description: "Versão de desenvolvimento Kontext do FLUX." },
-            "mixedbread-ai/Mxbai-Rerank-Large-V2": { name: "Mxbai Rerank Large V2", description: "Modelo de reranking da Mixedbread AI." },
-            "google/gemma-2-27b-it": { name: "Google Gemma 2 27B IT", description: "Modelo Gemma 2 de 27 bilhões de parâmetros para instruções." },
-            "black-forest-labs/FLUX.1-dev": { name: "FLUX.1 Dev", description: "Versão de desenvolvimento do FLUX." },
-            "Qwen/Qwen2-72B-Instruct": { name: "Qwen 2 72B Instruct", description: "Modelo Qwen 2 de 72 bilhões de parâmetros para instruções." },
-            "meta-llama/Llama-2-70b-hf": { name: "Meta Llama 2 70B HF", description: "Llama 2 de 70 bilhões de parâmetros." },
-            "black-forest-labs/FLUX.1-canny": { name: "FLUX.1 Canny", description: "Modelo FLUX com foco em detalhes e nuances." },
-            "Salesforce/Llama-Rank-V1": { name: "Salesforce Llama Rank V1", description: "Modelo Llama Rank da Salesforce." },
-            "mistralai/Mistral-Small-24B-Instruct-2501": { name: "Mistral Small 24B Instruct (2501)", description: "Modelo Mistral Small de 24 bilhões de parâmetros para instruções." },
-            "Qwen/Qwen2-VL-72B-Instruct": { name: "Qwen 2 VL 72B Instruct", description: "Modelo Qwen 2 de Visão e Linguagem para instruções." },
-            "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B": { name: "DeepSeek R1 Distill Qwen 1.5B", description: "Versão destilada do DeepSeek R1 otimizada para Qwen." },
-            "meta-llama/Llama-Vision-Free": { name: "Meta Llama Vision Free", description: "Modelo Llama com capacidade de visão (versão gratuita)." },
-            "deepcogito/cogito-v2-preview-deepseek-671b": { name: "Deepcogito Cogito v2 Deepseek 671B", description: "Modelo Cogito v2 da Deepcogito com base Deepseek." },
-            "perplexity-ai/r1-1776": { name: "Perplexity R1-1776", description: "Modelo R1 da Perplexity AI." },
-            "scb10x/scb10x-llama3-1-typhoon2-70b-instruct": { name: "SCB10X Llama 3.1 Typhoon 2 70B Instruct", description: "Modelo Llama 3.1 Typhoon 2 de 70 bilhões de parâmetros para instruções." },
-            "arcee-ai/maestro-reasoning": { name: "Arcee Maestro Reasoning", description: "Modelo Arcee focado em raciocínio avançado." },
-            "togethercomputer/Refuel-Llm-V2-Small": { name: "Together Refuel LLM V2 Small", description: "Versão pequena do Refuel LLM V2." },
-            "arcee-ai/coder-large": { name: "Arcee Coder Large", description: "Modelo Arcee grande para codificação." },
-            "Qwen/QwQ-32B": { name: "Qwen QwQ 32B", description: "Modelo QwQ de 32 bilhões de parâmetros da Qwen." },
-            "deepseek-ai/DeepSeek-R1-0528-tput": { name: "DeepSeek R1 0528 Tput", description: "Modelo DeepSeek R1 otimizado para throughput." },
-            "marin-community/marin-8b-instruct": { name: "Marin 8B Instruct", description: "Modelo Marin de 8 bilhões de parâmetros para instruções." },
-            "lgai/exaone-deep-32b": { name: "LGAI ExaOne Deep 32B", description: "Modelo ExaOne Deep de 32 bilhões de parâmetros." },
-            "google/gemma-3-27b-it": { name: "Google Gemma 3 27B IT", description: "Modelo Gemma 3 de 27 bilhões de parâmetros para instruções." },
-            "deepseek-ai/DeepSeek-R1-Distill-Llama-70B": { name: "DeepSeek R1 Distill Llama 70B", description: "Versão destilada do DeepSeek R1 otimizada para Llama." },
-            "NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO": { name: "Nous Hermes 2 Mixtral 8x7B DPO", description: "Modelo Hermes 2 da NousResearch com Mixtral e DPO." },
-            "mistralai/Mistral-7B-Instruct-v0.1": { name: "Mistral 7B Instruct v0.1", description: "Versão inicial do Mistral 7B para instruções." },
-            "meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8": { name: "Meta Llama 4 Maverick 17B Instruct FP8", description: "Modelo Llama 4 Maverick otimizado para FP8." },
-            "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B": { name: "DeepSeek R1 Distill Qwen 14B", description: "Versão destilada do DeepSeek R1 otimizada para Qwen (14B)." },
-            "deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free": { name: "DeepSeek R1 Distill Llama 70B (Free)", description: "Versão gratuita do DeepSeek R1 destilada para Llama." },
-            "scb10x/scb10x-typhoon-2-1-gemma3-12b": { name: "SCB10X Typhoon 2.1 Gemma 3 12B", description: "Modelo Typhoon 2.1 da SCB10X com Gemma 3." },
-            "meta-llama/Llama-Guard-4-12B": { name: "Meta Llama Guard 4 12B", description: "Versão 4 do Llama Guard de 12 bilhões de parâmetros." },
-            "togethercomputer/Refuel-Llm-V2": { name: "Together Refuel LLM V2", description: "Modelo Refuel LLM V2 da Together." },
-            "meta-llama/Meta-Llama-3-8B-Instruct-Lite": { name: "Meta Llama 3 8B Instruct Lite", description: "Versão Lite do Llama 3 de 8 bilhões de parâmetros para instruções." },
-            "intfloat/multilingual-e5-large-instruct": { name: "Intfloat Multilingual E5 Large Instruct", description: "Modelo E5 multilingual para instruções." },
-            "meta-llama/Llama-4-Scout-17B-16E-Instruct": { name: "Meta Llama 4 Scout 17B Instruct", description: "Modelo Llama 4 Scout para instruções." },
-            "black-forest-labs/FLUX.1-kontext-max": { name: "FLUX.1 Kontext Max", description: "Versão Kontext Max do FLUX." },
-            "Alibaba-NLP/gte-modernbert-base": { name: "Alibaba GTE ModernBERT Base", description: "Modelo ModernBERT base da Alibaba NLP." },
-            "nvidia/Llama-3.1-Nemotron-70B-Instruct-HF": { name: "NVIDIA Llama 3.1 Nemotron 70B Instruct HF", description: "Modelo Llama 3.1 Nemotron de 70 bilhões de parâmetros para instruções da NVIDIA." },
-            "deepseek-ai/DeepSeek-V3": { name: "DeepSeek V3", description: "Versão 3 do modelo DeepSeek." },
-            "black-forest-labs/FLUX.1-schnell-Free": { name: "FLUX.1 Schnell (Free)", description: "Versão gratuita e rápida do FLUX." },
-            "Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8": { name: "Qwen 3 Coder 480B Instruct FP8", description: "Modelo Qwen 3 Coder de 480 bilhões de parâmetros otimizado para FP8." },
-            "black-forest-labs/FLUX.1-kontext-pro": { name: "FLUX.1 Kontext Pro", description: "Versão Kontext Pro do FLUX." },
-            "Virtue-AI/VirtueGuard-Text-Lite": { name: "Virtue AI VirtueGuard Text Lite", description: "Modelo VirtueGuard Lite para texto." },
-            "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo": { name: "Meta Llama 3.2 90B Vision Instruct Turbo", description: "Modelo Llama 3.2 de 90 bilhões de parâmetros com visão e turbo." },
-            "arcee-ai/virtuoso-large": { name: "Arcee Virtuoso Large", description: "Modelo Arcee Virtuoso grande." },
-            "google/gemma-3n-E4B-it": { name: "Google Gemma 3n E4B IT", description: "Modelo Gemma 3n de 4 bilhões de parâmetros para instruções." },
-            "moonshotai/Kimi-K2-Instruct": { name: "Moonshot AI Kimi K2 Instruct", description: "Modelo Kimi K2 para instruções da Moonshot AI." },
-            "openai/gpt-oss-20b": { name: "OpenAI GPT-OSS 20B", description: "Modelo Open-Source da OpenAI de 20 bilhões de parâmetros." },
-            "mistralai/Mistral-7B-Instruct-v0.2": { name: "Mistral 7B Instruct v0.2", description: "Versão 0.2 do Mistral 7B para instruções." },
-            "zai-org/GLM-4.5-Air-FP8": { name: "ZAI GLM 4.5 Air FP8", description: "Modelo GLM 4.5 Air otimizado para FP8." },
-            "model-fallback-test-1": { name: "Model Fallback Test 1", description: "Modelo de teste para fallback." },
-            "mistral-medium-2505": { name: "Mistral Medium (2505)", description: "Versão específica do Mistral Medium." },
-            "mistral-medium-latest": { name: "Mistral Medium (Latest)", description: "A versão mais recente do Mistral Medium." },
-            "mistral-medium": { name: "Mistral Medium", description: "Modelo Mistral de tamanho médio." },
-            "mistral-large-latest": { name: "Mistral Large (Latest)", description: "A versão mais recente do Mistral Large." },
-            "ministral-3b-2410": { name: "Minustral 3B (2410)", description: "Versão específica do Minustral 3B." },
-            "ministral-3b-latest": { name: "Minustral 3B (Latest)", description: "A versão mais recente do Minustral 3B." },
-            "ministral-8b-2410": { name: "Minustral 8B (2410)", description: "Versão específica do Minustral 8B." },
-            "ministral-8b-latest": { name: "Minustral 8B (Latest)", description: "A versão mais recente do Minustral 8B." },
-            "open-mistral-7b": { name: "Open Mistral 7B", description: "Versão open source do Mistral 7B." },
-            "mistral-tiny": { name: "Mistral Tiny", description: "Modelo Mistral de tamanho pequeno." },
-            "mistral-tiny-2312": { name: "Mistral Tiny (2312)", description: "Versão específica do Mistral Tiny." },
-            "open-mistral-nemo": { name: "Open Mistral Nemo", description: "Versão open source do Mistral Nemo." },
-            "open-mistral-nemo-2407": { name: "Open Mistral Nemo (2407)", description: "Versão específica do Mistral Nemo." },
-            "mistral-tiny-2407": { name: "Mistral Tiny (2407)", description: "Versão específica do Mistral Tiny." },
-            "mistral-tiny-latest": { name: "Mistral Tiny (Latest)", description: "A versão mais recente do Mistral Tiny." },
-            "open-mixtral-8x7b": { name: "Open Mixtral 8x7B", description: "Versão open source do Mixtral 8x7B." },
-            "mistral-small": { name: "Mistral Small", description: "Modelo Mistral de tamanho pequeno." },
-            "mistral-small-2312": { name: "Mistral Small (2312)", description: "Versão específica do Mistral Small." },
-            "open-mixtral-8x22b": { name: "Open Mixtral 8x22B", description: "Versão open source do Mixtral 8x22B." },
-            "open-mixtral-8x22b-2404": { name: "Open Mixtral 8x22B (2404)", description: "Versão específica do Mixtral 8x22B." },
-            "pixtral-large-2411": { name: "Pixtral Large (2411)", description: "Versão específica do Pixtral Large." },
-            "pixtral-large-latest": { name: "Pixtral Large (Latest)", description: "A versão mais recente do Pixtral Large." },
-            "mistral-large-pixtral-2411": { name: "Mistral Large Pixtral (2411)", description: "Mistral Large com integração Pixtral." },
-            "codestral-2508": { name: "Codestral (2508)", description: "Versão específica do Codestral." },
-            "codestral-latest": { name: "Codestral (Latest)", description: "A versão mais recente do Codestral, para geração de código." },
-            "devstral-small-2507": { name: "Devstral Small (2507)", description: "Versão específica do Devstral Small." },
-            "devstral-small-latest": { name: "Devstral Small (Latest)", description: "A versão mais recente do Devstral Small." },
-            "pixtral-12b-2409": { name: "Pixtral 12B (2409)", description: "Versão específica do Pixtral 12B." },
-            "pixtral-12b": { name: "Pixtral 12B", description: "Modelo Pixtral de 12 bilhões de parâmetros." },
-            "pixtral-12b-latest": { name: "Pixtral 12B (Latest)", description: "A versão mais recente do Pixtral 12B." },
-            "mistral-small-2506": { name: "Mistral Small (2506)", description: "Versão específica do Mistral Small." },
-            "mistral-small-latest": { name: "Mistral Small (Latest)", description: "A versão mais recente do Mistral Small." },
-            "mistral-saba-2502": { name: "Mistral Saba (2502)", description: "Versão específica do Mistral Saba." },
-            "mistral-saba-latest": { name: "Mistral Saba (Latest)", description: "A versão mais recente do Mistral Saba." },
-            "magistral-medium-2507": { name: "Magistral Medium (2507)", description: "Versão específica do Magistral Medium." },
-            "magistral-medium-latest": { name: "Magistral Medium (Latest)", description: "A versão mais recente do Magistral Medium." },
-            "magistral-small-2507": { name: "Magistral Small (2507)", description: "Versão específica do Magistral Small." },
-            "magistral-small-latest": { name: "Magistral Small (Latest)", description: "A versão mais recente do Magistral Small." },
-            "mistral-moderation-2411": { name: "Mistral Moderation (2411)", description: "Modelo Mistral para moderação de conteúdo." },
-            "mistral-moderation-latest": { name: "Mistral Moderation (Latest)", description: "A versão mais recente do Mistral Moderation." },
-            "mistral-ocr-2505": { name: "Mistral OCR (2505)", description: "Modelo Mistral para reconhecimento óptico de caracteres (OCR)." },
-            "mistral-ocr-latest": { name: "Mistral OCR (Latest)", description: "A versão mais recente do Mistral OCR." },
-            "grok-beta": { name: "Grok Beta", description: "Versão beta do Grok." },
-            "grok-vision-beta": { name: "Grok Vision Beta", description: "Versão beta do Grok com capacidade de visão." },
-            "grok-3": { name: "Grok 3", description: "Terceira geração do modelo Grok." },
-            "grok-3-fast": { name: "Grok 3 Fast", description: "Versão rápida do Grok 3." },
-            "grok-3-mini": { name: "Grok 3 Mini", description: "Versão mini do Grok 3." },
-            "grok-3-mini-fast": { name: "Grok 3 Mini Fast", description: "Versão mini e rápida do Grok 3." },
-            "grok-2-vision": { name: "Grok 2 Vision", description: "Grok 2 com capacidade de visão." },
-            "grok-2": { name: "Grok 2", description: "Segunda geração do modelo Grok." },
-            "deepseek-chat": { name: "DeepSeek Chat", description: "Modelo DeepSeek otimizado para conversação." },
-            "deepseek-reasoner": { name: "DeepSeek Reasoner", description: "Modelo DeepSeek focado em raciocínio." },
-            "gemini-1.5-flash": { name: "Gemini 1.5 Flash", description: "Versão rápida do Gemini 1.5." },
-            "gemini-2.0-flash": { name: "Gemini 2.0 Flash", description: "Versão rápida do Gemini 2.0." },
-            
-            // Modelos OpenRouter (com prefixo)
-            "openrouter:ai21/jamba-mini-1.7": { name: "OpenRouter: Jamba Mini 1.7", description: "Jamba Mini 1.7 via OpenRouter." },
-            "openrouter:ai21/jamba-large-1.7": { name: "OpenRouter: Jamba Large 1.7", description: "Jamba Large 1.7 via OpenRouter." },
-            "openrouter:openai/gpt-5-chat": { name: "OpenRouter: GPT-5 Chat", description: "GPT-5 otimizado para chat via OpenRouter." },
-            "openrouter:openai/gpt-5": { name: "OpenRouter: GPT-5", description: "GPT-5 via OpenRouter." },
-            "openrouter:openai/gpt-5-mini": { name: "OpenRouter: GPT-5 Mini", description: "GPT-5 Mini via OpenRouter." },
-            "openrouter:openai/gpt-5-nano": { name: "OpenRouter: GPT-5 Nano", description: "GPT-5 Nano via OpenRouter." },
-            "openrouter:openai/gpt-oss-120b": { name: "OpenRouter: GPT-OSS 120B", description: "GPT-OSS 120B via OpenRouter." },
-            "openrouter:openai/gpt-oss-20b:free": { name: "OpenRouter: GPT-OSS 20B (Free)", description: "GPT-OSS 20B gratuito via OpenRouter." },
-            "openrouter:openai/gpt-oss-20b": { name: "OpenRouter: GPT-OSS 20B", description: "GPT-OSS 20B via OpenRouter." },
-            "openrouter:anthropic/claude-opus-4.1": { name: "OpenRouter: Claude Opus 4.1", description: "Claude Opus 4.1 via OpenRouter." },
-            "openrouter:mistralai/codestral-2508": { name: "OpenRouter: Codestral (2508)", description: "Codestral (2508) via OpenRouter." },
-            "openrouter:qwen/qwen3-30b-a3b-instruct-2507": { name: "OpenRouter: Qwen 3 30B Instruct (2507)", description: "Qwen 3 30B Instruct (2507) via OpenRouter." },
-            "openrouter:z-ai/glm-4.5": { name: "OpenRouter: GLM 4.5", description: "GLM 4.5 via OpenRouter." },
-            "openrouter:z-ai/glm-4.5-air:free": { name: "OpenRouter: GLM 4.5 Air (Free)", description: "GLM 4.5 Air gratuito via OpenRouter." },
-            "openrouter:z-ai/glm-4.5-air": { name: "OpenRouter: GLM 4.5 Air", description: "GLM 4.5 Air via OpenRouter." },
-            "openrouter:qwen/qwen3-235b-a22b-thinking-2507": { name: "OpenRouter: Qwen 3 235B Thinking (2507)", description: "Qwen 3 235B Thinking (2507) via OpenRouter." },
-            "openrouter:z-ai/glm-4-32b": { name: "OpenRouter: GLM 4 32B", description: "GLM 4 32B via OpenRouter." },
-            "openrouter:qwen/qwen3-coder:free": { name: "OpenRouter: Qwen 3 Coder (Free)", description: "Qwen 3 Coder gratuito via OpenRouter." },
-            "openrouter:qwen/qwen3-coder": { name: "OpenRouter: Qwen 3 Coder", description: "Qwen 3 Coder via OpenRouter." },
-            "openrouter:bytedance/ui-tars-1.5-7b": { name: "OpenRouter: ByteDance UI-Tars 1.5 7B", description: "UI-Tars 1.5 7B da ByteDance via OpenRouter." },
-            "openrouter:google/gemini-2.5-flash-lite": { name: "OpenRouter: Gemini 2.5 Flash Lite", description: "Gemini 2.5 Flash Lite via OpenRouter." },
-            "openrouter:qwen/qwen3-235b-a22b-2507": { name: "OpenRouter: Qwen 3 235B (2507)", description: "Qwen 3 235B (2507) via OpenRouter." },
-            "openrouter:switchpoint/router": { name: "OpenRouter: Switchpoint Router", description: "Switchpoint Router via OpenRouter." },
-            "openrouter:moonshotai/kimi-k2:free": { name: "OpenRouter: Kimi K2 (Free)", description: "Kimi K2 gratuito via OpenRouter." },
-            "openrouter:moonshotai/kimi-k2": { name: "OpenRouter: Kimi K2", description: "Kimi K2 via OpenRouter." },
-            "openrouter:thudm/glm-4.1v-9b-thinking": { name: "OpenRouter: GLM 4.1v 9B Thinking", description: "GLM 4.1v 9B Thinking via OpenRouter." },
-            "openrouter:mistralai/devstral-medium": { name: "OpenRouter: Devstral Medium", description: "Devstral Medium via OpenRouter." },
-            "openrouter:mistralai/devstral-small": { name: "OpenRouter: Devstral Small", description: "Devstral Small via OpenRouter." },
-            "openrouter:cognitivecomputations/dolphin-mistral-24b-venice-edition:free": { name: "OpenRouter: Dolphin Mistral 24B Venice (Free)", description: "Dolphin Mistral 24B Venice Edition gratuito via OpenRouter." },
-            "openrouter:x-ai/grok-4": { name: "OpenRouter: Grok 4", description: "Grok 4 via OpenRouter." },
-            "openrouter:google/gemma-3n-e2b-it:free": { name: "OpenRouter: Gemma 3n E2B IT (Free)", description: "Gemma 3n E2B IT gratuito via OpenRouter." },
-            "openrouter:tencent/hunyuan-a13b-instruct:free": { name: "OpenRouter: Tencent Hunyuan A13B Instruct (Free)", description: "Hunyuan A13B Instruct gratuito via OpenRouter." },
-            "openrouter:tencent/hunyuan-a13b-instruct": { name: "OpenRouter: Tencent Hunyuan A13B Instruct", description: "Hunyuan A13B Instruct via OpenRouter." },
-            "openrouter:tngtech/deepseek-r1t2-chimera:free": { name: "OpenRouter: DeepSeek R1T2 Chimera (Free)", description: "DeepSeek R1T2 Chimera gratuito via OpenRouter." },
-            "openrouter:morph/morph-v3-large": { name: "OpenRouter: Morph V3 Large", description: "Morph V3 Large via OpenRouter." },
-            "openrouter:morph/morph-v3-fast": { name: "OpenRouter: Morph V3 Fast", description: "Morph V3 Fast via OpenRouter." },
-            "openrouter:baidu/ernie-4.5-300b-a47b": { name: "OpenRouter: Baidu Ernie 4.5", description: "Ernie 4.5 da Baidu via OpenRouter." },
-            "openrouter:thedrummer/anubis-70b-v1.1": { name: "OpenRouter: Anubis 70B v1.1", description: "Anubis 70B v1.1 via OpenRouter." },
-            "openrouter:inception/mercury": { name: "OpenRouter: Inception Mercury", description: "Mercury da Inception via OpenRouter." },
-            "openrouter:mistralai/mistral-small-3.2-24b-instruct:free": { name: "OpenRouter: Mistral Small 3.2 24B Instruct (Free)", description: "Mistral Small 3.2 24B Instruct gratuito via OpenRouter." },
-            "openrouter:mistralai/mistral-small-3.2-24b-instruct": { name: "OpenRouter: Mistral Small 3.2 24B Instruct", description: "Mistral Small 3.2 24B Instruct via OpenRouter." },
-            "openrouter:minimax/minimax-m1": { name: "OpenRouter: MiniMax M1", description: "MiniMax M1 via OpenRouter." },
-            "openrouter:google/gemini-2.5-flash-lite-preview-06-17": { name: "OpenRouter: Gemini 2.5 Flash Lite Preview (06-17)", description: "Gemini 2.5 Flash Lite Preview (06-17) via OpenRouter." },
-            "openrouter:google/gemini-2.5-flash": { name: "OpenRouter: Gemini 2.5 Flash", description: "Gemini 2.5 Flash via OpenRouter." },
-            "openrouter:google/gemini-2.5-pro": { name: "OpenRouter: Gemini 2.5 Pro", description: "Gemini 2.5 Pro via OpenRouter." },
-            "openrouter:moonshotai/kimi-dev-72b:free": { name: "OpenRouter: Kimi Dev 72B (Free)", description: "Kimi Dev 72B gratuito via OpenRouter." },
-            "openrouter:openai/o3-pro": { name: "OpenRouter: O3 Pro", description: "O3 Pro via OpenRouter." },
-            "openrouter:x-ai/grok-3-mini": { name: "OpenRouter: Grok 3 Mini", description: "Grok 3 Mini via OpenRouter." },
-            "openrouter:x-ai/grok-3": { name: "OpenRouter: Grok 3", description: "Grok 3 via OpenRouter." },
-            "openrouter:mistralai/magistral-small-2506": { name: "OpenRouter: Magistral Small (2506)", description: "Magistral Small (2506) via OpenRouter." },
-            "openrouter:mistralai/magistral-medium-2506": { name: "OpenRouter: Magistral Medium (2506)", description: "Magistral Medium (2506) via OpenRouter." },
-            "openrouter:mistralai/magistral-medium-2506:thinking": { name: "OpenRouter: Magistral Medium (2506) Thinking", description: "Magistral Medium (2506) Thinking via OpenRouter." },
-            "openrouter:google/gemini-2.5-pro-preview": { name: "OpenRouter: Gemini 2.5 Pro Preview", description: "Gemini 2.5 Pro Preview via OpenRouter." },
-            "openrouter:deepseek/deepseek-r1-distill-qwen-7b": { name: "OpenRouter: DeepSeek R1 Distill Qwen 7B", description: "DeepSeek R1 Distill Qwen 7B via OpenRouter." },
-            "openrouter:deepseek/deepseek-r1-0528-qwen3-8b:free": { name: "OpenRouter: DeepSeek R1 0528 Qwen 3 8B (Free)", description: "DeepSeek R1 0528 Qwen 3 8B gratuito via OpenRouter." },
-            "openrouter:deepseek/deepseek-r1-0528-qwen3-8b": { name: "OpenRouter: DeepSeek R1 0528 Qwen 3 8B", description: "DeepSeek R1 0528 Qwen 3 8B via OpenRouter." },
-            "openrouter:deepseek/deepseek-r1-0528:free": { name: "OpenRouter: DeepSeek R1 0528 (Free)", description: "DeepSeek R1 0528 gratuito via OpenRouter." },
-            "openrouter:deepseek/deepseek-r1-0528": { name: "OpenRouter: DeepSeek R1 0528", description: "DeepSeek R1 0528 via OpenRouter." },
-            "openrouter:sarvamai/sarvam-m:free": { name: "OpenRouter: Sarvam M (Free)", description: "Sarvam M gratuito via OpenRouter." },
-            "openrouter:thedrummer/valkyrie-49b-v1": { name: "OpenRouter: Valkyrie 49B v1", description: "Valkyrie 49B v1 via OpenRouter." },
-            "openrouter:anthropic/claude-opus-4": { name: "OpenRouter: Claude Opus 4", description: "Claude Opus 4 via OpenRouter." },
-            "openrouter:anthropic/claude-sonnet-4": { name: "OpenRouter: Claude Sonnet 4", description: "Claude Sonnet 4 via OpenRouter." },
-            "openrouter:mistralai/devstral-small-2505:free": { name: "OpenRouter: Devstral Small (2505) (Free)", description: "Devstral Small (2505) gratuito via OpenRouter." },
-            "openrouter:mistralai/devstral-small-2505": { name: "OpenRouter: Devstral Small (2505)", description: "Devstral Small (2505) via OpenRouter." },
-            "openrouter:google/gemma-3n-e4b-it:free": { name: "OpenRouter: Gemma 3n E4B IT (Free)", description: "Gemma 3n E4B IT gratuito via OpenRouter." },
-            "openrouter:google/gemma-3n-e4b-it": { name: "OpenRouter: Gemma 3n E4B IT", description: "Gemma 3n E4B IT via OpenRouter." },
-            "openrouter:openai/codex-mini": { name: "OpenRouter: Codex Mini", description: "Codex Mini via OpenRouter." },
-            "openrouter:nousresearch/deephermes-3-mistral-24b-preview": { name: "OpenRouter: DeepHermes 3 Mistral 24B Preview", description: "DeepHermes 3 Mistral 24B Preview via OpenRouter." },
-            "openrouter:mistralai/mistral-medium-3": { name: "OpenRouter: Mistral Medium 3", description: "Mistral Medium 3 via OpenRouter." },
-            "openrouter:google/gemini-2.5-pro-preview-05-06": { name: "OpenRouter: Gemini 2.5 Pro Preview (05-06)", description: "Gemini 2.5 Pro Preview (05-06) via OpenRouter." },
-            "openrouter:arcee-ai/spotlight": { name: "OpenRouter: Arcee Spotlight", description: "Arcee Spotlight via OpenRouter." },
-            "openrouter:arcee-ai/maestro-reasoning": { name: "OpenRouter: Arcee Maestro Reasoning", description: "Arcee Maestro Reasoning via OpenRouter." },
-            "openrouter:arcee-ai/virtuoso-large": { name: "OpenRouter: Arcee Virtuoso Large", description: "Arcee Virtuoso Large via OpenRouter." },
-            "openrouter:arcee-ai/coder-large": { name: "OpenRouter: Arcee Coder Large", description: "Arcee Coder Large via OpenRouter." },
-            "openrouter:microsoft/phi-4-reasoning-plus": { name: "OpenRouter: Phi-4 Reasoning Plus", description: "Phi-4 Reasoning Plus da Microsoft via OpenRouter." },
-            "openrouter:inception/mercury-coder": { name: "OpenRouter: Inception Mercury Coder", description: "Mercury Coder da Inception via OpenRouter." },
-            "openrouter:qwen/qwen3-4b:free": { name: "OpenRouter: Qwen 3 4B (Free)", description: "Qwen 3 4B gratuito via OpenRouter." },
-            "openrouter:opengvlab/internvl3-14b": { name: "OpenRouter: InternVL3 14B", description: "InternVL3 14B via OpenRouter." },
-            "openrouter:deepseek/deepseek-prover-v2": { name: "OpenRouter: DeepSeek Prover V2", description: "DeepSeek Prover V2 via OpenRouter." },
-            "openrouter:meta-llama/llama-guard-4-12b": { name: "OpenRouter: Llama Guard 4 12B", description: "Llama Guard 4 12B via OpenRouter." },
-            "openrouter:qwen/qwen3-30b-a3b:free": { name: "OpenRouter: Qwen 3 30B (Free)", description: "Qwen 3 30B gratuito via OpenRouter." },
-            "openrouter:qwen/qwen3-30b-a3b": { name: "OpenRouter: Qwen 3 30B", description: "Qwen 3 30B via OpenRouter." },
-            "openrouter:qwen/qwen3-8b:free": { name: "OpenRouter: Qwen 3 8B (Free)", description: "Qwen 3 8B gratuito via OpenRouter." },
-            "openrouter:qwen/qwen3-8b": { name: "OpenRouter: Qwen 3 8B", description: "Qwen 3 8B via OpenRouter." },
-            "openrouter:qwen/qwen3-14b:free": { name: "OpenRouter: Qwen 3 14B (Free)", description: "Qwen 3 14B gratuito via OpenRouter." },
-            "openrouter:qwen/qwen3-14b": { name: "OpenRouter: Qwen 3 14B", description: "Qwen 3 14B via OpenRouter." },
-            "openrouter:qwen/qwen3-32b": { name: "OpenRouter: Qwen 3 32B", description: "Qwen 3 32B via OpenRouter." },
-            "openrouter:qwen/qwen3-235b-a22b:free": { name: "OpenRouter: Qwen 3 235B (Free)", description: "Qwen 3 235B gratuito via OpenRouter." },
-            "openrouter:qwen/qwen3-235b-a22b": { name: "OpenRouter: Qwen 3 235B", description: "Qwen 3 235B via OpenRouter." },
-            "openrouter:tngtech/deepseek-r1t-chimera:free": { name: "OpenRouter: DeepSeek R1T Chimera (Free)", description: "DeepSeek R1T Chimera gratuito via OpenRouter." },
-            "openrouter:tngtech/deepseek-r1t-chimera": { name: "OpenRouter: DeepSeek R1T Chimera", description: "DeepSeek R1T Chimera via OpenRouter." },
-            "openrouter:microsoft/mai-ds-r1:free": { name: "OpenRouter: MAI-DS-R1 (Free)", description: "MAI-DS-R1 gratuito via OpenRouter." },
-            "openrouter:microsoft/mai-ds-r1": { name: "OpenRouter: MAI-DS-R1", description: "MAI-DS-R1 via OpenRouter." },
-            "openrouter:thudm/glm-z1-32b:free": { name: "OpenRouter: GLM Z1 32B (Free)", description: "GLM Z1 32B gratuito via OpenRouter." },
-            "openrouter:thudm/glm-4-32b": { name: "OpenRouter: GLM 4 32B", description: "GLM 4 32B via OpenRouter." },
-            "openrouter:openai/o4-mini-high": { name: "OpenRouter: O4 Mini High", description: "O4 Mini High via OpenRouter." },
-            "openrouter:openai/o3": { name: "OpenRouter: O3", description: "O3 via OpenRouter." },
-            "openrouter:openai/o4-mini": { name: "OpenRouter: O4 Mini", description: "O4 Mini via OpenRouter." },
-            "openrouter:shisa-ai/shisa-v2-llama3.3-70b:free": { name: "OpenRouter: Shisa V2 Llama 3.3 70B (Free)", description: "Shisa V2 Llama 3.3 70B gratuito via OpenRouter." },
-            "openrouter:shisa-ai/shisa-v2-llama3.3-70b": { name: "OpenRouter: Shisa V2 Llama 3.3 70B", description: "Shisa V2 Llama 3.3 70B via OpenRouter." },
-            "openrouter:openai/gpt-4.1": { name: "OpenRouter: GPT-4.1", description: "GPT-4.1 via OpenRouter." },
-            "openrouter:openai/gpt-4.1-mini": { name: "OpenRouter: GPT-4.1 Mini", description: "GPT-4.1 Mini via OpenRouter." },
-            "openrouter:openai/gpt-4.1-nano": { name: "OpenRouter: GPT-4.1 Nano", description: "GPT-4.1 Nano via OpenRouter." },
-            "openrouter:eleutherai/llemma_7b": { name: "OpenRouter: EleutherAI LLaMMA 7B", description: "LLaMMA 7B da EleutherAI via OpenRouter." },
-            "openrouter:alfredpros/codellama-7b-instruct-solidity": { name: "OpenRouter: CodeLlama 7B Instruct Solidity", description: "CodeLlama 7B Instruct Solidity via OpenRouter." },
-            "openrouter:arliai/qwq-32b-arliai-rpr-v1:free": { name: "OpenRouter: QwQ 32B ArlAI RPR v1 (Free)", description: "QwQ 32B ArlAI RPR v1 gratuito via OpenRouter." },
-            "openrouter:arliai/qwq-32b-arliai-rpr-v1": { name: "OpenRouter: QwQ 32B ArlAI RPR v1", description: "QwQ 32B ArlAI RPR v1 via OpenRouter." },
-            "openrouter:agentica-org/deepcoder-14b-preview:free": { name: "OpenRouter: Deepcoder 14B Preview (Free)", description: "Deepcoder 14B Preview gratuito via OpenRouter." },
-            "openrouter:agentica-org/deepcoder-14b-preview": { name: "OpenRouter: Deepcoder 14B Preview", description: "Deepcoder 14B Preview via OpenRouter." },
-            "openrouter:moonshotai/kimi-vl-a3b-thinking:free": { name: "OpenRouter: Kimi VL A3B Thinking (Free)", description: "Kimi VL A3B Thinking gratuito via OpenRouter." },
-            "openrouter:moonshotai/kimi-vl-a3b-thinking": { name: "OpenRouter: Kimi VL A3B Thinking", description: "Kimi VL A3B Thinking via OpenRouter." },
-            "openrouter:x-ai/grok-3-mini-beta": { name: "OpenRouter: Grok 3 Mini Beta", description: "Grok 3 Mini Beta via OpenRouter." },
-            "openrouter:x-ai/grok-3-beta": { name: "OpenRouter: Grok 3 Beta", description: "Grok 3 Beta via OpenRouter." },
-            "openrouter:nvidia/llama-3.3-nemotron-super-49b-v1": { name: "OpenRouter: NVIDIA Llama 3.3 Nemotron Super 49B v1", description: "Llama 3.3 Nemotron Super 49B v1 da NVIDIA via OpenRouter." },
-            "openrouter:nvidia/llama-3.1-nemotron-ultra-253b-v1:free": { name: "OpenRouter: NVIDIA Llama 3.1 Nemotron Ultra 253B v1 (Free)", description: "Llama 3.1 Nemotron Ultra 253B v1 gratuito via OpenRouter." },
-            "openrouter:nvidia/llama-3.1-nemotron-ultra-253b-v1": { name: "OpenRouter: NVIDIA Llama 3.1 Nemotron Ultra 253B v1", description: "Llama 3.1 Nemotron Ultra 253B v1 da NVIDIA via OpenRouter." },
-            "openrouter:meta-llama/llama-4-maverick": { name: "OpenRouter: Llama 4 Maverick", description: "Llama 4 Maverick via OpenRouter." },
-            "openrouter:meta-llama/llama-4-scout": { name: "OpenRouter: Llama 4 Scout", description: "Llama 4 Scout via OpenRouter." },
-            "openrouter:deepseek/deepseek-v3-base": { name: "OpenRouter: DeepSeek V3 Base", description: "DeepSeek V3 Base via OpenRouter." },
-            "openrouter:scb10x/llama3.1-typhoon2-70b-instruct": { name: "OpenRouter: Llama 3.1 Typhoon 2 70B Instruct", description: "Llama 3.1 Typhoon 2 70B Instruct via OpenRouter." },
-            "openrouter:google/gemini-2.5-pro-exp-03-25": { name: "OpenRouter: Gemini 2.5 Pro Exp (03-25)", description: "Gemini 2.5 Pro Exp (03-25) via OpenRouter." },
-            "openrouter:qwen/qwen2.5-vl-32b-instruct:free": { name: "OpenRouter: Qwen 2.5 VL 32B Instruct (Free)", description: "Qwen 2.5 VL 32B Instruct gratuito via OpenRouter." },
-            "openrouter:qwen/qwen2.5-vl-32b-instruct": { name: "OpenRouter: Qwen 2.5 VL 32B Instruct", description: "Qwen 2.5 VL 32B Instruct via OpenRouter." },
-            "openrouter:deepseek/deepseek-chat-v3-0324:free": { name: "OpenRouter: DeepSeek Chat V3 (0324) (Free)", description: "DeepSeek Chat V3 (0324) gratuito via OpenRouter." },
-            "openrouter:deepseek/deepseek-chat-v3-0324": { name: "OpenRouter: DeepSeek Chat V3 (0324)", description: "DeepSeek Chat V3 (0324) via OpenRouter." },
-            "openrouter:featherless/qwerky-72b:free": { name: "OpenRouter: Qwerky 72B (Free)", description: "Qwerky 72B gratuito via OpenRouter." },
-            "openrouter:openai/o1-pro": { name: "OpenRouter: O1 Pro", description: "O1 Pro via OpenRouter." },
-            "openrouter:mistralai/mistral-small-3.1-24b-instruct:free": { name: "OpenRouter: Mistral Small 3.1 24B Instruct (Free)", description: "Mistral Small 3.1 24B Instruct gratuito via OpenRouter." },
-            "openrouter:mistralai/mistral-small-3.1-24b-instruct": { name: "OpenRouter: Mistral Small 3.1 24B Instruct", description: "Mistral Small 3.1 24B Instruct via OpenRouter." },
-            "openrouter:google/gemma-3-4b-it:free": { name: "OpenRouter: Gemma 3 4B IT (Free)", description: "Gemma 3 4B IT gratuito via OpenRouter." },
-            "openrouter:google/gemma-3-4b-it": { name: "OpenRouter: Gemma 3 4B IT", description: "Gemma 3 4B IT via OpenRouter." },
-            "openrouter:google/gemma-3-12b-it:free": { name: "OpenRouter: Gemma 3 12B IT (Free)", description: "Gemma 3 12B IT gratuito via OpenRouter." },
-            "openrouter:google/gemma-3-12b-it": { name: "OpenRouter: Gemma 3 12B IT", description: "Gemma 3 12B IT via OpenRouter." },
-            "openrouter:cohere/command-a": { name: "OpenRouter: Cohere Command A", description: "Command A da Cohere via OpenRouter." },
-            "openrouter:openai/gpt-4o-mini-search-preview": { name: "OpenRouter: GPT-4o Mini Search Preview", description: "GPT-4o Mini Search Preview via OpenRouter." },
-            "openrouter:openai/gpt-4o-search-preview": { name: "OpenRouter: GPT-4o Search Preview", description: "GPT-4o Search Preview via OpenRouter." },
-            "openrouter:rekaai/reka-flash-3:free": { name: "OpenRouter: Reka Flash 3 (Free)", description: "Reka Flash 3 gratuito via OpenRouter." },
-            "openrouter:google/gemma-3-27b-it:free": { name: "OpenRouter: Gemma 3 27B IT (Free)", description: "Gemma 3 27B IT gratuito via OpenRouter." },
-            "openrouter:google/gemma-3-27b-it": { name: "OpenRouter: Gemma 3 27B IT", description: "Gemma 3 27B IT via OpenRouter." },
-            "openrouter:thedrummer/anubis-pro-105b-v1": { name: "OpenRouter: Anubis Pro 105B v1", description: "Anubis Pro 105B v1 via OpenRouter." },
-            "openrouter:thedrummer/skyfall-36b-v2": { name: "OpenRouter: Skyfall 36B v2", description: "Skyfall 36B v2 via OpenRouter." },
-            "openrouter:microsoft/phi-4-multimodal-instruct": { name: "OpenRouter: Phi-4 Multimodal Instruct", description: "Phi-4 Multimodal Instruct da Microsoft via OpenRouter." },
-            "openrouter:perplexity/sonar-reasoning-pro": { name: "OpenRouter: Perplexity Sonar Reasoning Pro", description: "Sonar Reasoning Pro da Perplexity via OpenRouter." },
-            "openrouter:perplexity/sonar-pro": { name: "OpenRouter: Perplexity Sonar Pro", description: "Sonar Pro da Perplexity via OpenRouter." },
-            "openrouter:perplexity/sonar-deep-research": { name: "OpenRouter: Perplexity Sonar Deep Research", description: "Sonar Deep Research da Perplexity via OpenRouter." },
-            "openrouter:qwen/qwq-32b:free": { name: "OpenRouter: QwQ 32B (Free)", description: "QwQ 32B gratuito via OpenRouter." },
-            "openrouter:qwen/qwq-32b": { name: "OpenRouter: QwQ 32B", description: "QwQ 32B via OpenRouter." },
-            "openrouter:nousresearch/deephermes-3-llama-3-8b-preview:free": { name: "OpenRouter: DeepHermes 3 Llama 3 8B Preview (Free)", description: "DeepHermes 3 Llama 3 8B Preview gratuito via OpenRouter." },
-            "openrouter:google/gemini-2.0-flash-lite-001": { name: "OpenRouter: Gemini 2.0 Flash Lite (001)", description: "Gemini 2.0 Flash Lite (001) via OpenRouter." },
-            "openrouter:anthropic/claude-3.7-sonnet": { name: "OpenRouter: Claude 3.7 Sonnet", description: "Claude 3.7 Sonnet via OpenRouter." },
-            "openrouter:anthropic/claude-3.7-sonnet:thinking": { name: "OpenRouter: Claude 3.7 Sonnet (Thinking)", description: "Claude 3.7 Sonnet (Thinking) via OpenRouter." },
-            "openrouter:anthropic/claude-3.7-sonnet:beta": { name: "OpenRouter: Claude 3.7 Sonnet (Beta)", description: "Claude 3.7 Sonnet (Beta) via OpenRouter." },
-            "openrouter:perplexity/r1-1776": { name: "OpenRouter: Perplexity R1-1776", description: "R1-1776 da Perplexity via OpenRouter." },
-            "openrouter:mistralai/mistral-saba": { name: "OpenRouter: Mistral Saba", description: "Mistral Saba via OpenRouter." },
-            "openrouter:cognitivecomputations/dolphin3.0-r1-mistral-24b:free": { name: "OpenRouter: Dolphin 3.0 R1 Mistral 24B (Free)", description: "Dolphin 3.0 R1 Mistral 24B gratuito via OpenRouter." },
-            "openrouter:cognitivecomputations/dolphin3.0-r1-mistral-24b": { name: "OpenRouter: Dolphin 3.0 R1 Mistral 24B", description: "Dolphin 3.0 R1 Mistral 24B via OpenRouter." },
-            "openrouter:cognitivecomputations/dolphin3.0-mistral-24b:free": { name: "OpenRouter: Dolphin 3.0 Mistral 24B (Free)", description: "Dolphin 3.0 Mistral 24B gratuito via OpenRouter." },
-            "openrouter:cognitivecomputations/dolphin3.0-mistral-24b": { name: "OpenRouter: Dolphin 3.0 Mistral 24B", description: "Dolphin 3.0 Mistral 24B via OpenRouter." },
-            "openrouter:meta-llama/llama-guard-3-8b": { name: "OpenRouter: Llama Guard 3 8B", description: "Llama Guard 3 8B via OpenRouter." },
-            "openrouter:openai/o3-mini-high": { name: "OpenRouter: O3 Mini High", description: "O3 Mini High via OpenRouter." },
-            "openrouter:deepseek/deepseek-r1-distill-llama-8b": { name: "OpenRouter: DeepSeek R1 Distill Llama 8B", description: "DeepSeek R1 Distill Llama 8B via OpenRouter." },
-            "openrouter:google/gemini-2.0-flash-001": { name: "OpenRouter: Gemini 2.0 Flash (001)", description: "Gemini 2.0 Flash (001) via OpenRouter." },
-            "openrouter:qwen/qwen-vl-plus": { name: "OpenRouter: Qwen VL Plus", description: "Qwen VL Plus via OpenRouter." },
-            "openrouter:aion-labs/aion-1.0": { name: "OpenRouter: Aion 1.0", description: "Aion 1.0 via OpenRouter." },
-            "openrouter:aion-labs/aion-1.0-mini": { name: "OpenRouter: Aion 1.0 Mini", description: "Aion 1.0 Mini via OpenRouter." },
-            "openrouter:aion-labs/aion-rp-llama-3.1-8b": { name: "OpenRouter: Aion RP Llama 3.1 8B", description: "Aion RP Llama 3.1 8B via OpenRouter." },
-            "openrouter:qwen/qwen-vl-max": { name: "OpenRouter: Qwen VL Max", description: "Qwen VL Max via OpenRouter." },
-            "openrouter:qwen/qwen-turbo": { name: "OpenRouter: Qwen Turbo", description: "Qwen Turbo via OpenRouter." },
-            "openrouter:qwen/qwen2.5-vl-72b-instruct:free": { name: "OpenRouter: Qwen 2.5 VL 72B Instruct (Free)", description: "Qwen 2.5 VL 72B Instruct gratuito via OpenRouter." },
-            "openrouter:qwen/qwen2.5-vl-72b-instruct": { name: "OpenRouter: Qwen 2.5 VL 72B Instruct", description: "Qwen 2.5 VL 72B Instruct via OpenRouter." },
-            "openrouter:qwen/qwen-plus": { name: "OpenRouter: Qwen Plus", description: "Qwen Plus via OpenRouter." },
-            "openrouter:qwen/qwen-max": { name: "OpenRouter: Qwen Max", description: "Qwen Max via OpenRouter." },
-            "openrouter:openai/o3-mini": { name: "OpenRouter: O3 Mini", description: "O3 Mini via OpenRouter." },
-            "openrouter:deepseek/deepseek-r1-distill-qwen-1.5b": { name: "OpenRouter: DeepSeek R1 Distill Qwen 1.5B", description: "DeepSeek R1 Distill Qwen 1.5B via OpenRouter." },
-            "openrouter:mistralai/mistral-small-24b-instruct-2501:free": { name: "OpenRouter: Mistral Small 24B Instruct (2501) (Free)", description: "Mistral Small 24B Instruct (2501) gratuito via OpenRouter." },
-            "openrouter:mistralai/mistral-small-24b-instruct-2501": { name: "OpenRouter: Mistral Small 24B Instruct (2501)", description: "Mistral Small 24B Instruct (2501) via OpenRouter." },
-            "openrouter:deepseek/deepseek-r1-distill-qwen-32b": { name: "OpenRouter: DeepSeek R1 Distill Qwen 32B", description: "DeepSeek R1 Distill Qwen 32B via OpenRouter." },
-            "openrouter:deepseek/deepseek-r1-distill-qwen-14b:free": { name: "OpenRouter: DeepSeek R1 Distill Qwen 14B (Free)", description: "DeepSeek R1 Distill Qwen 14B gratuito via OpenRouter." },
-            "openrouter:deepseek/deepseek-r1-distill-qwen-14b": { name: "OpenRouter: DeepSeek R1 Distill Qwen 14B", description: "DeepSeek R1 Distill Qwen 14B via OpenRouter." },
-            "openrouter:perplexity/sonar-reasoning": { name: "OpenRouter: Perplexity Sonar Reasoning", description: "Sonar Reasoning da Perplexity via OpenRouter." },
-            "openrouter:perplexity/sonar": { name: "OpenRouter: Perplexity Sonar", description: "Sonar da Perplexity via OpenRouter." },
-            "openrouter:liquid/lfm-7b": { name: "OpenRouter: Liquid LFM 7B", description: "LFM 7B da Liquid via OpenRouter." },
-            "openrouter:liquid/lfm-3b": { name: "OpenRouter: Liquid LFM 3B", description: "LFM 3B da Liquid via OpenRouter." },
-            "openrouter:deepseek/deepseek-r1-distill-llama-70b:free": { name: "OpenRouter: DeepSeek R1 Distill Llama 70B (Free)", description: "DeepSeek R1 Distill Llama 70B gratuito via OpenRouter." },
-            "openrouter:deepseek/deepseek-r1-distill-llama-70b": { name: "OpenRouter: DeepSeek R1 Distill Llama 70B", description: "DeepSeek R1 Distill Llama 70B via OpenRouter." },
-            "openrouter:deepseek/deepseek-r1:free": { name: "OpenRouter: DeepSeek R1 (Free)", description: "DeepSeek R1 gratuito via OpenRouter." },
-            "openrouter:deepseek/deepseek-r1": { name: "OpenRouter: DeepSeek R1", description: "DeepSeek R1 via OpenRouter." },
-            "openrouter:minimax/minimax-01": { name: "OpenRouter: MiniMax 01", description: "MiniMax 01 via OpenRouter." },
-            "openrouter:mistralai/codestral-2501": { name: "OpenRouter: Codestral (2501)", description: "Codestral (2501) via OpenRouter." },
-            "openrouter:microsoft/phi-4": { name: "OpenRouter: Phi-4", description: "Phi-4 da Microsoft via OpenRouter." },
-            "openrouter:deepseek/deepseek-chat": { name: "OpenRouter: DeepSeek Chat", description: "DeepSeek Chat via OpenRouter." },
-            "openrouter:sao10k/l3.3-euryale-70b": { name: "OpenRouter: L3.3 Euryale 70B", description: "L3.3 Euryale 70B via OpenRouter." },
-            "openrouter:openai/o1": { name: "OpenRouter: O1", description: "O1 via OpenRouter." },
-            "openrouter:x-ai/grok-2-vision-1212": { name: "OpenRouter: Grok 2 Vision (1212)", description: "Grok 2 Vision (1212) via OpenRouter." },
-            "openrouter:x-ai/grok-2-1212": { name: "OpenRouter: Grok 2 (1212)", description: "Grok 2 (1212) via OpenRouter." },
-            "openrouter:cohere/command-r7b-12-2024": { name: "OpenRouter: Cohere Command R7B (12-2024)", description: "Command R7B (12-2024) da Cohere via OpenRouter." },
-            "openrouter:google/gemini-2.0-flash-exp:free": { name: "OpenRouter: Gemini 2.0 Flash Exp (Free)", description: "Gemini 2.0 Flash Exp gratuito via OpenRouter." },
-            "openrouter:meta-llama/llama-3.3-70b-instruct:free": { name: "OpenRouter: Llama 3.3 70B Instruct (Free)", description: "Llama 3.3 70B Instruct gratuito via OpenRouter." },
-            "openrouter:meta-llama/llama-3.3-70b-instruct": { name: "OpenRouter: Llama 3.3 70B Instruct", description: "Llama 3.3 70B Instruct via OpenRouter." },
-            "openrouter:amazon/nova-lite-v1": { name: "OpenRouter: Amazon Nova Lite v1", description: "Nova Lite v1 da Amazon via OpenRouter." },
-            "openrouter:amazon/nova-micro-v1": { name: "OpenRouter: Amazon Nova Micro v1", description: "Nova Micro v1 da Amazon via OpenRouter." },
-            "openrouter:amazon/nova-pro-v1": { name: "OpenRouter: Amazon Nova Pro v1", description: "Nova Pro v1 da Amazon via OpenRouter." },
-            "openrouter:qwen/qwq-32b-preview": { name: "OpenRouter: QwQ 32B Preview", description: "QwQ 32B Preview via OpenRouter." },
-            "openrouter:openai/gpt-4o-2024-11-20": { name: "OpenRouter: GPT-4o (2024-11-20)", description: "GPT-4o (2024-11-20) via OpenRouter." },
-            "openrouter:mistralai/mistral-large-2411": { name: "OpenRouter: Mistral Large (2411)", description: "Mistral Large (2411) via OpenRouter." },
-            "openrouter:mistralai/mistral-large-2407": { name: "OpenRouter: Mistral Large (2407)", description: "Mistral Large (2407) via OpenRouter." },
-            "openrouter:mistralai/pixtral-large-2411": { name: "OpenRouter: Pixtral Large (2411)", description: "Pixtral Large (2411) via OpenRouter." },
-            "openrouter:x-ai/grok-vision-beta": { name: "OpenRouter: Grok Vision Beta", description: "Grok Vision Beta via OpenRouter." },
-            "openrouter:infermatic/mn-inferor-12b": { name: "OpenRouter: Infermatic MN Inferor 12B", description: "MN Inferor 12B da Infermatic via OpenRouter." },
-            "openrouter:qwen/qwen-2.5-coder-32b-instruct:free": { name: "OpenRouter: Qwen 2.5 Coder 32B Instruct (Free)", description: "Qwen 2.5 Coder 32B Instruct gratuito via OpenRouter." },
-            "openrouter:qwen/qwen-2.5-coder-32b-instruct": { name: "OpenRouter: Qwen 2.5 Coder 32B Instruct", description: "Qwen 2.5 Coder 32B Instruct via OpenRouter." },
-            "openrouter:raifle/sorcererlm-8x22b": { name: "OpenRouter: Raifle SorcererLM 8x22B", description: "SorcererLM 8x22B da Raifle via OpenRouter." },
-            "openrouter:thedrummer/unslopnemo-12b": { name: "OpenRouter: Unslopnemo 12B", description: "Unslopnemo 12B via OpenRouter." },
-            "openrouter:anthropic/claude-3.5-haiku:beta": { name: "OpenRouter: Claude 3.5 Haiku (Beta)", description: "Claude 3.5 Haiku (Beta) via OpenRouter." },
-            "openrouter:anthropic/claude-3.5-haiku": { name: "OpenRouter: Claude 3.5 Haiku", description: "Claude 3.5 Haiku via OpenRouter." },
-            "openrouter:anthropic/claude-3.5-haiku-20241022": { name: "OpenRouter: Claude 3.5 Haiku (20241022)", description: "Claude 3.5 Haiku (20241022) via OpenRouter." },
-            "openrouter:anthropic/claude-3.5-sonnet:beta": { name: "OpenRouter: Claude 3.5 Sonnet (Beta)", description: "Claude 3.5 Sonnet (Beta) via OpenRouter." },
-            "openrouter:anthropic/claude-3.5-sonnet": { name: "OpenRouter: Claude 3.5 Sonnet", description: "Claude 3.5 Sonnet via OpenRouter." },
-            "openrouter:anthracite-org/magnum-v4-72b": { name: "OpenRouter: Anthracite Magnum v4 72B", description: "Magnum v4 72B da Anthracite via OpenRouter." },
-            "openrouter:mistralai/ministral-3b": { name: "OpenRouter: Minustral 3B", description: "Minustral 3B via OpenRouter." },
-            "openrouter:mistralai/ministral-8b": { name: "OpenRouter: Minustral 8B", description: "Minustral 8B via OpenRouter." },
-            "openrouter:qwen/qwen-2.5-7b-instruct": { name: "OpenRouter: Qwen 2.5 7B Instruct", description: "Qwen 2.5 7B Instruct via OpenRouter." },
-            "openrouter:nvidia/llama-3.1-nemotron-70b-instruct": { name: "OpenRouter: NVIDIA Llama 3.1 Nemotron 70B Instruct", description: "Llama 3.1 Nemotron 70B Instruct da NVIDIA via OpenRouter." },
-            "openrouter:inflection/inflection-3-pi": { name: "OpenRouter: Inflection 3 Pi", description: "Inflection 3 Pi via OpenRouter." },
-            "openrouter:inflection/inflection-3-productivity": { name: "OpenRouter: Inflection 3 Productivity", description: "Inflection 3 Productivity via OpenRouter." },
-            "openrouter:google/gemini-flash-1.5-8b": { name: "OpenRouter: Gemini Flash 1.5 8B", description: "Gemini Flash 1.5 8B via OpenRouter." },
-            "openrouter:thedrummer/rocinante-12b": { name: "OpenRouter: Rocinante 12B", description: "Rocinante 12B via OpenRouter." },
-            "openrouter:anthracite-org/magnum-v2-72b": { name: "OpenRouter: Anthracite Magnum v2 72B", description: "Magnum v2 72B da Anthracite via OpenRouter." },
-            "openrouter:liquid/lfm-40b": { name: "OpenRouter: Liquid LFM 40B", description: "LFM 40B da Liquid via OpenRouter." },
-            "openrouter:meta-llama/llama-3.2-3b-instruct:free": { name: "OpenRouter: Llama 3.2 3B Instruct (Free)", description: "Llama 3.2 3B Instruct gratuito via OpenRouter." },
-            "openrouter:meta-llama/llama-3.2-3b-instruct": { name: "OpenRouter: Llama 3.2 3B Instruct", description: "Llama 3.2 3B Instruct via OpenRouter." },
-            "openrouter:meta-llama/llama-3.2-11b-vision-instruct:free": { name: "OpenRouter: Llama 3.2 11B Vision Instruct (Free)", description: "Llama 3.2 11B Vision Instruct gratuito via OpenRouter." },
-            "openrouter:meta-llama/llama-3.2-11b-vision-instruct": { name: "OpenRouter: Llama 3.2 11B Vision Instruct", description: "Llama 3.2 11B Vision Instruct via OpenRouter." },
-            "openrouter:meta-llama/llama-3.2-90b-vision-instruct": { name: "OpenRouter: Llama 3.2 90B Vision Instruct", description: "Llama 3.2 90B Vision Instruct via OpenRouter." },
-            "openrouter:meta-llama/llama-3.2-1b-instruct": { name: "OpenRouter: Llama 3.2 1B Instruct", description: "Llama 3.2 1B Instruct via OpenRouter." },
-            "openrouter:qwen/qwen-2.5-72b-instruct:free": { name: "OpenRouter: Qwen 2.5 72B Instruct (Free)", description: "Qwen 2.5 72B Instruct gratuito via OpenRouter." },
-            "openrouter:qwen/qwen-2.5-72b-instruct": { name: "OpenRouter: Qwen 2.5 72B Instruct", description: "Qwen 2.5 72B Instruct via OpenRouter." },
-            "openrouter:neversleep/llama-3.1-lumimaid-8b": { name: "OpenRouter: Llama 3.1 Lumimaid 8B", description: "Llama 3.1 Lumimaid 8B via OpenRouter." },
-            "openrouter:openai/o1-mini": { name: "OpenRouter: O1 Mini", description: "O1 Mini via OpenRouter." },
-            "openrouter:openai/o1-mini-2024-09-12": { name: "OpenRouter: O1 Mini (2024-09-12)", description: "O1 Mini (2024-09-12) via OpenRouter." },
-            "openrouter:mistralai/pixtral-12b": { name: "OpenRouter: Pixtral 12B", description: "Pixtral 12B via OpenRouter." },
-            "openrouter:cohere/command-r-plus-08-2024": { name: "OpenRouter: Cohere Command R Plus (08-2024)", description: "Command R Plus (08-2024) da Cohere via OpenRouter." },
-            "openrouter:cohere/command-r-08-2024": { name: "OpenRouter: Cohere Command R (08-2024)", description: "Command R (08-2024) da Cohere via OpenRouter." },
-            "openrouter:qwen/qwen-2.5-vl-7b-instruct": { name: "OpenRouter: Qwen 2.5 VL 7B Instruct", description: "Qwen 2.5 VL 7B Instruct via OpenRouter." },
-            "openrouter:sao10k/l3.1-euryale-70b": { name: "OpenRouter: L3.1 Euryale 70B", description: "L3.1 Euryale 70B via OpenRouter." },
-            "openrouter:microsoft/phi-3.5-mini-128k-instruct": { name: "OpenRouter: Phi 3.5 Mini 128K Instruct", description: "Phi 3.5 Mini 128K Instruct da Microsoft via OpenRouter." },
-            "openrouter:nousresearch/hermes-3-llama-3.1-70b": { name: "OpenRouter: Hermes 3 Llama 3.1 70B", description: "Hermes 3 Llama 3.1 70B via OpenRouter." },
-            "openrouter:nousresearch/hermes-3-llama-3.1-405b": { name: "OpenRouter: Hermes 3 Llama 3.1 405B", description: "Hermes 3 Llama 3.1 405B via OpenRouter." },
-            "openrouter:openai/chatgpt-4o-latest": { name: "OpenRouter: ChatGPT-4o (Latest)", description: "ChatGPT-4o mais recente via OpenRouter." },
-            "openrouter:sao10k/l3-lunaris-8b": { name: "OpenRouter: L3 Lunaris 8B", description: "L3 Lunaris 8B via OpenRouter." },
-            "openrouter:openai/gpt-4o-2024-08-06": { name: "OpenRouter: GPT-4o (2024-08-06)", description: "GPT-4o (2024-08-06) via OpenRouter." },
-            "openrouter:meta-llama/llama-3.1-405b": { name: "OpenRouter: Llama 3.1 405B", description: "Llama 3.1 405B via OpenRouter." },
-            "openrouter:meta-llama/llama-3.1-70b-instruct": { name: "OpenRouter: Llama 3.1 70B Instruct", description: "Llama 3.1 70B Instruct via OpenRouter." },
-            "openrouter:meta-llama/llama-3.1-405b-instruct:free": { name: "OpenRouter: Llama 3.1 405B Instruct (Free)", description: "Llama 3.1 405B Instruct gratuito via OpenRouter." },
-            "openrouter:meta-llama/llama-3.1-405b-instruct": { name: "OpenRouter: Llama 3.1 405B Instruct", description: "Llama 3.1 405B Instruct via OpenRouter." },
-            "openrouter:meta-llama/llama-3.1-8b-instruct": { name: "OpenRouter: Llama 3.1 8B Instruct", description: "Llama 3.1 8B Instruct via OpenRouter." },
-            "openrouter:mistralai/mistral-nemo:free": { name: "OpenRouter: Mistral Nemo (Free)", description: "Mistral Nemo gratuito via OpenRouter." },
-            "openrouter:mistralai/mistral-nemo": { name: "OpenRouter: Mistral Nemo", description: "Mistral Nemo via OpenRouter." },
-            "openrouter:openai/gpt-4o-mini": { name: "OpenRouter: GPT-4o Mini", description: "GPT-4o Mini via OpenRouter." },
-            "openrouter:openai/gpt-4o-mini-2024-07-18": { name: "OpenRouter: GPT-4o Mini (2024-07-18)", description: "GPT-4o Mini (2024-07-18) via OpenRouter." },
-            "openrouter:google/gemma-2-27b-it": { name: "OpenRouter: Gemma 2 27B IT", description: "Gemma 2 27B IT via OpenRouter." },
-            "openrouter:google/gemma-2-9b-it:free": { name: "OpenRouter: Gemma 2 9B IT (Free)", description: "Gemma 2 9B IT gratuito via OpenRouter." },
-            "openrouter:google/gemma-2-9b-it": { name: "OpenRouter: Gemma 2 9B IT", description: "Gemma 2 9B IT via OpenRouter." },
-            "openrouter:anthropic/claude-3.5-sonnet-20240620:beta": { name: "OpenRouter: Claude 3.5 Sonnet (20240620) (Beta)", description: "Claude 3.5 Sonnet (20240620) (Beta) via OpenRouter." },
-            "openrouter:anthropic/claude-3.5-sonnet-20240620": { name: "OpenRouter: Claude 3.5 Sonnet (20240620)", description: "Claude 3.5 Sonnet (20240620) via OpenRouter." },
-            "openrouter:sao10k/l3-euryale-70b": { name: "OpenRouter: L3 Euryale 70B", description: "L3 Euryale 70B via OpenRouter." },
-            "openrouter:cognitivecomputations/dolphin-mixtral-8x22b": { name: "OpenRouter: Dolphin Mixtral 8x22B", description: "Dolphin Mixtral 8x22B via OpenRouter." },
-            "openrouter:qwen/qwen-2-72b-instruct": { name: "OpenRouter: Qwen 2 72B Instruct", description: "Qwen 2 72B Instruct via OpenRouter." },
-            "openrouter:mistralai/mistral-7b-instruct:free": { name: "OpenRouter: Mistral 7B Instruct (Free)", description: "Mistral 7B Instruct gratuito via OpenRouter." },
-            "openrouter:mistralai/mistral-7b-instruct": { name: "OpenRouter: Mistral 7B Instruct", description: "Mistral 7B Instruct via OpenRouter." },
-            "openrouter:mistralai/mistral-7b-instruct-v0.3": { name: "OpenRouter: Mistral 7B Instruct v0.3", description: "Mistral 7B Instruct v0.3 via OpenRouter." },
-            "openrouter:nousresearch/hermes-2-pro-llama-3-8b": { name: "OpenRouter: Hermes 2 Pro Llama 3 8B", description: "Hermes 2 Pro Llama 3 8B via OpenRouter." },
-            "openrouter:microsoft/phi-3-mini-128k-instruct": { name: "OpenRouter: Phi 3 Mini 128K Instruct", description: "Phi 3 Mini 128K Instruct da Microsoft via OpenRouter." },
-            "openrouter:microsoft/phi-3-medium-128k-instruct": { name: "OpenRouter: Phi 3 Medium 128K Instruct", description: "Phi 3 Medium 128K Instruct da Microsoft via OpenRouter." },
-            "openrouter:neversleep/llama-3-lumimaid-70b": { name: "OpenRouter: Llama 3 Lumimaid 70B", description: "Llama 3 Lumimaid 70B via OpenRouter." },
-            "openrouter:google/gemini-flash-1.5": { name: "OpenRouter: Gemini Flash 1.5", description: "Gemini Flash 1.5 via OpenRouter." },
-            "openrouter:openai/gpt-4o-2024-05-13": { name: "OpenRouter: GPT-4o (2024-05-13)", description: "GPT-4o (2024-05-13) via OpenRouter." },
-            "openrouter:meta-llama/llama-guard-2-8b": { name: "OpenRouter: Llama Guard 2 8B", description: "Llama Guard 2 8B via OpenRouter." },
-            "openrouter:openai/gpt-4o": { name: "OpenRouter: GPT-4o", description: "GPT-4o via OpenRouter." },
-            "openrouter:openai/gpt-4o:extended": { name: "OpenRouter: GPT-4o (Extended)", description: "GPT-4o (Extended) via OpenRouter." },
-            "openrouter:meta-llama/llama-3-70b-instruct": { name: "OpenRouter: Llama 3 70B Instruct", description: "Llama 3 70B Instruct via OpenRouter." },
-            "openrouter:meta-llama/llama-3-8b-instruct": { name: "OpenRouter: Llama 3 8B Instruct", description: "Llama 3 8B Instruct via OpenRouter." },
-            "openrouter:mistralai/mixtral-8x22b-instruct": { name: "OpenRouter: Mixtral 8x22B Instruct", description: "Mixtral 8x22B Instruct via OpenRouter." },
-            "openrouter:microsoft/wizardlm-2-8x22b": { name: "OpenRouter: WizardLM 2 8x22B", description: "WizardLM 2 8x22B da Microsoft via OpenRouter." },
-            "openrouter:openai/gpt-4-turbo": { name: "OpenRouter: GPT-4 Turbo", description: "GPT-4 Turbo via OpenRouter." },
-            "openrouter:google/gemini-pro-1.5": { name: "OpenRouter: Gemini Pro 1.5", description: "Gemini Pro 1.5 via OpenRouter." },
-            "openrouter:cohere/command-r-plus": { name: "OpenRouter: Cohere Command R Plus", description: "Command R Plus da Cohere via OpenRouter." },
-            "openrouter:cohere/command-r-plus-04-2024": { name: "OpenRouter: Cohere Command R Plus (04-2024)", description: "Command R Plus (04-2024) da Cohere via OpenRouter." },
-            "openrouter:sophosympatheia/midnight-rose-70b": { name: "OpenRouter: Sophosympatheia Midnight Rose 70B", description: "Midnight Rose 70B da Sophosympatheia via OpenRouter." },
-            "openrouter:cohere/command-r": { name: "OpenRouter: Cohere Command R", description: "Command R da Cohere via OpenRouter." },
-            "openrouter:cohere/command": { name: "OpenRouter: Cohere Command", description: "Command da Cohere via OpenRouter." },
-            "openrouter:anthropic/claude-3-haiku:beta": { name: "OpenRouter: Claude 3 Haiku (Beta)", description: "Claude 3 Haiku (Beta) via OpenRouter." },
-            "openrouter:anthropic/claude-3-haiku": { name: "OpenRouter: Claude 3 Haiku", description: "Claude 3 Haiku via OpenRouter." },
-            "openrouter:anthropic/claude-3-opus:beta": { name: "OpenRouter: Claude 3 Opus (Beta)", description: "Claude 3 Opus (Beta) via OpenRouter." },
-            "openrouter:anthropic/claude-3-opus": { name: "OpenRouter: Claude 3 Opus", description: "Claude 3 Opus via OpenRouter." },
-            "openrouter:cohere/command-r-03-2024": { name: "OpenRouter: Cohere Command R (03-2024)", description: "Command R (03-2024) da Cohere via OpenRouter." },
-            "openrouter:mistralai/mistral-large": { name: "OpenRouter: Mistral Large", description: "Mistral Large via OpenRouter." },
-            "openrouter:openai/gpt-3.5-turbo-0613": { name: "OpenRouter: GPT-3.5 Turbo (0613)", description: "GPT-3.5 Turbo (0613) via OpenRouter." },
-            "openrouter:openai/gpt-4-turbo-preview": { name: "OpenRouter: GPT-4 Turbo Preview", description: "GPT-4 Turbo Preview via OpenRouter." },
-            "openrouter:nousresearch/nous-hermes-2-mixtral-8x7b-dpo": { name: "OpenRouter: Nous Hermes 2 Mixtral 8x7B DPO", description: "Nous Hermes 2 Mixtral 8x7B DPO via OpenRouter." },
-            "openrouter:mistralai/mistral-small": { name: "OpenRouter: Mistral Small", description: "Mistral Small via OpenRouter." },
-            "openrouter:mistralai/mistral-tiny": { name: "OpenRouter: Mistral Tiny", description: "Mistral Tiny via OpenRouter." },
-            "openrouter:mistralai/mistral-7b-instruct-v0.2": { name: "OpenRouter: Mistral 7B Instruct v0.2", description: "Mistral 7B Instruct v0.2 via OpenRouter." },
-            "openrouter:mistralai/mixtral-8x7b-instruct": { name: "OpenRouter: Mixtral 8x7B Instruct", description: "Mixtral 8x7B Instruct via OpenRouter." },
-            "openrouter:neversleep/noromaid-20b": { name: "OpenRouter: Noromaid 20B", description: "Noromaid 20B via OpenRouter." },
-            "openrouter:alpindale/goliath-120b": { name: "OpenRouter: Goliath 120B", description: "Goliath 120B via OpenRouter." },
-            "openrouter:openrouter/auto": { name: "OpenRouter: Auto", description: "Permite ao OpenRouter selecionar automaticamente o melhor modelo." },
-            "openrouter:openai/gpt-4-1106-preview": { name: "OpenRouter: GPT-4 1106 Preview", description: "GPT-4 1106 Preview via OpenRouter." },
-            "openrouter:openai/gpt-3.5-turbo-instruct": { name: "OpenRouter: GPT-3.5 Turbo Instruct", description: "GPT-3.5 Turbo Instruct via OpenRouter." },
-            "openrouter:mistralai/mistral-7b-instruct-v0.1": { name: "OpenRouter: Mistral 7B Instruct v0.1", description: "Mistral 7B Instruct v0.1 via OpenRouter." },
-            "openrouter:pygmalionai/mythalion-13b": { name: "OpenRouter: PygmalionAI Mythalion 13B", description: "Mythalion 13B da PygmalionAI via OpenRouter." },
-            "openrouter:openai/gpt-3.5-turbo-16k": { name: "OpenRouter: GPT-3.5 Turbo 16K", description: "GPT-3.5 Turbo 16K via OpenRouter." },
-            "openrouter:mancer/weaver": { name: "OpenRouter: Mancer Weaver", description: "Weaver da Mancer via OpenRouter." },
-            "openrouter:undi95/remm-slerp-l2-13b": { name: "OpenRouter: Undi95 REMM Slerp L2 13B", description: "REMM Slerp L2 13B da Undi95 via OpenRouter." },
-            "openrouter:gryphe/mythomax-l2-13b": { name: "OpenRouter: Gryphe Mythomax L2 13B", description: "Mythomax L2 13B da Gryphe via OpenRouter." },
-            "openrouter:openai/gpt-3.5-turbo": { name: "OpenRouter: GPT-3.5 Turbo", description: "GPT-3.5 Turbo via OpenRouter." },
-            "openrouter:openai/gpt-4-0314": { name: "OpenRouter: GPT-4 (0314)", description: "GPT-4 (0314) via OpenRouter." },
-            "openrouter:openai/gpt-4": { name: "OpenRouter: GPT-4", description: "GPT-4 via OpenRouter." },
-            "fake": { name: "Modelo de Teste: Fake", description: "Um modelo de teste que retorna respostas falsas." },
-            "costly": { name: "Modelo de Teste: Custoso", description: "Um modelo de teste que simula ser muito custoso para usar." },
-            "abuse": { name: "Modelo de Teste: Abuso", description: "Um modelo de teste para simular conteúdo abusivo." }
+    
+    <!-- SDKs do Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Configuração do Firebase
+        // O __firebase_config e __initial_auth_token são fornecidos pelo ambiente Canvas.
+        // Se estiver rodando fora do Canvas, você precisará defini-los.
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyAGE6USqp6YwLpGinnMqZD_eO_gF7m9TRw",
+            authDomain: "alloneai-d6ba6.firebaseapp.com",
+            databaseURL: "https://alloneai-d6ba6-default-rtdb.firebaseio.com",
+            projectId: "alloneai-d6ba6",
+            storageBucket: "alloneai-d6ba6.firebasestorage.app",
+            messagingSenderId: "695268266235",
+            appId: "1:695268266235:web:b8c9a1b96efbfa180e205e",
+            measurementId: "G-P4XBLRYG5Y"
         };
-
-        // Variáveis globais
-        let currentModel = "";
-        let currentConversation = [];
         
-        // --- API Keys (Para desenvolvimento/teste. Em produção, use um backend para chaves) ---
-        // A chave API que você forneceu. MUITO CUIDADO ao usar chaves em frontend em produção.
-        const COMETAPI_KEY = "";
-        const COMETAPI_URL = "https://api.cometapi.com/v1/chat/completions";
-        // --- Fim das API Keys ---
-        
-        // Inicialização do DOM
-        document.addEventListener('DOMContentLoaded', function() {
-            // Preencher o seletor de modelos
-            const modelSelector = document.getElementById('model-selector');
-            const modelInfo = document.getElementById('model-info');
-            
-            // Agrupar modelos por provedor
-            const providers = {};
-            for (const [id, data] of Object.entries(models)) {
-                // Tenta extrair o provedor de IDs com o formato "provedor/modelo" ou "openrouter:provedor/modelo"
-                let providerName;
-                if (id.startsWith('openrouter:')) {
-                    providerName = 'OpenRouter (' + id.split(':')[1].split('/')[0] + ')';
-                } else {
-                    providerName = id.split('/')[0];
-                    if (!providerName.includes('-') && !providerName.includes('.')) { // Tenta pegar o nome direto para modelos simples
-                        providerName = id.split('-')[0].replace(/\d.*$/, ''); // Tenta pegar o nome antes de números
-                        if (providerName.includes('gpt')) providerName = 'OpenAI';
-                        if (providerName.includes('claude')) providerName = 'Anthropic';
-                        if (providerName.includes('gemma')) providerName = 'Google';
-                        if (providerName.includes('llama')) providerName = 'Meta (Llama)';
-                        if (providerName.includes('mistral')) providerName = 'Mistral AI';
-                        if (providerName.includes('qwen')) providerName = 'Qwen';
-                        if (providerName === 'o') providerName = 'OpenAI'; // Modelos o1, o3, etc.
-                        if (providerName === 'fake' || providerName === 'costly' || providerName === 'abuse') providerName = 'Test Models';
-                    }
+        // Inicializa o Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Obtém o ID do aplicativo fornecido pelo ambiente Canvas ou usa um padrão
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        const authSection = document.getElementById('authSection');
+        const chatSection = document.getElementById('chatSection');
+        const accessKeyInput = document.getElementById('accessKeyInput');
+        const validateAccessBtn = document.getElementById('validateAccessBtn');
+        const accessMessage = document.getElementById('accessMessage');
+        const currentUserIdDisplay = document.getElementById('currentUserIdDisplay'); // Este elemento está oculto via CSS
+
+        const modelSelect = document.getElementById('modelSelect');
+        const promptInput = document.getElementById('promptInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const chatHistory = document.getElementById('chatHistory');
+        const chatLoadingIndicator = document.getElementById('chatLoadingIndicator');
+
+        // Função para exibir mensagens na seção de acesso
+        function showAccessMessage(text, isError = false) {
+            accessMessage.textContent = text;
+            accessMessage.classList.remove('hidden');
+            if (isError) {
+                accessMessage.style.backgroundColor = '#fee2e2';
+                accessMessage.style.color = '#991b1b';
+            } else {
+                accessMessage.style.backgroundColor = '#e0f2fe';
+                accessMessage.style.color = '#0c4a6e';
+            }
+        }
+
+        // Função para mostrar o indicador de carregamento do chat
+        function showChatLoading(show) {
+            chatLoadingIndicator.classList.toggle('hidden', !show);
+        }
+
+        // Função para adicionar uma mensagem ao histórico do chat
+        function addMessageToChat(message, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('chat-message');
+            if (sender === 'user') {
+                messageDiv.classList.add('user-message');
+            } else {
+                messageDiv.classList.add('ai-message');
+            }
+            messageDiv.textContent = message;
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight; // Rola para o final do chat
+        }
+
+        // Valida a chave de acesso
+        validateAccessBtn.addEventListener('click', async () => {
+            const enteredKey = accessKeyInput.value.trim();
+            if (!enteredKey) {
+                showAccessMessage("Por favor, insira um ID de Usuário (chave de acesso).", true);
+                return;
+            }
+
+            const accessKeysRef = collection(db, `artifacts/${appId}/public/data/access_keys`);
+            const q = query(accessKeysRef, where("userId", "==", enteredKey));
+
+            try {
+                const querySnapshot = await getDocs(q);
+                let accessGranted = false;
+                if (!querySnapshot.empty) {
+                    querySnapshot.forEach(doc => {
+                        const data = doc.data();
+                        const expirationTime = data.expiration;
+                        if (expirationTime && Date.now() < expirationTime) {
+                            accessGranted = true;
+                        }
+                    });
                 }
 
-                if (!providers[providerName]) {
-                    providers[providerName] = [];
-                }
-                providers[providerName].push({id, ...data});
-            }
-            
-            // Adicionar modelos ao seletor
-            for (const [provider, modelsGroup] of Object.entries(providers)) {
-                const optgroup = document.createElement('optgroup');
-                optgroup.label = provider;
-                
-                modelsGroup.forEach(model => {
-                    const option = document.createElement('option');
-                    option.value = model.id;
-                    option.textContent = model.name;
-                    optgroup.appendChild(option);
-                });
-                
-                modelSelector.appendChild(optgroup);
-            }
-            
-            // Event listener para seleção de modelo
-            modelSelector.addEventListener('change', function() {
-                currentModel = this.value;
-                const modelData = models[currentModel];
-                
-                if (modelData) {
-                    modelInfo.innerHTML = `<strong>${modelData.name}</strong><br>${modelData.description}`;
-                    
-                    // Adicionar mensagem inicial quando um modelo é selecionado
-                    if (currentConversation.length === 0) {
-                        addMessage(`Agora você está conversando com ${modelData.name}. Como posso ajudar?`, 'ai');
-                    }
+                if (accessGranted) {
+                    showAccessMessage("Acesso concedido! Você pode começar a conversar com a IA.", false);
+                    authSection.classList.add('hidden');
+                    chatSection.classList.remove('hidden');
                 } else {
-                    modelInfo.textContent = "Selecione um modelo para ver sua descrição";
+                    showAccessMessage("Chave de acesso inválida ou expirada. Por favor, tente novamente ou gere uma nova chave.", true);
+                    chatSection.classList.add('hidden');
+                    authSection.classList.remove('hidden');
                 }
-            });
-            
-            // Event listener para enviar mensagem
-            const sendButton = document.getElementById('send-button');
-            const userInput = document.getElementById('user-input');
-            
-            sendButton.addEventListener('click', sendMessage);
-            userInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    sendMessage();
-                }
-            });
+
+            } catch (error) {
+                console.error("Erro ao validar chave de acesso:", error);
+                showAccessMessage(`Erro ao validar chave de acesso: ${error.message}. Por favor, verifique suas Regras de Segurança do Firestore.`, true);
+                chatSection.classList.add('hidden');
+                authSection.classList.remove('hidden');
+            }
         });
-        
-        // Função para enviar mensagem
-        async function sendMessage() {
-            const userInput = document.getElementById('user-input');
-            const message = userInput.value.trim();
-            
-            if (!message) return;
-            
-            // Adicionar mensagem do usuário ao chat
-            addMessage(message, 'user');
-            userInput.value = '';
-            
-            // Mostrar indicador de carregamento
-            const loading = document.getElementById('loading');
-            loading.style.display = 'block';
-            
-            // Adicionar mensagem ao histórico da conversa atual
-            currentConversation.push({role: 'user', content: message});
-            
-            try {
-                // Verificar se a mensagem é para gerar imagem
-                if (message.toLowerCase().startsWith('/imagem')) {
-                    const prompt = message.substring('/imagem'.length).trim();
-                    if (prompt) {
-                        const imageUrl = await puter.ai.txt2img(prompt);
-                        addMessageWithDownload(imageUrl, 'ai', 'image');
-                        currentConversation.push({role: 'assistant', content: `[Imagem gerada: ${prompt}]`, url: imageUrl, type: 'image'});
-                    } else {
-                        addMessage("Por favor, forneça um prompt para a imagem. Ex: /imagem um gato no espaço", 'ai');
-                    }
-                } 
-                // Verificar se a mensagem é para text-to-speech
-                else if (message.toLowerCase().startsWith('/falar')) {
-                    const textToSpeak = message.substring('/falar'.length).trim();
-                    if (textToSpeak) {
-                        const audioBlob = await puter.ai.txt2speech(textToSpeak, 'pt'); // 'pt' para português
-                        const audioUrl = URL.createObjectURL(audioBlob);
-                        addMessageWithDownload(audioUrl, 'ai', 'audio', textToSpeak);
-                        currentConversation.push({role: 'assistant', content: `[Áudio reproduzido: ${textToSpeak}]`, url: audioUrl, type: 'audio'});
-                    } else {
-                        addMessage("Por favor, forneça um texto para eu falar. Ex: /falar Olá, como você está?", 'ai');
-                    }
-                }
-                // Verificar se a mensagem é para gerar vídeo com CometAPI
-                else if (message.toLowerCase().startsWith('/gerarvideo')) {
-                    const videoPrompt = message.substring('/gerarvideo'.length).trim();
-                    if (videoPrompt) {
-                        await generateVideoWithCometAPI(videoPrompt);
-                    } else {
-                        addMessage("Por favor, forneça um prompt para o vídeo. Ex: /gerarvideo um gato fofo em uma nuvem", 'ai');
-                    }
-                }
-                // Se não for comando de mídia, enviar para o chat normal
-                else {
-                    if (!currentModel) {
-                        addMessage("Por favor, selecione um modelo para chat normal.", 'ai');
-                        return;
-                    }
-                    const response = await puter.ai.chat(currentConversation, {model: currentModel});
-                    addMessage(response, 'ai');
-                    currentConversation.push({role: 'assistant', content: response});
-                }
-            } catch (error) {
-                console.error("Erro na API:", error);
-                addMessage("Desculpe, ocorreu um erro ao processar sua mensagem.", 'ai');
-            } finally {
-                loading.style.display = 'none';
-            }
-        }
-        
-        // Função para adicionar mensagem ao chat (versão padrão)
-        function addMessage(text, sender) {
-            const chatHistory = document.getElementById('chat-history');
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
-            messageDiv.textContent = text;
-            chatHistory.appendChild(messageDiv);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        }
 
-        // Função para adicionar mensagem com conteúdo de mídia e botão de download
-        function addMessageWithDownload(url, sender, type, textContent = '') {
-            const chatHistory = document.getElementById('chat-history');
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
-            
-            if (type === 'image') {
-                const img = document.createElement('img');
-                img.src = url;
-                img.alt = textContent || 'Imagem gerada pela IA';
-                messageDiv.appendChild(img);
+        // Lida com o envio de mensagens do chat
+        sendBtn.addEventListener('click', async () => {
+            const prompt = promptInput.value.trim();
+            if (!prompt) return;
 
-                const downloadBtn = document.createElement('button');
-                downloadBtn.classList.add('download-button');
-                downloadBtn.textContent = 'Baixar Imagem';
-                downloadBtn.onclick = () => downloadFile(url, `imagem_ia_${Date.now()}.png`);
-                messageDiv.appendChild(downloadBtn);
-
-            } else if (type === 'audio') {
-                const audio = document.createElement('audio');
-                audio.controls = true;
-                audio.src = url;
-                messageDiv.appendChild(audio);
-                
-                // Texto opcional abaixo do player de áudio
-                if (textContent) {
-                    const textSpan = document.createElement('span');
-                    textSpan.textContent = ` "${textContent}"`;
-                    messageDiv.appendChild(textSpan);
-                }
-
-                const downloadBtn = document.createElement('button');
-                downloadBtn.classList.add('download-button');
-                downloadBtn.textContent = 'Baixar Áudio';
-                downloadBtn.onclick = () => downloadFile(url, `audio_ia_${Date.now()}.mp3`); 
-                messageDiv.appendChild(downloadBtn);
-            } else if (type === 'video') {
-                const video = document.createElement('video');
-                video.controls = true;
-                video.src = url;
-                video.loop = true; // Vídeos de IA costumam ser curtos, loop pode ajudar
-                messageDiv.appendChild(video);
-
-                if (textContent) {
-                    const textSpan = document.createElement('span');
-                    textSpan.textContent = ` "${textContent}"`;
-                    messageDiv.appendChild(textSpan);
-                }
-
-                const downloadBtn = document.createElement('button');
-                downloadBtn.classList.add('download-button');
-                downloadBtn.textContent = 'Baixar Vídeo';
-                downloadBtn.onclick = () => downloadFile(url, `video_ia_${Date.now()}.mp4`); // Assumindo mp4
-                messageDiv.appendChild(downloadBtn);
-            }
-            
-            chatHistory.appendChild(messageDiv);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        }
-
-        // Função para iniciar o download
-        function downloadFile(url, filename) {
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            // Revogar a URL do Blob após o download para liberar memória
-            if (url.startsWith('blob:')) {
-                URL.revokeObjectURL(url);
-            }
-        }
-        
-        // --- Nova Função: generateVideoWithCometAPI ---
-        async function generateVideoWithCometAPI(prompt) {
-            addMessage(`Gerando vídeo para: "${prompt}"... Isso pode levar um tempo.`, 'ai');
-            const requestBody = {
-                "model": "veo3-pro",
-                "stream": false, // Alterei para false para tentar obter o URL final de uma vez
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": prompt // A API espera a descrição diretamente aqui
-                    }
-                ]
-            };
+            const selectedModel = modelSelect.value;
+            addMessageToChat(`Você: ${prompt}`, 'user');
+            promptInput.value = '';
+            showChatLoading(true);
 
             try {
-                const response = await fetch(COMETAPI_URL, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${COMETAPI_KEY}` // Tentativa de autenticação
-                    },
-                    body: JSON.stringify(requestBody)
-                });
+                let retryCount = 0;
+                const maxRetries = 5;
+                const baseDelay = 1000;
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error(`Erro na CometAPI! Status: ${response.status}, Resposta: ${errorText}`);
-                    addMessage(`Erro ao gerar vídeo: ${errorText}.`, 'ai');
-                    return;
+                let response;
+                while (retryCount < maxRetries) {
+                    try {
+                        response = await puter.ai.chat(prompt, {
+                            model: selectedModel
+                        });
+                        break;
+                    } catch (error) {
+                        if (error.status === 429 && retryCount < maxRetries - 1) {
+                            const delay = baseDelay * Math.pow(2, retryCount);
+                            console.warn(`Limite de taxa excedido. Tentando novamente em ${delay / 1000} segundos...`);
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            retryCount++;
+                        } else {
+                            throw error;
+                        }
+                    }
                 }
 
-                const data = await response.json();
-                console.log("Resposta da CometAPI para vídeo:", data);
-
-                // A CometAPI para geração de vídeo pode retornar a URL do vídeo em 'choices[0].message.content'
-                // ou em algum outro campo. É preciso verificar a estrutura da resposta.
-                const videoUrl = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
-
-                if (videoUrl && videoUrl.startsWith('http')) {
-                    addMessageWithDownload(videoUrl, 'ai', 'video', `Vídeo gerado para: "${prompt}"`);
-                    currentConversation.push({role: 'assistant', content: `[Vídeo gerado: ${prompt}]`, url: videoUrl, type: 'video'});
+                if (response && response.message && response.message.content) {
+                    addMessageToChat(`IA (${selectedModel}): ${response.message.content}`, 'ai');
                 } else {
-                    addMessage("Não foi possível obter a URL do vídeo da CometAPI. Tente novamente ou verifique o prompt.", 'ai');
-                    console.warn("Resposta da CometAPI não contém URL de vídeo esperado:", data);
+                    addMessageToChat(`IA (${selectedModel}): Não foi possível obter uma resposta válida.`, 'ai');
                 }
-
             } catch (error) {
-                console.error("Erro ao chamar a CometAPI para gerar vídeo:", error);
-                addMessage("Desculpe, ocorreu um erro ao se comunicar com a CometAPI para gerar vídeo.", 'ai');
+                console.error("Erro ao chamar a API Puter AI:", error);
+                addMessageToChat(`IA (${selectedModel}): Ocorreu um erro ao processar sua solicitação: ${error.message}`, 'ai');
+            } finally {
+                showChatLoading(false);
             }
-        }
-        // --- Fim da Nova Função ---
+        });
+
+        // Inicializa a Autenticação Firebase (apenas para obter o UID para criar chaves, não para exibir)
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                console.log("Nenhum usuário Firebase autenticado. Tentando autenticação anônima...");
+                signInAnonymously(auth).catch(error => {
+                    console.error("Erro na autenticação anônima Firebase:", error);
+                    showAccessMessage(`Erro na autenticação Firebase: ${error.message}. Verifique a configuração do Firebase.`, true);
+                    validateAccessBtn.disabled = true;
+                });
+            }
+        });
     </script>
 </body>
 </html>
