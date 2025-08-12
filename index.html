@@ -40,7 +40,7 @@
             padding: 15px 25px;
             border-radius: 0.75rem;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            z-index: 10000; /* Super alto para garantir que esteja na frente */
+            z-index: 99999; /* Máximo z-index */
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
             pointer-events: none; /* Permite cliques quando escondido */
@@ -59,7 +59,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 9999; /* Alto, mas abaixo do message-box */
+            z-index: 99998; /* Alto, mas abaixo do message-box */
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
@@ -92,7 +92,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 9998; /* Acima do container principal, mas abaixo dos overlays de loading/message */
+            z-index: 99997; /* Acima do container principal, mas abaixo dos overlays de loading/message */
             transition: opacity 0.3s ease-in-out;
         }
         .login-box {
@@ -198,15 +198,9 @@
 
     <!-- Biblioteca Puter.js -->
     <script src="https://js.puter.com/v2/"></script>
-    <script>
-        // Log para verificar se a biblioteca Puter foi carregada
-        // Isso deve ser visível no console ANTES do script type="module"
-        console.log("CHAT APP: >>> Verificação inicial do Puter SDK. typeof puter:", typeof puter);
-        // puter.ai e puter.ai.chat podem não estar imediatamente disponíveis após o carregamento assíncrono do script Puter.js
-        // mas este log inicial nos ajuda a ver se o 'puter' base existe.
-    </script>
-    <!-- Bibliotecas Firebase -->
     <script type="module">
+        console.log("APP START: Script 'type=\"module\"' carregado.");
+
         // Importa as funções necessárias dos SDKs Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
@@ -224,42 +218,51 @@
             appId: "1:1055585794088:web:0c7eab96a4e696cd6f9d1d",
             measurementId: "G-5S8S16K6KF"
         };
-        // O token inicial do Canvas ainda pode ser usado se disponível para login personalizado
+        // O token inicial do Canvas (se fornecido) ainda pode ser usado para login personalizado
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
-        // Inicializa o Firebase
-        console.log("CHAT APP: Inicializando Firebase com config:", firebaseConfig);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        console.log("CHAT APP: Firebase App, Auth e DB inicializados.");
-
+        // Inicializa o Firebase IMEDIATAMENTE APÓS AS CONFIGURAÇÕES
+        console.log("FIREBASE INIT: Tentando inicializar Firebase com config:", firebaseConfig);
+        let app, auth, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            console.log("FIREBASE INIT: Firebase App, Auth e DB inicializados COM SUCESSO.");
+        } catch (error) {
+            console.error("FIREBASE INIT: ERRO FATAL ao inicializar Firebase:", error);
+            // Mostrar uma mensagem crítica ao usuário se o Firebase não puder ser inicializado
+            document.body.innerHTML = `
+                <div style="text-align: center; padding: 50px; color: red; font-size: 1.2em;">
+                    <h1>Erro Crítico de Inicialização</h1>
+                    <p>Não foi possível carregar o aplicativo de chat. Por favor, verifique sua conexão com a internet e as configurações do Firebase no console de desenvolvimento (F12).</p>
+                    <p>Erro: ${error.message}</p>
+                </div>
+            `;
+            throw error; // Interrompe a execução do script
+        }
 
         let userId = null;
         let deviceId = null; 
-        let isAuthReady = false;
+        let isAuthReady = false; 
         let keyCheckInterval = null; 
         let chatHistory = []; 
         let currentAccessKeyId = null; 
         let keyListenerUnsubscribe = null; 
 
-        // Elementos DOM
-        const loginOverlay = document.getElementById('login-overlay');
-        const accessKeyInput = document.getElementById('access-key-input');
-        const loginButton = document.getElementById('login-button');
-        const loginErrorMessage = document.getElementById('login-error-message');
-        const chatContainer = document.getElementById('chat-container');
-        const userIdDisplay = document.getElementById('user-id-display');
-        const welcomeMessage = document.getElementById('welcome-message'); 
-        const modelSelect = document.getElementById('model-select');
-        const modelDescriptionArea = document.getElementById('model-description-area');
-        const messagesArea = document.getElementById('messages-area'); 
-        const promptInput = document.getElementById('prompt-input');
-        const sendButton = document.getElementById('send-button');
+        // Declaração dos elementos DOM fora do DOMContentLoaded para que sejam acessíveis globalmente
+        let loginOverlay, accessKeyInput, loginButton, loginErrorMessage, chatContainer, 
+            userIdDisplay, welcomeMessage, modelSelect, modelDescriptionArea, 
+            messagesArea, promptInput, sendButton, messageBox, loadingOverlay;
 
         // Funções de Utilidade
         function showMessage(message, type = 'info') {
-            const messageBox = document.getElementById('message-box');
+            console.log(`MESSAGE: Tipo: ${type}, Conteúdo: ${message}`);
+            if (!messageBox) { // Fallback se messageBox não foi inicializado ainda
+                console.warn("MESSAGE: messageBox não inicializado, exibindo no console.");
+                alert(message); // Último recurso
+                return;
+            }
             messageBox.textContent = message;
             messageBox.className = 'message-box show'; 
             if (type === 'error') {
@@ -275,7 +278,11 @@
         }
 
         function toggleLoading(show) {
-            const loadingOverlay = document.getElementById('loading-overlay');
+            console.log(`LOADING: ${show ? 'Mostrando' : 'Escondendo'} overlay de carregamento.`);
+            if (!loadingOverlay) {
+                console.warn("LOADING: loadingOverlay não inicializado.");
+                return;
+            }
             if (show) {
                 loadingOverlay.classList.add('show');
             } else {
@@ -283,41 +290,50 @@
             }
         }
 
-        // Função para forçar o logout do usuário e limpar o estado
         function forceLogout(message) {
-            // Para de escutar o documento da chave
+            console.log(`LOGOUT: Forçando logout com mensagem: ${message}`);
             if (keyListenerUnsubscribe) {
                 keyListenerUnsubscribe();
                 keyListenerUnsubscribe = null;
-                console.log("CHAT APP: Firestore listener para chave de acesso desativado.");
+                console.log("LOGOUT: Firestore listener para chave de acesso desativado.");
             }
-            // Limpa o intervalo de verificação de expiração
             if (keyCheckInterval) {
                 clearInterval(keyCheckInterval);
                 keyCheckInterval = null;
-                console.log("CHAT APP: Intervalo de verificação de expiração limpo.");
+                console.log("LOGOUT: Intervalo de verificação de expiração limpo.");
             }
 
-            loginOverlay.style.opacity = '1';
-            loginOverlay.classList.remove('hidden');
-            chatContainer.classList.add('hidden');
-            showMessage(message, 'error');
-            console.log(`CHAT APP: Forçando logout: ${message}`);
+            // Certifique-se de que os elementos DOM estão disponíveis antes de manipulá-los
+            if (loginOverlay && chatContainer) {
+                loginOverlay.style.opacity = '1';
+                loginOverlay.classList.remove('hidden');
+                chatContainer.classList.add('hidden');
+                showMessage(message, 'error');
+            } else {
+                console.error("LOGOUT: Elementos de UI não disponíveis para forçar logout.");
+                alert(`Erro crítico: ${message}`); // Fallback
+            }
 
-            // Limpa o estado do chat
             chatHistory = [];
             renderMessages();
-            userIdDisplay.textContent = 'N/A';
-            welcomeMessage.textContent = '';
-            welcomeMessage.classList.add('hidden');
-            accessKeyInput.value = ''; // Limpa o campo de entrada da chave
-            currentAccessKeyId = null; // Limpa o ID da chave atual para impedir reuso inválido
-            modelDescriptionArea.classList.add('hidden'); // Esconde a descrição do modelo
-            modelDescriptionArea.textContent = 'Selecione um modelo para ver a descrição.';
+            if (userIdDisplay) userIdDisplay.textContent = 'N/A';
+            if (welcomeMessage) {
+                welcomeMessage.textContent = '';
+                welcomeMessage.classList.add('hidden');
+            }
+            if (accessKeyInput) accessKeyInput.value = '';
+            currentAccessKeyId = null; 
+            if (modelDescriptionArea) {
+                modelDescriptionArea.classList.add('hidden');
+                modelDescriptionArea.textContent = 'Selecione um modelo para ver a descrição.';
+            }
         }
 
-        // Função para renderizar as mensagens no DOM
         function renderMessages() {
+            if (!messagesArea) {
+                console.warn("RENDER: messagesArea não inicializado.");
+                return;
+            }
             messagesArea.innerHTML = ''; 
             chatHistory.forEach(msg => {
                 const messageDiv = document.createElement('div');
@@ -334,40 +350,39 @@
             messagesArea.scrollTop = messagesArea.scrollHeight; 
         }
 
-        // Função para salvar o histórico de chat no Firestore
         async function saveChatHistory() {
-            if (!userId) {
-                console.warn("CHAT APP: Não é possível salvar o histórico: userId não definido.");
+            if (!userId || !db || !appId) {
+                console.warn("SAVE HISTORY: Não é possível salvar o histórico: Firebase/userId não definidos.");
                 return;
             }
             const chatHistoryDocRef = doc(db, `/artifacts/${appId}/users/${userId}/userState`, 'chatHistoryDoc');
             try {
                 await setDoc(chatHistoryDocRef, { history: JSON.stringify(chatHistory) }, { merge: true });
-                console.log("CHAT APP: Histórico de chat salvo com sucesso.");
+                console.log("SAVE HISTORY: Histórico de chat salvo com sucesso.");
             } catch (error) {
-                console.error("CHAT APP: Erro ao salvar histórico de chat:", error);
+                console.error("SAVE HISTORY: Erro ao salvar histórico de chat:", error);
                 showMessage("Erro ao salvar o histórico de chat.", 'error');
             }
         }
 
-        // Função para carregar o histórico de chat do Firestore
         function loadChatHistory() {
-            if (!userId) {
-                console.warn("CHAT APP: Não é possível carregar o histórico: userId não definido.");
+            if (!userId || !db || !appId) {
+                console.warn("LOAD HISTORY: Não é possível carregar o histórico: Firebase/userId não definidos.");
                 return;
             }
             const chatHistoryDocRef = doc(db, `/artifacts/${appId}/users/${userId}/userState`, 'chatHistoryDoc');
 
+            console.log("LOAD HISTORY: Configurando onSnapshot para histórico de chat.");
             onSnapshot(chatHistoryDocRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     if (data.history) {
                         try {
                             chatHistory = JSON.parse(data.history);
-                            console.log("CHAT APP: Histórico de chat carregado:", chatHistory);
+                            console.log("LOAD HISTORY: Histórico de chat carregado:", chatHistory);
                             renderMessages(); 
                         } catch (e) {
-                            console.error("CHAT APP: Erro ao fazer parse do histórico de chat:", e);
+                            console.error("LOAD HISTORY: Erro ao fazer parse do histórico de chat:", e);
                             chatHistory = []; 
                         }
                     } else {
@@ -378,59 +393,86 @@
                 }
                 renderMessages(); 
             }, (error) => {
-                console.error("CHAT APP: Erro ao escutar o histórico de chat:", error);
+                console.error("LOAD HISTORY: Erro ao escutar o histórico de chat:", error);
                 showMessage("Erro ao carregar o histórico de chat.", 'error');
                 chatHistory = []; 
                 renderMessages();
             });
         }
 
-        // Função para obter ou gerar um ID de dispositivo
         function getOrCreateDeviceId() {
             let id = localStorage.getItem('device_id');
             if (!id) {
                 id = crypto.randomUUID();
                 localStorage.setItem('device_id', id);
-                console.log("CHAT APP: Novo deviceId gerado e salvo:", id);
+                console.log("DEVICE ID: Novo deviceId gerado e salvo:", id);
             } else {
-                console.log("CHAT APP: deviceId existente carregado:", id);
+                console.log("DEVICE ID: deviceId existente carregado:", id);
             }
             return id;
         }
 
-        // Autentica com Firebase
-        onAuthStateChanged(auth, async (user) => {
-            console.log("CHAT APP: onAuthStateChanged acionado. User:", user ? user.uid : 'null');
-            if (!user) {
-                console.log("CHAT APP: Nenhum usuário autenticado, tentando login anônimo ou com token.");
-                try {
-                    if (initialAuthToken) {
-                        await signInWithCustomToken(auth, initialAuthToken);
-                        console.log("CHAT APP: Firebase: Login com token personalizado realizado.");
-                    } else {
-                        await signInAnonymously(auth);
-                        console.log("CHAT APP: Firebase: Login anônimo realizado.");
-                    }
-                } catch (error) {
-                    console.error("CHAT APP: Firebase Auth Error durante onAuthStateChanged:", error);
-                    showMessage(`Erro de autenticação Firebase: ${error.message}`, 'error');
-                }
-            } else {
-                console.log("CHAT APP: Usuário já autenticado:", user.uid);
+        // Função para carregar e preencher os modelos da lista estática
+        function loadStaticModels() {
+            console.log("MODELS: Começando a carregar modelos estáticos...");
+            if (modelSelect) {
+                modelSelect.innerHTML = '<option value="" disabled selected>Carregando modelos...</option>'; // Placeholder
             }
-            userId = auth.currentUser?.uid || crypto.randomUUID();
-            userIdDisplay.textContent = userId.substring(0, 8) + '...';
-            deviceId = getOrCreateDeviceId(); 
-            console.log("CHAT APP: ID do Dispositivo:", deviceId);
+            toggleLoading(true); 
 
-            isAuthReady = true; // Define como true após a tentativa de autenticação
-            console.log("CHAT APP: Firebase Auth Pronto. UID do Usuário Atual:", auth.currentUser?.uid);
-            console.log("CHAT APP: App ID em uso:", appId);
-            
-            if (isAuthReady) {
-                loadStaticModels(); // Carrega os modelos uma vez que a autenticação está pronta
+            if (allAvailableModels.length > 0 && modelSelect) {
+                modelSelect.innerHTML = ''; 
+
+                const modelsByCategory = allAvailableModels.reduce((acc, model) => {
+                    const category = model.category || "Outros"; 
+                    if (!acc[category]) {
+                        acc[category] = [];
+                    }
+                    acc[category].push(model);
+                    return acc;
+                }, {});
+
+                const sortedCategories = Object.keys(modelsByCategory).sort();
+
+                sortedCategories.forEach(categoryName => {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = categoryName;
+
+                    const sortedModelsInGroup = modelsByCategory[categoryName].sort((a, b) => a.name.localeCompare(b.name));
+
+                    sortedModelsInGroup.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model.id;
+                        option.textContent = model.name;
+                        option.dataset.description = model.description; 
+                        optgroup.appendChild(option);
+                    });
+                    modelSelect.appendChild(optgroup);
+                });
+
+                console.log("MODELS: Modelos preenchidos com sucesso. Total:", allAvailableModels.length);
+            } else {
+                if (modelSelect) modelSelect.innerHTML = '<option value="" disabled selected>Nenhum modelo encontrado ou compatível.</option>';
+                showMessage("Nenhum modelo compatível encontrado da lista fornecida.", 'info');
+                console.warn("MODELS: Nenhum modelo compatível encontrado da lista.");
             }
-        });
+            toggleLoading(false); 
+        }
+
+        async function checkKeyExpiration(expiresAtMs) {
+            console.log("KEY EXPIRATION: Configurando verificação de expiração.");
+            if (keyCheckInterval) {
+                clearInterval(keyCheckInterval); 
+            }
+            keyCheckInterval = setInterval(() => {
+                const currentTime = Date.now();
+                if (currentTime >= expiresAtMs) {
+                    forceLogout("Sua chave de acesso expirou. Por favor, faça login novamente.");
+                    clearInterval(keyCheckInterval); 
+                    keyCheckInterval = null;
+                }
+            }, 5000); 
+        }
 
         // LISTA DE MODELOS E SUAS DESCRIÇÕES, ORGANIZADOS POR CATEGORIA
         const allAvailableModels = [
@@ -502,7 +544,7 @@
             { id: "openrouter:mistralai/mistral-7b-instruct:free", name: "Mistral 7B Instruct (Free)", category: "Mistral AI", description: "Versão gratuita do Mistral 7B Instruct para testes." },
             { id: "openrouter:mistralai/mistral-large-2407", name: "Mistral Large 2407", category: "Mistral AI", description: "Atualização de Julho de 2024 do Mistral Large." },
             { id: "openrouter:mistralai/mistral-large-2411", name: "Mistral Large 2411", category: "Mistral AI", description: "Atualização de Novembro de 2024 do Mistral Large." },
-            { id: "openrouter:mistralai/mistral-medium-3", name: "Mistral Medium 3", category: "Mistral AI", description: "Terceira versão do modelo médio da Mistral AI, equilibrado para diversas tarefas."不斷地測試，以確保穩定性." },
+            { id: "openrouter:mistralai/mistral-medium-3", name: "Mistral Medium 3", category: "Mistral AI", description: "Terceira versão do modelo médio da Mistral AI, equilibrado para diversas tarefas." },
             { id: "openrouter:mistralai/mistral-nemo", name: "Mistral Nemo", category: "Mistral AI", description: "Modelo otimizado da Mistral AI, com foco em eficiência e desempenho." },
             { id: "openrouter:mistralai/mistral-nemo:free", name: "Mistral Nemo (Free)", category: "Mistral AI", description: "Versão gratuita do Mistral Nemo." },
             { id: "openrouter:mistralai/mistral-saba", name: "Mistral Saba", category: "Mistral AI", description: "Um modelo específico da Mistral AI, para aplicações especializadas." },
@@ -557,295 +599,301 @@
             { id: "openrouter:mistralai/mixtral-8x7b-instruct", name: "Mixtral 8x7B Instruct", category: "Groq (Mistral AI)", description: "Um modelo Mistral Mixture-of-Experts, conhecido por sua eficiência e velocidade, amplamente utilizado com Groq para aplicações de alto throughput." },
         ];
 
-        // Função para carregar e preencher os modelos da lista estática
-        function loadStaticModels() {
-            console.log("CHAT APP: Começando a carregar modelos estáticos...");
-            modelSelect.innerHTML = '<option value="" disabled selected>Carregando modelos...</option>'; // Placeholder
-            toggleLoading(true); // Exibe o spinner de carregamento
 
-            if (allAvailableModels.length > 0) {
-                modelSelect.innerHTML = ''; // Limpa o placeholder
+        // Evento que garante que o DOM está completamente carregado antes de manipular elementos.
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOM READY: Documento DOM completamente carregado.");
 
-                // Agrupa os modelos por categoria
-                const modelsByCategory = allAvailableModels.reduce((acc, model) => {
-                    const category = model.category || "Outros"; // Garante uma categoria padrão
-                    if (!acc[category]) {
-                        acc[category] = [];
+            // Atribuição de elementos DOM
+            loginOverlay = document.getElementById('login-overlay');
+            accessKeyInput = document.getElementById('access-key-input');
+            loginButton = document.getElementById('login-button');
+            loginErrorMessage = document.getElementById('login-error-message');
+            chatContainer = document.getElementById('chat-container');
+            userIdDisplay = document.getElementById('user-id-display');
+            welcomeMessage = document.getElementById('welcome-message'); 
+            modelSelect = document.getElementById('model-select');
+            modelDescriptionArea = document.getElementById('model-description-area');
+            messagesArea = document.getElementById('messages-area'); 
+            promptInput = document.getElementById('prompt-input');
+            sendButton = document.getElementById('send-button');
+            messageBox = document.getElementById('message-box');
+            loadingOverlay = document.getElementById('loading-overlay');
+
+            // Verifica se todos os elementos essenciais foram encontrados
+            const essentialElements = [loginOverlay, accessKeyInput, loginButton, chatContainer, userIdDisplay, messagesArea, promptInput, sendButton, messageBox, loadingOverlay];
+            const missingElements = essentialElements.filter(el => !el);
+            if (missingElements.length > 0) {
+                console.error("DOM ERROR: Os seguintes elementos DOM essenciais não foram encontrados:", missingElements.map(el => el ? el.id : 'undefined'));
+                showMessage("Erro: Elementos essenciais da página não encontrados. O aplicativo pode não funcionar.", 'error');
+                return; // Interrompe a execução se elementos críticos estiverem faltando
+            }
+            console.log("DOM READY: Todos os elementos DOM essenciais foram encontrados.");
+
+
+            // Autentica com Firebase (isto será chamado uma vez no início)
+            onAuthStateChanged(auth, async (user) => {
+                console.log("AUTH STATE CHANGED: onAuthStateChanged acionado. User:", user ? user.uid : 'null');
+                if (!user) {
+                    console.log("AUTH STATE CHANGED: Nenhum usuário autenticado, tentando login anônimo ou com token.");
+                    try {
+                        if (initialAuthToken) {
+                            await signInWithCustomToken(auth, initialAuthToken);
+                            console.log("AUTH STATE CHANGED: Firebase: Login com token personalizado realizado.");
+                        } else {
+                            await signInAnonymously(auth);
+                            console.log("AUTH STATE CHANGED: Firebase: Login anônimo realizado.");
+                        }
+                    } catch (error) {
+                        console.error("AUTH STATE CHANGED: Firebase Auth Error durante onAuthStateChanged:", error);
+                        showMessage(`Erro de autenticação Firebase: ${error.message}`, 'error');
                     }
-                    acc[category].push(model);
-                    return acc;
-                }, {});
-
-                // Ordena as categorias e os modelos dentro de cada categoria
-                const sortedCategories = Object.keys(modelsByCategory).sort();
-
-                sortedCategories.forEach(categoryName => {
-                    const optgroup = document.createElement('optgroup');
-                    optgroup.label = categoryName;
-
-                    const sortedModelsInGroup = modelsByCategory[categoryName].sort((a, b) => a.name.localeCompare(b.name));
-
-                    sortedModelsInGroup.forEach(model => {
-                        const option = document.createElement('option');
-                        option.value = model.id;
-                        option.textContent = model.name;
-                        option.dataset.description = model.description; // Armazena a descrição no dataset
-                        optgroup.appendChild(option);
-                    });
-                    modelSelect.appendChild(optgroup);
-                });
-
-                console.log("CHAT APP: Modelos preenchidos com sucesso. Total:", allAvailableModels.length);
-            } else {
-                modelSelect.innerHTML = '<option value="" disabled selected>Nenhum modelo encontrado ou compatível.</option>';
-                showMessage("Nenhum modelo compatível encontrado da lista fornecida.", 'info');
-                console.warn("CHAT APP: Nenhum modelo compatível encontrado da lista.");
-            }
-            toggleLoading(false); // Esconde o spinner de carregamento no final
-        }
-
-        // Listener para exibir a descrição do modelo ao selecioná-lo
-        modelSelect.addEventListener('change', () => {
-            const selectedOption = modelSelect.options[modelSelect.selectedIndex];
-            const description = selectedOption.dataset.description;
-
-            if (description) {
-                modelDescriptionArea.textContent = description;
-                modelDescriptionArea.classList.remove('hidden');
-            } else {
-                modelDescriptionArea.textContent = 'Selecione um modelo para ver a descrição.';
-                modelDescriptionArea.classList.add('hidden'); // Esconde se não houver descrição
-            }
-        });
-
-
-        // Função para verificar a expiração da chave periodicamente (ainda ativa para redundância)
-        async function checkKeyExpiration(expiresAtMs) {
-            if (keyCheckInterval) {
-                clearInterval(keyCheckInterval); // Limpa qualquer intervalo anterior
-            }
-            keyCheckInterval = setInterval(() => {
-                const currentTime = Date.now();
-                if (currentTime >= expiresAtMs) {
-                    forceLogout("Sua chave de acesso expirou. Por favor, faça login novamente.");
-                }
-            }, 5000); // Verifica a cada 5 segundos
-        }
-
-        // Listener de Eventos para o Botão de Login
-        loginButton.addEventListener('click', async () => {
-            console.log("CHAT APP: Botão de login clicado.");
-            if (!isAuthReady) {
-                showMessage("Autenticando com Firebase, por favor, aguarde...", 'info');
-                console.log("CHAT APP: Tentativa de Login: Firebase não pronto.");
-                return;
-            }
-
-            const enteredKey = accessKeyInput.value.trim();
-            if (!enteredKey) {
-                loginErrorMessage.textContent = "Por favor, insira uma chave de acesso.";
-                loginErrorMessage.classList.remove('hidden');
-                console.log("CHAT APP: Tentativa de Login: Nenhuma chave inserida.");
-                return;
-            }
-            loginErrorMessage.classList.add('hidden'); // Esconde erro anterior
-
-            toggleLoading(true);
-
-            try {
-                const keysCollectionRef = collection(db, `/artifacts/${appId}/public/data/accessKeys`);
-                console.log(`CHAT APP: Consultando Firestore collection: /artifacts/${appId}/public/data/accessKeys para a chave: ${enteredKey}`);
-                const q = query(keysCollectionRef, where("key", "==", enteredKey));
-                const querySnapshot = await getDocs(q);
-
-                if (querySnapshot.empty) {
-                    console.log("CHAT APP: Chave NÃO encontrada no Firestore (querySnapshot.empty é true).");
-                    forceLogout("Chave de acesso inválida ou não encontrada.");
                 } else {
-                    let keyIsValid = false;
-                    let expiresAtTimestamp = 0;
-                    let keyDocRefToUpdate = null; 
-                    let keyDataFromFirestore = null; 
-                    let keyDocId = null; // Para armazenar o ID do documento da chave
+                    console.log("AUTH STATE CHANGED: Usuário já autenticado:", user.uid);
+                }
+                userId = auth.currentUser?.uid || crypto.randomUUID();
+                userIdDisplay.textContent = userId.substring(0, 8) + '...';
+                deviceId = getOrCreateDeviceId(); 
+                console.log("AUTH STATE CHANGED: ID do Dispositivo:", deviceId);
 
-                    querySnapshot.forEach((docSnap) => {
-                        keyDataFromFirestore = docSnap.data();
-                        keyDocId = docSnap.id; // Captura o ID do documento
-                        keyDocRefToUpdate = doc(db, `/artifacts/${appId}/public/data/accessKeys`, keyDocId); 
-                        
-                        const currentTime = Date.now();
-                        console.log("CHAT APP: Dados da chave encontrados:", keyDataFromFirestore);
+                isAuthReady = true; 
+                console.log("AUTH STATE CHANGED: Firebase Auth Pronto. UID do Usuário Atual:", auth.currentUser?.uid);
+                console.log("AUTH STATE CHANGED: App ID em uso:", appId);
+                
+                if (isAuthReady) {
+                    loadStaticModels();
+                }
+            });
 
-                        let expiresAtMs;
-                        if (keyDataFromFirestore.expiresAt && typeof keyDataFromFirestore.expiresAt.toMillis === 'function') {
-                            expiresAtMs = keyDataFromFirestore.expiresAt.toMillis();
-                        } else if (typeof keyDataFromFirestore.expiresAt === 'number') {
-                            expiresAtMs = keyDataFromFirestore.expiresAt;
-                        } else {
-                            expiresAtMs = 0; 
-                        }
-                        
-                        console.log("CHAT APP: Status da chave:", keyDataFromFirestore.status);
-                        console.log("CHAT APP: Hora atual (MS):", currentTime);
-                        console.log("CHAT APP: Expira em (MS):", expiresAtMs);
-                        console.log("CHAT APP: Condição 1 (status === 'active'):", keyDataFromFirestore.status === 'active');
-                        console.log("CHAT APP: Condição 2 (expiresAtMs > currentTime):", expiresAtMs > currentTime);
 
-                        if (keyDataFromFirestore.status === 'active' && expiresAtMs > currentTime) {
-                            keyIsValid = true;
-                            expiresAtTimestamp = expiresAtMs; 
-                        }
-                    });
+            // Listener de Eventos para o Botão de Login
+            loginButton.addEventListener('click', async () => {
+                console.log("LOGIN BUTTON CLICK: Botão de login clicado.");
+                if (!isAuthReady) {
+                    showMessage("Autenticando com Firebase, por favor, aguarde...", 'info');
+                    console.log("LOGIN BUTTON CLICK: Firebase não pronto.");
+                    return;
+                }
 
-                    if (keyIsValid && keyDataFromFirestore && keyDocRefToUpdate && keyDocId) {
-                        if (keyDataFromFirestore.lockedToDeviceId && keyDataFromFirestore.lockedToDeviceId !== deviceId) {
-                            forceLogout("Esta chave já está em uso em outro dispositivo.");
-                            return; 
-                        } else if (keyDataFromFirestore.status === 'inactive') { 
-                            forceLogout("Esta chave está inativa. Por favor, entre em contato com o administrador.");
-                            return; 
-                        } else if (!keyDataFromFirestore.lockedToDeviceId) {
-                            await updateDoc(keyDocRefToUpdate, { lockedToDeviceId: deviceId });
-                            console.log("CHAT APP: Chave bloqueada para este dispositivo:", deviceId);
-                        } else {
-                            console.log("CHAT APP: Chave já bloqueada para este dispositivo, permitindo login.");
-                        }
+                const enteredKey = accessKeyInput.value.trim();
+                if (!enteredKey) {
+                    loginErrorMessage.textContent = "Por favor, insira uma chave de acesso.";
+                    loginErrorMessage.classList.remove('hidden');
+                    console.log("LOGIN BUTTON CLICK: Nenhuma chave inserida.");
+                    return;
+                }
+                loginErrorMessage.classList.add('hidden'); 
 
-                        // Login bem-sucedido
-                        currentAccessKeyId = keyDocId; // Armazena o ID do documento da chave
-                        loginOverlay.style.opacity = '0';
-                        setTimeout(() => {
-                            loginOverlay.classList.add('hidden');
-                            chatContainer.classList.remove('hidden');
+                toggleLoading(true); 
 
-                            if (keyDataFromFirestore.personName) {
-                                welcomeMessage.textContent = `Olá ${keyDataFromFirestore.personName}!`;
-                                welcomeMessage.classList.remove('hidden');
-                            }
-                            loadChatHistory(); // Carrega o histórico de chat após o login
-                        }, 300); 
-                        showMessage("Login bem-sucedido!", 'success');
-                        checkKeyExpiration(expiresAtTimestamp); // Inicia a verificação de expiração
+                try {
+                    const keysCollectionRef = collection(db, `/artifacts/${appId}/public/data/accessKeys`);
+                    console.log(`LOGIN BUTTON CLICK: Consultando Firestore collection: /artifacts/${appId}/public/data/accessKeys para a chave: ${enteredKey}`);
+                    const q = query(keysCollectionRef, where("key", "==", enteredKey));
+                    const querySnapshot = await getDocs(q);
 
-                        // Configura o listener em tempo real para o documento da chave
-                        if (keyListenerUnsubscribe) { 
-                            keyListenerUnsubscribe(); // Desinscreve de qualquer listener anterior
-                        }
-                        console.log("CHAT APP: Configurando onSnapshot para o documento da chave:", keyDocId);
-                        keyListenerUnsubscribe = onSnapshot(keyDocRefToUpdate, (docSnap) => {
-                            const updatedKeyData = docSnap.data();
+                    if (querySnapshot.empty) {
+                        console.log("LOGIN BUTTON CLICK: Chave NÃO encontrada no Firestore.");
+                        forceLogout("Chave de acesso inválida ou não encontrada.");
+                    } else {
+                        let keyIsValid = false;
+                        let expiresAtTimestamp = 0;
+                        let keyDocRefToUpdate = null; 
+                        let keyDataFromFirestore = null; 
+                        let keyDocId = null; 
+
+                        querySnapshot.forEach((docSnap) => {
+                            keyDataFromFirestore = docSnap.data();
+                            keyDocId = docSnap.id; 
+                            keyDocRefToUpdate = doc(db, `/artifacts/${appId}/public/data/accessKeys`, keyDocId); 
+                            
                             const currentTime = Date.now();
-                            let updatedExpiresAtMs;
+                            console.log("LOGIN BUTTON CLICK: Dados da chave encontrados:", keyDataFromFirestore);
 
-                            // Verifica se updatedKeyData existe e se expiresAt está presente e tem o método toMillis
-                            if (updatedKeyData && updatedKeyData.expiresAt) {
-                                if (typeof updatedKeyData.expiresAt.toMillis === 'function') {
-                                    updatedExpiresAtMs = updatedKeyData.expiresAt.toMillis();
-                                } else if (typeof updatedKeyData.expiresAt === 'number') {
-                                    updatedExpiresAtMs = updatedKeyData.expiresAt;
-                                }
+                            let expiresAtMs;
+                            if (keyDataFromFirestore.expiresAt && typeof keyDataFromFirestore.expiresAt.toMillis === 'function') {
+                                expiresAtMs = keyDataFromFirestore.expiresAt.toMillis();
+                            } else if (typeof keyDataFromFirestore.expiresAt === 'number') {
+                                expiresAtMs = keyDataFromFirestore.expiresAt;
                             } else {
-                                updatedExpiresAtMs = 0; // Se não houver dados ou expiresAt, assume 0 para expirar
+                                expiresAtMs = 0; 
                             }
+                            
+                            console.log("LOGIN BUTTON CLICK: Status da chave:", keyDataFromFirestore.status);
+                            console.log("LOGIN BUTTON CLICK: Hora atual (MS):", currentTime);
+                            console.log("LOGIN BUTTON CLICK: Expira em (MS):", expiresAtMs);
+                            console.log("LOGIN BUTTON CLICK: Condição 1 (status === 'active'):", keyDataFromFirestore.status === 'active');
+                            console.log("LOGIN BUTTON CLICK: Condição 2 (expiresAtMs > currentTime):", expiresAtMs > currentTime);
 
-                            if (!docSnap.exists()) {
-                                console.log("CHAT APP: Chave de acesso foi excluída (docSnap.exists() é false).");
-                                forceLogout("Sua chave de acesso foi excluída. Por favor, solicite uma nova chave.");
-                            } else if (updatedKeyData && updatedKeyData.status === 'inactive') { // Garante updatedKeyData não é nulo
-                                console.log("CHAT APP: Chave de acesso foi desativada (status 'inactive').");
-                                forceLogout("Sua chave de acesso foi desativada pelo administrador. Por favor, entre em contato.");
-                            } else if (updatedExpiresAtMs <= currentTime) {
-                                console.log("CHAT APP: Chave de acesso expirou (expiraAt <= currentTime).");
-                                forceLogout("Sua chave de acesso expirou. Por favor, faça login novamente.");
-                            } else {
-                                console.log("CHAT APP: Chave ainda válida e ativa. Nenhuma ação necessária.");
-                                // Se a chave foi reativada, o usuário já está logado,
-                                // e a verificação de expiração continua.
-                                checkKeyExpiration(updatedExpiresAtMs); // Reassegura que o monitoramento de tempo está ativo
+                            if (keyDataFromFirestore.status === 'active' && expiresAtMs > currentTime) {
+                                keyIsValid = true;
+                                expiresAtTimestamp = expiresAtMs; 
                             }
-                        }, (error) => {
-                            console.error("CHAT APP: Erro no listener de chave de acesso:", error);
-                            // Este erro pode indicar problemas de permissão ou rede.
-                            forceLogout("Erro de conexão com o Firebase. Por favor, tente novamente.");
                         });
 
-                    } else {
-                        console.log("CHAT APP: Chave é inválida ou expirada na validação inicial.");
-                        forceLogout("Chave de acesso expirada ou inativa.");
+                        if (keyIsValid && keyDataFromFirestore && keyDocRefToUpdate && keyDocId) {
+                            if (keyDataFromFirestore.lockedToDeviceId && keyDataFromFirestore.lockedToDeviceId !== deviceId) {
+                                forceLogout("Esta chave já está em uso em outro dispositivo.");
+                                return; 
+                            } else if (keyDataFromFirestore.status === 'inactive') { 
+                                forceLogout("Esta chave está inativa. Por favor, entre em contato com o administrador.");
+                                return; 
+                            } else if (!keyDataFromFirestore.lockedToDeviceId) {
+                                await updateDoc(keyDocRefToUpdate, { lockedToDeviceId: deviceId });
+                                console.log("LOGIN BUTTON CLICK: Chave bloqueada para este dispositivo:", deviceId);
+                            } else {
+                                console.log("LOGIN BUTTON CLICK: Chave já bloqueada para este dispositivo, permitindo login.");
+                            }
+
+                            // **** LOGIN BEM-SUCEDIDO ****
+                            currentAccessKeyId = keyDocId; 
+                            loginOverlay.style.opacity = '0'; 
+                            setTimeout(() => {
+                                loginOverlay.classList.add('hidden'); 
+                                chatContainer.classList.remove('hidden'); 
+
+                                if (keyDataFromFirestore.personName) {
+                                    welcomeMessage.textContent = `Olá ${keyDataFromFirestore.personName}!`;
+                                    welcomeMessage.classList.remove('hidden');
+                                }
+                                loadChatHistory(); 
+                            }, 300); 
+                            showMessage("Login bem-sucedido!", 'success');
+                            checkKeyExpiration(expiresAtTimestamp); 
+
+                            if (keyListenerUnsubscribe) { 
+                                keyListenerUnsubscribe(); 
+                            }
+                            console.log("LISTENER: Configurando onSnapshot para o documento da chave:", keyDocId);
+                            keyListenerUnsubscribe = onSnapshot(keyDocRefToUpdate, (docSnap) => {
+                                const updatedKeyData = docSnap.data();
+                                const currentTime = Date.now();
+                                let updatedExpiresAtMs = 0; 
+
+                                if (updatedKeyData && updatedKeyData.expiresAt) {
+                                    if (typeof updatedKeyData.expiresAt.toMillis === 'function') {
+                                        updatedExpiresAtMs = updatedKeyData.expiresAt.toMillis();
+                                    } else if (typeof updatedKeyData.expiresAt === 'number') {
+                                        updatedExpiresAtMs = updatedKeyData.expiresAt;
+                                    }
+                                }
+
+                                console.log("LISTENER: onSnapshot para chave acionado. Status:", updatedKeyData ? updatedKeyData.status : 'N/A', " Expira em:", new Date(updatedExpiresAtMs).toLocaleString());
+
+                                if (!docSnap.exists()) {
+                                    console.log("LISTENER: Chave de acesso foi excluída.");
+                                    forceLogout("Sua chave de acesso foi excluída. Por favor, solicite uma nova chave.");
+                                } else if (updatedKeyData && updatedKeyData.status === 'inactive') { 
+                                    console.log("LISTENER: Chave de acesso foi desativada.");
+                                    forceLogout("Sua chave de acesso foi desativada pelo administrador. Por favor, entre em contato.");
+                                } else if (updatedExpiresAtMs <= currentTime) {
+                                    console.log("LISTENER: Chave de acesso expirou.");
+                                    forceLogout("Sua chave de acesso expirou. Por favor, faça login novamente.");
+                                } else {
+                                    console.log("LISTENER: Chave ainda válida e ativa.");
+                                    checkKeyExpiration(updatedExpiresAtMs); 
+                                }
+                            }, (error) => {
+                                console.error("LISTENER: Erro no listener de chave de acesso (onSnapshot):", error);
+                                forceLogout("Erro de conexão com o Firebase. Por favor, tente novamente.");
+                            });
+
+                        } else {
+                            console.log("LOGIN BUTTON CLICK: Chave é inválida ou expirada na validação inicial.");
+                            forceLogout("Chave de acesso expirada ou inativa.");
+                        }
                     }
+                } catch (error) {
+                    console.error("LOGIN BUTTON CLICK: Erro de Validação de Chave Firebase (catch externo):", error);
+                    forceLogout(`Erro inesperado ao verificar a chave: ${error.message}. Tente novamente.`);
+                } finally {
+                    toggleLoading(false); 
                 }
-            } catch (error) {
-                console.error("CHAT APP: Erro de Validação de Chave Firebase (catch externo):", error);
-                forceLogout(`Erro ao verificar a chave: ${error.message}. Tente novamente.`);
-            } finally {
-                toggleLoading(false);
-            }
-        });
+            });
 
-        // Listener de Eventos para enviar o prompt (somente após o login)
-        sendButton.addEventListener('click', async () => {
-            const selectedModel = modelSelect.value;
-            const promptInputValue = promptInput.value.trim();
+            // Listener de Eventos para enviar o prompt (somente após o login)
+            sendButton.addEventListener('click', async () => {
+                console.log("SEND BUTTON CLICK: Botão de enviar clicado.");
+                const selectedModel = modelSelect.value;
+                const promptInputValue = promptInput.value.trim();
 
-            if (!promptInputValue) {
-                showMessage("Por favor, digite um prompt para a IA.", 'error');
-                return;
-            }
-            
-            console.log("CHAT APP: >>> Verificando objeto Puter antes da chamada AI:");
-            console.log("CHAT APP: typeof puter:", typeof puter);
-            console.log("CHAT APP: puter.ai:", typeof puter !== 'undefined' ? puter.ai : 'undefined');
-            console.log("CHAT APP: puter.ai.chat:", (typeof puter !== 'undefined' && puter.ai) ? puter.ai.chat : 'undefined');
+                if (!promptInputValue) {
+                    showMessage("Por favor, digite um prompt para a IA.", 'error');
+                    return;
+                }
+                
+                console.log("SEND BUTTON CLICK: Verificando objeto Puter antes da chamada AI:");
+                console.log("SEND BUTTON CLICK: typeof puter:", typeof puter);
+                console.log("SEND BUTTON CLICK: puter.ai:", typeof puter !== 'undefined' ? puter.ai : 'undefined');
+                console.log("SEND BUTTON CLICK: puter.ai.chat:", (typeof puter !== 'undefined' && puter.ai) ? puter.ai.chat : 'undefined');
 
+                if (typeof puter === 'undefined' || !puter.ai || typeof puter.ai.chat !== 'function') {
+                    showMessage("Puter SDK não carregado ou não funcional. Verifique a conexão e o console.", 'error');
+                    console.error("SEND BUTTON CLICK: Erro: Puter SDK não está disponível para chat.");
+                    return;
+                }
 
-            if (typeof puter === 'undefined' || !puter.ai || typeof puter.ai.chat !== 'function') {
-                showMessage("Puter SDK não carregado ou não funcional. Verifique a conexão e o console.", 'error');
-                console.error("CHAT APP: Erro: Puter SDK não está disponível para chat. Verifique se o script 'https://js.puter.com/v2/' foi carregado e se o objeto 'puter' foi inicializado corretamente.");
-                return;
-            }
+                toggleLoading(true); 
 
-            toggleLoading(true); 
-
-            chatHistory.push({ role: 'user', text: promptInputValue });
-            renderMessages();
-            saveChatHistory(); 
-
-            promptInput.value = ''; 
-
-            try {
-                console.log(`CHAT APP: Chamando puter.ai.chat com modelo: ${selectedModel}, Prompt: "${promptInputValue.substring(0, 50)}..."`);
-                const response = await puter.ai.chat(promptInputValue, {
-                    model: selectedModel
-                });
-                console.log("CHAT APP: Resposta da Puter API recebida:", response);
-
-                chatHistory.push({ role: 'ai', text: response.message.content });
+                chatHistory.push({ role: 'user', text: promptInputValue });
                 renderMessages();
                 saveChatHistory(); 
 
-            } catch (error) {
-                console.error("CHAT APP: Erro direto no Puter API call:", error);
-                let errorMessage = "Erro desconhecido ao obter resposta da IA.";
-                if (error instanceof Error) {
-                    errorMessage = error.message;
-                    console.error("CHAT APP: Stack trace do erro:", error.stack);
-                } else if (typeof error === 'object' && error !== null) {
-                    try {
-                        errorMessage = JSON.stringify(error, Object.getOwnPropertyNames(error));
-                    } catch (e) {
-                        errorMessage = String(e); 
+                promptInput.value = ''; 
+
+                try {
+                    console.log(`SEND BUTTON CLICK: Chamando puter.ai.chat com modelo: ${selectedModel}, Prompt: "${promptInputValue.substring(0, Math.min(promptInputValue.length, 50))}..."`);
+                    const response = await puter.ai.chat(promptInputValue, {
+                        model: selectedModel
+                    });
+                    console.log("SEND BUTTON CLICK: Resposta da Puter API recebida:", response);
+
+                    chatHistory.push({ role: 'ai', text: response.message.content });
+                    renderMessages();
+                    saveChatHistory(); 
+
+                } catch (error) {
+                    console.error("SEND BUTTON CLICK: Erro direto no Puter API call:", error);
+                    let errorMessage = "Erro desconhecido ao obter resposta da IA.";
+                    if (error instanceof Error) {
+                        errorMessage = error.message;
+                        console.error("SEND BUTTON CLICK: Stack trace do erro:", error.stack);
+                    } else if (typeof error === 'object' && error !== null) {
+                        try {
+                            errorMessage = JSON.stringify(error, Object.getOwnPropertyNames(error));
+                        } catch (e) {
+                            errorMessage = String(e); 
+                        }
+                    } else {
+                        errorMessage = String(error); 
                     }
-                } else {
-                    errorMessage = String(error); 
+                    
+                    chatHistory.push({ role: 'ai', text: `Erro: Não foi possível obter resposta da IA. Detalhes: ${errorMessage}` });
+                    renderMessages();
+                    showMessage("Erro ao obter resposta da IA. Verifique o console para mais detalhes.", 'error');
+                } finally {
+                    toggleLoading(false); 
                 }
-                
-                chatHistory.push({ role: 'ai', text: `Erro: Não foi possível obter resposta da IA. Detalhes: ${errorMessage}` });
-                renderMessages();
-                showMessage("Erro ao obter resposta da IA. Verifique o console para mais detalhes.", 'error');
-            } finally {
-                toggleLoading(false); 
+            });
+
+            // Listener para exibir a descrição do modelo ao selecioná-lo
+            if (modelSelect) { 
+                modelSelect.addEventListener('change', () => {
+                    const selectedOption = modelSelect.options[modelSelect.selectedIndex];
+                    const description = selectedOption.dataset.description;
+
+                    if (description && modelDescriptionArea) {
+                        modelDescriptionArea.textContent = description;
+                        modelDescriptionArea.classList.remove('hidden');
+                    } else if (modelDescriptionArea) {
+                        modelDescriptionArea.textContent = 'Selecione um modelo para ver a descrição.';
+                        modelDescriptionArea.classList.add('hidden'); 
+                    }
+                });
+            } else {
+                console.warn("DOM READY: Elemento 'model-select' não encontrado, o listener de descrição não será configurado.");
             }
-        });
+        }); // Fim do DOMContentLoaded
     </script>
 </body>
 </html>
