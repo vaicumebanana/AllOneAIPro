@@ -159,12 +159,16 @@
         </p>
 
         <!-- Seleção do Modelo -->
-        <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-2 mb-4">
             <label for="model-select" class="text-lg font-semibold text-gray-700">Selecione o Modelo:</label>
             <select id="model-select" class="p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-800 shadow-sm">
                 <!-- Os modelos serão preenchidos dinamicamente pelo JavaScript -->
                 <option value="" disabled selected>Carregando modelos...</option>
             </select>
+            <!-- Área para exibir a descrição do modelo -->
+            <div id="model-description-area" class="mt-2 p-3 bg-gray-100 border border-gray-200 rounded-lg text-sm text-gray-700 italic hidden">
+                Selecione um modelo para ver a descrição.
+            </div>
         </div>
 
         <!-- Área de Mensagens do Chat -->
@@ -242,6 +246,7 @@
         const userIdDisplay = document.getElementById('user-id-display');
         const welcomeMessage = document.getElementById('welcome-message'); // Novo elemento para a mensagem de boas-vindas
         const modelSelect = document.getElementById('model-select');
+        const modelDescriptionArea = document.getElementById('model-description-area'); // Novo elemento para descrição do modelo
         const messagesArea = document.getElementById('messages-area'); // Área para exibir mensagens
         const promptInput = document.getElementById('prompt-input');
         const sendButton = document.getElementById('send-button');
@@ -390,149 +395,129 @@
             }
         });
 
-        // LISTA DE MODELOS FILTRADA PARA AS OPÇÕES MAIS FAMOSAS (OpenAI, Groq, Mistral, Qwen, Gemini, Amazon)
+        // LISTA DE MODELOS E SUAS DESCRIÇÕES, ORGANIZADOS POR CATEGORIA
         const allAvailableModels = [
-            // Amazon
-            "openrouter:amazon/nova-lite-v1",
-            "openrouter:amazon/nova-micro-v1",
-            "openrouter:amazon/nova-pro-v1",
-            // Gemini (Google)
-            "openrouter:google/gemini-2.0-flash-001",
-            "openrouter:google/gemini-2.0-flash-exp:free",
-            "openrouter:google/gemini-2.0-flash-lite-001",
-            "openrouter:google/gemini-2.5-flash",
-            "openrouter:google/gemini-2.5-flash-lite-preview-06-17",
-            "openrouter:google/gemini-2.5-flash-preview",
-            "openrouter:google/gemini-2.5-flash-preview-05-20",
-            "openrouter:google/gemini-2.5-flash-preview-05-20:thinking",
-            "openrouter:google/gemini-2.5-flash-preview:thinking",
-            "openrouter:google/gemini-2.5-pro",
-            "openrouter:google/gemini-2.5-pro-exp-03-25",
-            "openrouter:google/gemini-2.5-pro-preview",
-            "openrouter:google/gemini-2.5-pro-preview-05-06",
-            "openrouter:google/gemini-flash-1.5",
-            "openrouter:google/gemini-flash-1.5-8b",
-            "openrouter:google/gemini-pro-1.5",
-            "openrouter:google/gemma-2-27b-it",
-            "openrouter:google/gemma-2-9b-it",
-            "openrouter:google/gemma-2-9b-it:free",
-            "openrouter:google/gemma-3-12b-it",
-            "openrouter:google/gemma-3-12b-it:free",
-            "openrouter:google/gemma-3-27b-it",
-            "openrouter:google/gemma-3-27b-it:free",
-            "openrouter:google/gemma-3-4b-it",
-            "openrouter:google/gemma-3-4b-it:free",
-            "openrouter:google/gemma-3n-e4b-it",
-            "openrouter:google/gemma-3n-e4b-it:free",
-            // Groq (nenhum modelo diretamente com prefixo 'groq:' na lista anterior, mas se houver, seriam adicionados aqui)
-            // Não há modelos "groq:" no allAvailableModels fornecido anteriormente. Se existirem, precisaria de seus nomes completos.
-            // Mistral
-            "openrouter:mistralai/codestral-2501",
-            "openrouter:mistralai/devstral-small",
-            "openrouter:mistralai/devstral-small:free",
-            "openrouter:mistralai/magistral-medium-2506",
-            "openrouter:mistralai/magistral-medium-2506:thinking",
-            "openrouter:mistralai/magistral-small-2506",
-            "openrouter:mistralai/ministral-3b",
-            "openrouter:mistralai/ministral-8b",
-            "openrouter:mistralai/mistral-7b-instruct",
-            "openrouter:mistralai/mistral-7b-instruct-v0.1",
-            "openrouter:mistralai/mistral-7b-instruct-v0.2",
-            "openrouter:mistralai/mistral-7b-instruct-v0.3",
-            "openrouter:mistralai/mistral-7b-instruct:free",
-            "openrouter:mistralai/mistral-large",
-            "openrouter:mistralai/mistral-large-2407",
-            "openrouter:mistralai/mistral-large-2411",
-            "openrouter:mistralai/mistral-medium-3",
-            "openrouter:mistralai/mistral-nemo",
-            "openrouter:mistralai/mistral-nemo:free",
-            "openrouter:mistralai/mistral-saba",
-            "openrouter:mistralai/mistral-small",
-            "openrouter:mistralai/mistral-small-24b-instruct-2501",
-            "openrouter:mistralai/mistral-small-24b-instruct-2501:free",
-            "openrouter:mistralai/mistral-small-3.1-24b-instruct",
-            "openrouter:mistralai/mistral-small-3.1-24b-instruct:free",
-            "openrouter:mistralai/mistral-small-3.2-24b-instruct",
-            "openrouter:mistralai/mistral-small-3.2-24b-instruct:free",
-            "openrouter:mistralai/mistral-tiny",
-            "openrouter:mistralai/mixtral-8x22b-instruct",
-            "openrouter:mistralai/mixtral-8x7b-instruct",
-            "openrouter:mistralai/pixtral-12b",
-            "openrouter:mistralai/pixtral-large-2411",
             // OpenAI
-            "openrouter:openai/chatgpt-4o-latest",
-            "openrouter:openai/codex-mini",
-            "openrouter:openai/gpt-3.5-turbo-0613",
-            "openrouter:openai/gpt-3.5-turbo-16k",
-            "openrouter:openai/gpt-3.5-turbo-instruct",
-            "openrouter:openai/gpt-4",
-            "openrouter:openai/gpt-4-0314",
-            "openrouter:openai/gpt-4-1106-preview",
-            "openrouter:openai/gpt-4-turbo",
-            "openrouter:openai/gpt-4-turbo-preview",
-            "openrouter:openai/gpt-4.1",
-            "openrouter:openai/gpt-4.1-mini",
-            "openrouter:openai/gpt-4.1-nano",
-            "openrouter:openai/gpt-4.5-preview",
-            "openrouter:openai/gpt-4o",
-            "openrouter:openai/gpt-4o-2024-05-13",
-            "openrouter:openai/gpt-4o-2024-08-06",
-            "openrouter:openai/gpt-4o-2024-11-20",
-            "openrouter:openai/gpt-4o-mini",
-            "openrouter:openai/gpt-4o-mini-2024-07-18",
-            "openrouter:openai/gpt-4o-mini-search-preview",
-            "openrouter:openai/gpt-4o-search-preview",
-            "openrouter:openai/gpt-4o:extended",
-            "openrouter:openai/o1",
-            "openrouter:openai/o1-mini",
-            "openrouter:openai/o1-mini-2024-09-12",
-            "openrouter:openai/o1-preview",
-            "openrouter:openai/o1-preview-2024-09-12",
-            "openrouter:openai/o1-pro",
-            "openrouter:openai/o3",
-            "openrouter:openai/o3-mini",
-            "openrouter:openai/o3-mini-high",
-            "openrouter:openai/o3-pro",
-            "openrouter:openai/o4-mini",
-            "openrouter:openai/o4-mini-high",
-            // Qwen
-            "openrouter:qwen/qwen-2-72b-instruct",
-            "openrouter:qwen/qwen-2.5-72b-instruct",
-            "openrouter:qwen/qwen-2.5-72b-instruct:free",
-            "openrouter:qwen/qwen-2.5-7b-instruct",
-            "openrouter:qwen/qwen-2.5-coder-32b-instruct",
-            "openrouter:qwen/qwen-2.5-coder-32b-instruct:free",
-            "openrouter:qwen/qwen-2.5-vl-7b-instruct",
-            "openrouter:qwen/qwen-max",
-            "openrouter:qwen/qwen-plus",
-            "openrouter:qwen/qwen-turbo",
-            "openrouter:qwen/qwen-vl-max",
-            "openrouter:qwen/qwen-vl-plus",
-            "openrouter:qwen/qwen2.5-vl-32b-instruct",
-            "openrouter:qwen/qwen2.5-vl-32b-instruct:free",
-            "openrouter:qwen/qwen2.5-vl-72b-instruct",
-            "openrouter:qwen/qwen2.5-vl-72b-instruct:free",
-            "openrouter:qwen/qwen3-14b",
-            "openrouter:qwen/qwen3-14b:free",
-            "openrouter:qwen/qwen3-235b-a22b",
-            "openrouter:qwen/qwen3-235b-a22b:free",
-            "openrouter:qwen/qwen3-30b-a3b",
-            "openrouter:qwen/qwen3-30b-a3b:free",
-            "openrouter:qwen/qwen3-32b",
-            "openrouter:qwen/qwen3-32b:free",
-            "openrouter:qwen/qwen3-8b",
-            "openrouter:qwen/qwen3-8b:free",
-            "openrouter:qwen/qwen3-coder",
-            "openrouter:qwen3-coder", // Mantido se for um modelo distinto
-            "openrouter:qwen/qwen-vl-max", // Mantido se for um modelo distinto
-            "openrouter:qwen/qwen-vl-plus", // Mantido se for um modelo distinto
-            // Groq (modelos que parecem ser do Groq, baseados em nomes comuns ou inferência)
-            // Se houver modelos específicos com prefixo 'groq:' na lista original, eles seriam incluídos aqui.
-            // Para referência, incluí alguns que não têm prefixo groq: mas são frequentemente associados a ele, se forem do OpenRouter.
-            // Exemplos (sem prefixo 'groq:', pois não foram fornecidos assim na lista anterior):
-            "openrouter:meta-llama/llama-3-70b-instruct", // Llama 3 é popular em Groq
-            "openrouter:meta-llama/llama-3-8b-instruct",   // Llama 3 é popular em Groq
-            "openrouter:mistralai/mixtral-8x7b-instruct", // Mixtral também é popular em Groq
+            { id: "openrouter:openai/chatgpt-4o-latest", name: "GPT-4o Latest", category: "OpenAI", description: "O modelo mais recente da OpenAI, otimizado para interação multimodal (texto, áudio, imagem e vídeo) com alta velocidade e qualidade. Ideal para tarefas complexas e criativas." },
+            { id: "openrouter:openai/gpt-4o", name: "GPT-4o", category: "OpenAI", description: "A versão principal do GPT-4o, oferecendo capacidades multimodais avançadas e excelente desempenho para uma vasta gama de aplicações." },
+            { id: "openrouter:openai/gpt-4o-mini", name: "GPT-4o Mini", category: "OpenAI", description: "Uma versão mais leve e otimizada para custo e velocidade do GPT-4o, adequada para tarefas que exigem menor complexidade, mas ainda com boa performance." },
+            { id: "openrouter:openai/gpt-4-turbo", name: "GPT-4 Turbo", category: "OpenAI", description: "Um modelo poderoso e atualizado do GPT-4, com maior janela de contexto e conhecimentos mais recentes até abril de 2023. Ótimo para tarefas detalhadas." },
+            { id: "openrouter:openai/gpt-3.5-turbo-instruct", name: "GPT-3.5 Turbo Instruct", category: "OpenAI", description: "Modelo eficiente da série GPT-3.5, focado em seguir instruções com precisão e gerar texto de forma rápida e coerente. Bom para automação e respostas diretas." },
+            { id: "openrouter:openai/gpt-4", name: "GPT-4", category: "OpenAI", description: "O modelo GPT-4 original, conhecido por sua capacidade de raciocínio avançado, criatividade e habilidade de lidar com instruções sutis." },
+            // Novos modelos GPT-5 (sem prefixo OpenRouter, conforme solicitado)
+            { id: "gpt-5", name: "GPT-5", category: "OpenAI (Futuro)", description: "Modelo hipotético da próxima geração da OpenAI, esperado para oferecer avanços significativos em raciocínio, multimodalidade e eficiência." },
+            { id: "gpt-5-mini", name: "GPT-5 Mini", category: "OpenAI (Futuro)", description: "Uma versão compacta e mais eficiente do futuro GPT-5, ideal para aplicações que demandam velocidade e menor custo, sem sacrificar muita inteligência." },
+            { id: "gpt-5-nano", name: "GPT-5 Nano", category: "OpenAI (Futuro)", description: "A versão mais leve e rápida do futuro GPT-5, projetada para tarefas simples e rápidas, com foco em alta eficiência e baixo consumo de recursos." },
+            { id: "gpt-5-chat-latest", name: "GPT-5 Chat Latest", category: "OpenAI (Futuro)", description: "A última iteração do futuro GPT-5, otimizada para diálogos e interações conversacionais, com maior fluidez e compreensão de contexto em tempo real." },
+
+            // Google Gemini
+            { id: "openrouter:google/gemini-2.5-flash", name: "Gemini 2.5 Flash", category: "Google Gemini", description: "Um modelo leve e rápido do Google, ideal para tarefas que exigem respostas rápidas e eficiência, como chatbots e sumarização rápida." },
+            { id: "openrouter:google/gemini-2.5-pro", name: "Gemini 2.5 Pro", category: "Google Gemini", description: "Modelo de ponta do Google, com desempenho excepcional em diversas tarefas e janelas de contexto grandes. Excelente para raciocínio complexo e criação de conteúdo." },
+            { id: "openrouter:google/gemma-2-9b-it", name: "Gemma 2 (9B-IT)", category: "Google Gemini", description: "Modelo aberto da família Gemma, com 9 bilhões de parâmetros, otimizado para seguir instruções. Bom para desenvolvimento local e aplicações personalizadas." },
+            { id: "openrouter:google/gemma-3-12b-it", name: "Gemma 3 (12B-IT)", category: "Google Gemini", description: "Versão mais recente da família Gemma, com 12 bilhões de parâmetros e foco em instruções. Oferece melhor desempenho e capacidade do que a versão anterior." },
+            // Modelos Gemini já existentes que são importantes para o contexto
+            { id: "openrouter:google/gemini-2.0-flash-001", name: "Gemini 2.0 Flash 001", category: "Google Gemini", description: "Versão anterior do Gemini Flash, focada em velocidade e eficiência para aplicações rápidas." },
+            { id: "openrouter:google/gemini-2.0-flash-exp:free", name: "Gemini 2.0 Flash Exp (Free)", category: "Google Gemini", description: "Versão experimental gratuita do Gemini 2.0 Flash, para testes e desenvolvimento." },
+            { id: "openrouter:google/gemini-2.0-flash-lite-001", name: "Gemini 2.0 Flash Lite 001", category: "Google Gemini", description: "Uma versão ainda mais leve do Gemini 2.0 Flash, para ambientes com recursos muito limitados." },
+            { id: "openrouter:google/gemini-2.5-flash-lite-preview-06-17", name: "Gemini 2.5 Flash Lite Preview", category: "Google Gemini", description: "Pré-visualização de uma versão leve do Gemini 2.5 Flash, ideal para testes de desempenho." },
+            { id: "openrouter:google/gemini-2.5-flash-preview", name: "Gemini 2.5 Flash Preview", category: "Google Gemini", description: "Pré-visualização do Gemini 2.5 Flash, oferecendo uma amostra das capacidades do modelo antes do lançamento completo." },
+            { id: "openrouter:google/gemini-2.5-flash-preview-05-20", name: "Gemini 2.5 Flash Preview 05-20", category: "Google Gemini", description: "Uma versão específica de pré-visualização do Gemini 2.5 Flash, com data de lançamento em 20 de maio." },
+            { id: "openrouter:google/gemini-2.5-flash-preview-05-20:thinking", name: "Gemini 2.5 Flash Preview 05-20 (Thinking)", category: "Google Gemini", description: "Versão de pré-visualização do Gemini 2.5 Flash com insights adicionais sobre o processo de raciocínio do modelo." },
+            { id: "openrouter:google/gemini-2.5-flash-preview:thinking", name: "Gemini 2.5 Flash Preview (Thinking)", category: "Google Gemini", description: "Pré-visualização geral do Gemini 2.5 Flash, com a capacidade de mostrar o 'pensamento' do modelo." },
+            { id: "openrouter:google/gemini-2.5-pro-exp-03-25", name: "Gemini 2.5 Pro Exp 03-25", category: "Google Gemini", description: "Versão experimental do Gemini 2.5 Pro lançada em 25 de março." },
+            { id: "openrouter:google/gemini-2.5-pro-preview", name: "Gemini 2.5 Pro Preview", category: "Google Gemini", description: "Pré-visualização do Gemini 2.5 Pro, permitindo testar as capacidades avançadas do modelo." },
+            { id: "openrouter:google/gemini-2.5-pro-preview-05-06", name: "Gemini 2.5 Pro Preview 05-06", category: "Google Gemini", description: "Versão específica de pré-visualização do Gemini 2.5 Pro, com data de lançamento em 6 de maio." },
+            { id: "openrouter:google/gemini-flash-1.5", name: "Gemini Flash 1.5", category: "Google Gemini", description: "Primeira geração do modelo Flash do Google, focada em velocidade e eficiência." },
+            { id: "openrouter:google/gemini-flash-1.5-8b", name: "Gemini Flash 1.5 (8B)", category: "Google Gemini", description: "Versão de 8 bilhões de parâmetros do Gemini Flash 1.5, para tarefas que exigem um bom equilíbrio entre performance e recursos." },
+            { id: "openrouter:google/gemini-pro-1.5", name: "Gemini Pro 1.5", category: "Google Gemini", description: "Primeira geração do modelo Pro do Google, para capacidades mais avançadas e complexas." },
+            { id: "openrouter:google/gemma-2-27b-it", name: "Gemma 2 (27B-IT)", category: "Google Gemini", description: "Modelo aberto da família Gemma, com 27 bilhões de parâmetros, otimizado para seguir instruções, oferecendo maior capacidade." },
+            { id: "openrouter:google/gemma-2-9b-it:free", name: "Gemma 2 (9B-IT) Free", category: "Google Gemini", description: "Versão gratuita do Gemma 2 (9B-IT) para experimentação." },
+            { id: "openrouter:google/gemma-3-12b-it:free", name: "Gemma 3 (12B-IT) Free", category: "Google Gemini", description: "Versão gratuita do Gemma 3 (12B-IT) para experimentação." },
+            { id: "openrouter:google/gemma-3-27b-it", name: "Gemma 3 (27B-IT)", category: "Google Gemini", description: "Versão mais recente e poderosa da família Gemma, com 27 bilhões de parâmetros, ideal para tarefas avançadas." },
+            { id: "openrouter:google/gemma-3-27b-it:free", name: "Gemma 3 (27B-IT) Free", category: "Google Gemini", description: "Versão gratuita do Gemma 3 (27B-IT) para testes." },
+            { id: "openrouter:google/gemma-3-4b-it", name: "Gemma 3 (4B-IT)", category: "Google Gemini", description: "Modelo mais leve da família Gemma 3, com 4 bilhões de parâmetros, para eficiência em dispositivos ou tarefas mais simples." },
+            { id: "openrouter:google/gemma-3-4b-it:free", name: "Gemma 3 (4B-IT) Free", category: "Google Gemini", description: "Versão gratuita do Gemma 3 (4B-IT)." },
+            { id: "openrouter:google/gemma-3n-e4b-it", name: "Gemma 3N E4B-IT", category: "Google Gemini", description: "Modelo Gemma otimizado para edge computing com 4 bilhões de parâmetros, para inferência em dispositivos." },
+            { id: "openrouter:google/gemma-3n-e4b-it:free", name: "Gemma 3N E4B-IT Free", category: "Google Gemini", description: "Versão gratuita do Gemma 3N E4B-IT." },
+
+            // Amazon
+            { id: "openrouter:amazon/nova-lite-v1", name: "Nova Lite v1", category: "Amazon", description: "Um modelo leve da Amazon, focado em eficiência e rapidez para tarefas básicas." },
+            { id: "openrouter:amazon/nova-micro-v1", name: "Nova Micro v1", category: "Amazon", description: "Versão micro do modelo Nova da Amazon, otimizado para mínimo consumo de recursos." },
+            { id: "openrouter:amazon/nova-pro-v1", name: "Nova Pro v1", category: "Amazon", description: "A versão profissional do modelo Nova da Amazon, projetada para alta performance e capacidade." },
+
+            // Mistral AI
+            { id: "openrouter:mistralai/mistral-large", name: "Mistral Large", category: "Mistral AI", description: "O modelo mais poderoso da Mistral AI, com capacidade avançada de raciocínio e geração de texto." },
+            { id: "openrouter:mistralai/mixtral-8x22b-instruct", name: "Mixtral 8x22B Instruct", category: "Mistral AI", description: "Um modelo esparso de Mixture-of-Experts (MoE) da Mistral AI, combinando eficiência com alta capacidade para seguir instruções." },
+            { id: "openrouter:mistralai/mixtral-8x7b-instruct", name: "Mixtral 8x7B Instruct", category: "Mistral AI", description: "Outro modelo MoE da Mistral AI, ideal para seguir instruções de forma eficiente e com bom desempenho." },
+            // Outros modelos Mistral existentes
+            { id: "openrouter:mistralai/codestral-2501", name: "Codestral 2501", category: "Mistral AI", description: "Modelo da Mistral AI otimizado para geração e compreensão de código." },
+            { id: "openrouter:mistralai/devstral-small", name: "Devstral Small", category: "Mistral AI", description: "Uma versão menor e eficiente do Devstral para desenvolvimento de software." },
+            { id: "openrouter:mistralai/devstral-small:free", name: "Devstral Small (Free)", category: "Mistral AI", description: "Versão gratuita do Devstral Small para experimentação." },
+            { id: "openrouter:mistralai/magistral-medium-2506", name: "Magistral Medium 2506", category: "Mistral AI", description: "Um modelo de tamanho médio da Mistral, balanceado entre performance e eficiência." },
+            { id: "openrouter:mistralai/magistral-medium-2506:thinking", name: "Magistral Medium 2506 (Thinking)", category: "Mistral AI", description: "Magistral Medium com capacidade de mostrar o processo de raciocínio." },
+            { id: "openrouter:mistralai/magistral-small-2506", name: "Magistral Small 2506", category: "Mistral AI", description: "Versão pequena do Magistral, para tarefas eficientes." },
+            { id: "openrouter:mistralai/ministral-3b", name: "Ministral 3B", category: "Mistral AI", description: "Modelo Ministral de 3 bilhões de parâmetros, muito eficiente para tarefas simples e rápidas." },
+            { id: "openrouter:mistralai/ministral-8b", name: "Ministral 8B", category: "Mistral AI", description: "Modelo Ministral de 8 bilhões de parâmetros, oferecendo um bom equilíbrio entre velocidade e capacidade." },
+            { id: "openrouter:mistralai/mistral-7b-instruct", name: "Mistral 7B Instruct", category: "Mistral AI", description: "Modelo de 7 bilhões de parâmetros, otimizado para seguir instruções e gerar texto de alta qualidade." },
+            { id: "openrouter:mistralai/mistral-7b-instruct-v0.1", name: "Mistral 7B Instruct v0.1", category: "Mistral AI", description: "Primeira versão do Mistral 7B Instruct." },
+            { id: "openrouter:mistralai/mistral-7b-instruct-v0.2", name: "Mistral 7B Instruct v0.2", category: "Mistral AI", description: "Segunda versão do Mistral 7B Instruct." },
+            { id: "openrouter:mistralai/mistral-7b-instruct-v0.3", name: "Mistral 7B Instruct v0.3", category: "Mistral AI", description: "Terceira versão do Mistral 7B Instruct." },
+            { id: "openrouter:mistralai/mistral-7b-instruct:free", name: "Mistral 7B Instruct (Free)", category: "Mistral AI", description: "Versão gratuita do Mistral 7B Instruct para testes." },
+            { id: "openrouter:mistralai/mistral-large-2407", name: "Mistral Large 2407", category: "Mistral AI", description: "Atualização de Julho de 2024 do Mistral Large." },
+            { id: "openrouter:mistralai/mistral-large-2411", name: "Mistral Large 2411", category: "Mistral AI", description: "Atualização de Novembro de 2024 do Mistral Large." },
+            { id: "openrouter:mistralai/mistral-medium-3", name: "Mistral Medium 3", category: "Mistral AI", description: "Terceira versão do modelo médio da Mistral AI, equilibrado para diversas tarefas." },
+            { id: "openrouter:mistralai/mistral-nemo", name: "Mistral Nemo", category: "Mistral AI", description: "Modelo otimizado da Mistral AI, com foco em eficiência e desempenho." },
+            { id: "openrouter:mistralai/mistral-nemo:free", name: "Mistral Nemo (Free)", category: "Mistral AI", description: "Versão gratuita do Mistral Nemo." },
+            { id: "openrouter:mistralai/mistral-saba", name: "Mistral Saba", category: "Mistral AI", description: "Um modelo específico da Mistral AI, para aplicações especializadas." },
+            { id: "openrouter:mistralai/mistral-small", name: "Mistral Small", category: "Mistral AI", description: "Modelo pequeno da Mistral AI, ideal para tarefas rápidas e de menor complexidade." },
+            { id: "openrouter:mistralai/mistral-small-24b-instruct-2501", name: "Mistral Small 24B Instruct 2501", category: "Mistral AI", description: "Versão de 24 bilhões de parâmetros do Mistral Small, otimizado para instruções." },
+            { id: "openrouter:mistralai/mistral-small-24b-instruct-2501:free", name: "Mistral Small 24B Instruct 2501 (Free)", category: "Mistral AI", description: "Versão gratuita do Mistral Small 24B Instruct." },
+            { id: "openrouter:mistralai/mistral-small-3.1-24b-instruct", name: "Mistral Small 3.1 24B Instruct", category: "Mistral AI", description: "Atualização 3.1 do Mistral Small, com 24 bilhões de parâmetros." },
+            { id: "openrouter:mistralai/mistral-small-3.1-24b-instruct:free", name: "Mistral Small 3.1 24B Instruct (Free)", category: "Mistral AI", description: "Versão gratuita do Mistral Small 3.1 24B Instruct." },
+            { id: "openrouter:mistralai/mistral-small-3.2-24b-instruct", name: "Mistral Small 3.2 24B Instruct", category: "Mistral AI", description: "Atualização 3.2 do Mistral Small, com 24 bilhões de parâmetros." },
+            { id: "openrouter:mistralai/mistral-small-3.2-24b-instruct:free", name: "Mistral Small 3.2 24B Instruct (Free)", category: "Mistral AI", description: "Versão gratuita do Mistral Small 3.2 24B Instruct." },
+            { id: "openrouter:mistralai/mistral-tiny", name: "Mistral Tiny", category: "Mistral AI", description: "O menor modelo da Mistral AI, para tarefas de altíssima velocidade e baixo custo." },
+            { id: "openrouter:pixtral-12b", name: "Pixtral 12B", category: "Mistral AI", description: "Um modelo de 12 bilhões de parâmetros com foco em processamento de imagens (inferido pelo nome)." },
+            { id: "openrouter:pixtral-large-2411", name: "Pixtral Large 2411", category: "Mistral AI", description: "Versão grande do Pixtral com atualização de Novembro de 2024, para tarefas visuais complexas." },
+
+            // Qwen (Alibaba Cloud)
+            { id: "openrouter:qwen/qwen-2-72b-instruct", name: "Qwen 2 72B Instruct", category: "Qwen", description: "Modelo de 72 bilhões de parâmetros da Qwen, otimizado para seguir instruções com alta capacidade e desempenho." },
+            { id: "openrouter:qwen/qwen-2.5-72b-instruct", name: "Qwen 2.5 72B Instruct", category: "Qwen", description: "Versão atualizada do Qwen 2, com 72 bilhões de parâmetros, oferecendo melhorias na instrução e performance." },
+            // Outros modelos Qwen existentes
+            { id: "openrouter:qwen/qwen-2.5-72b-instruct:free", name: "Qwen 2.5 72B Instruct (Free)", category: "Qwen", description: "Versão gratuita do Qwen 2.5 72B Instruct para experimentação." },
+            { id: "openrouter:qwen/qwen-2.5-7b-instruct", name: "Qwen 2.5 7B Instruct", category: "Qwen", description: "Modelo de 7 bilhões de parâmetros da Qwen 2.5, ideal para tarefas que exigem equilíbrio entre performance e recursos." },
+            { id: "openrouter:qwen/qwen-2.5-coder-32b-instruct", name: "Qwen 2.5 Coder 32B Instruct", category: "Qwen", description: "Modelo da Qwen 2.5 otimizado para tarefas de codificação, com 32 bilhões de parâmetros." },
+            { id: "openrouter:qwen/qwen-2.5-coder-32b-instruct:free", name: "Qwen 2.5 Coder 32B Instruct (Free)", category: "Qwen", description: "Versão gratuita do Qwen 2.5 Coder 32B Instruct." },
+            { id: "openrouter:qwen/qwen-2.5-vl-7b-instruct", name: "Qwen 2.5 VL 7B Instruct", category: "Qwen", description: "Modelo de 7 bilhões de parâmetros da Qwen 2.5 com capacidade de Visão-Linguagem, otimizado para instruções." },
+            { id: "openrouter:qwen/qwen-max", name: "Qwen Max", category: "Qwen", description: "O modelo mais capaz da Qwen, para tarefas complexas e de alta demanda." },
+            { id: "openrouter:qwen/qwen-plus", name: "Qwen Plus", category: "Qwen", description: "Uma versão aprimorada da Qwen, oferecendo mais poder e precisão." },
+            { id: "openrouter:qwen/qwen-turbo", name: "Qwen Turbo", category: "Qwen", description: "Modelo da Qwen otimizado para velocidade, ideal para aplicações de baixa latência." },
+            { id: "openrouter:qwen/qwen-vl-max", name: "Qwen VL Max", category: "Qwen", description: "O modelo mais capaz da Qwen com capacidades de Visão-Linguagem, para tarefas multimodais avançadas." },
+            { id: "openrouter:qwen/qwen-vl-plus", name: "Qwen VL Plus", category: "Qwen", description: "Versão aprimorada da Qwen VL, combinando poder e funcionalidades de visão-linguagem." },
+            { id: "openrouter:qwen/qwen2.5-vl-32b-instruct", name: "Qwen 2.5 VL 32B Instruct", category: "Qwen", description: "Modelo de 32 bilhões de parâmetros da Qwen 2.5 com Visão-Linguagem, otimizado para instruções." },
+            { id: "openrouter:qwen/qwen2.5-vl-32b-instruct:free", name: "Qwen 2.5 VL 32B Instruct (Free)", category: "Qwen", description: "Versão gratuita do Qwen 2.5 VL 32B Instruct." },
+            { id: "openrouter:qwen/qwen2.5-vl-72b-instruct", name: "Qwen 2.5 VL 72B Instruct", category: "Qwen", description: "Modelo de 72 bilhões de parâmetros da Qwen 2.5 com Visão-Linguagem, oferecendo alta capacidade para instruções multimodais." },
+            { id: "openrouter:qwen/qwen2.5-vl-72b-instruct:free", name: "Qwen 2.5 VL 72B Instruct (Free)", category: "Qwen", description: "Versão gratuita do Qwen 2.5 VL 72B Instruct." },
+            { id: "openrouter:qwen/qwen3-14b", name: "Qwen 3 14B", category: "Qwen", description: "Modelo da terceira geração da Qwen, com 14 bilhões de parâmetros, para desempenho equilibrado." },
+            { id: "openrouter:qwen/qwen3-14b:free", name: "Qwen 3 14B (Free)", category: "Qwen", description: "Versão gratuita do Qwen 3 14B." },
+            { id: "openrouter:qwen/qwen3-235b-a22b", name: "Qwen 3 235B A22B", category: "Qwen", description: "Um modelo extremamente grande da Qwen 3, com 235 bilhões de parâmetros, para tarefas que exigem capacidade massiva." },
+            { id: "openrouter:qwen/qwen3-235b-a22b:free", name: "Qwen 3 235B A22B (Free)", category: "Qwen", description: "Versão gratuita do Qwen 3 235B A22B." },
+            { id: "openrouter:qwen/qwen3-30b-a3b", name: "Qwen 3 30B A3B", category: "Qwen", description: "Modelo da Qwen 3 com 30 bilhões de parâmetros, oferecendo alto desempenho." },
+            { id: "openrouter:qwen/qwen3-30b-a3b:free", name: "Qwen 3 30B A3B (Free)", category: "Qwen", description: "Versão gratuita do Qwen 3 30B A3B." },
+            { id: "openrouter:qwen/qwen3-32b", name: "Qwen 3 32B", category: "Qwen", description: "Modelo da Qwen 3 com 32 bilhões de parâmetros, para uma ampla gama de aplicações." },
+            { id: "openrouter:qwen/qwen3-32b:free", name: "Qwen 3 32B (Free)", category: "Qwen", description: "Versão gratuita do Qwen 3 32B." },
+            { id: "openrouter:qwen/qwen3-8b", name: "Qwen 3 8B", category: "Qwen", description: "Modelo da Qwen 3 com 8 bilhões de parâmetros, para eficiência e rapidez." },
+            { id: "openrouter:qwen/qwen3-8b:free", name: "Qwen 3 8B (Free)", category: "Qwen", description: "Versão gratuita do Qwen 3 8B." },
+            { id: "openrouter:qwen/qwen3-coder", name: "Qwen 3 Coder", category: "Qwen", description: "Modelo da Qwen 3 especializado em tarefas de codificação e programação." },
+            { id: "openrouter:qwq-32b", name: "QWQ 32B", category: "Qwen", description: "Um modelo de 32 bilhões de parâmetros (provavelmente relacionado à Qwen ou um modelo afiliado)." },
+            { id: "openrouter:qwq-32b-preview", name: "QWQ 32B Preview", category: "Qwen", description: "Pré-visualização do modelo QWQ de 32 bilhões de parâmetros." },
+            { id: "openrouter:qwq-32b:free", name: "QWQ 32B (Free)", category: "Qwen", description: "Versão gratuita do modelo QWQ 32B." },
+
+            // Groq (Modelos populares para inferência de alta velocidade com Groq)
+            // Estes são modelos Llama e Mixtral que são comumente executados na infraestrutura Groq.
+            { id: "openrouter:meta-llama/llama-3-70b-instruct", name: "Llama 3 70B Instruct", category: "Groq (Meta Llama)", description: "Um dos modelos Llama 3 mais poderosos, frequentemente otimizado para inferência rápida em plataformas como Groq, ideal para grandes volumes de texto e instruções complexas." },
+            { id: "openrouter:meta-llama/llama-3-8b-instruct", name: "Llama 3 8B Instruct", category: "Groq (Meta Llama)", description: "Versão mais leve do Llama 3, também popular para inferência otimizada em Groq, bom para tarefas rápidas e eficientes." },
+            { id: "openrouter:mistralai/mixtral-8x7b-instruct", name: "Mixtral 8x7B Instruct", category: "Groq (Mistral AI)", description: "Um modelo Mistral Mixture-of-Experts, conhecido por sua eficiência e velocidade, amplamente utilizado com Groq para aplicações de alto throughput." },
         ];
 
         // Função para carregar e preencher os modelos da lista estática
@@ -543,15 +528,37 @@
 
             if (allAvailableModels.length > 0) {
                 modelSelect.innerHTML = ''; // Limpa o placeholder
-                // Ordena os modelos alfabeticamente para melhor visualização
-                const sortedModels = [...allAvailableModels].sort(); 
-                sortedModels.forEach(model => {
-                    const option = document.createElement('option');
-                    option.value = model;
-                    option.textContent = model;
-                    modelSelect.appendChild(option);
+
+                // Agrupa os modelos por categoria
+                const modelsByCategory = allAvailableModels.reduce((acc, model) => {
+                    const category = model.category || "Outros"; // Garante uma categoria padrão
+                    if (!acc[category]) {
+                        acc[category] = [];
+                    }
+                    acc[category].push(model);
+                    return acc;
+                }, {});
+
+                // Ordena as categorias e os modelos dentro de cada categoria
+                const sortedCategories = Object.keys(modelsByCategory).sort();
+
+                sortedCategories.forEach(categoryName => {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = categoryName;
+
+                    const sortedModelsInGroup = modelsByCategory[categoryName].sort((a, b) => a.name.localeCompare(b.name));
+
+                    sortedModelsInGroup.forEach(model => {
+                        const option = document.createElement('option');
+                        option.value = model.id;
+                        option.textContent = model.name;
+                        option.dataset.description = model.description; // Armazena a descrição no dataset
+                        optgroup.appendChild(option);
+                    });
+                    modelSelect.appendChild(optgroup);
                 });
-                console.log("CHAT APP: Modelos preenchidos com sucesso. Total:", sortedModels.length);
+
+                console.log("CHAT APP: Modelos preenchidos com sucesso. Total:", allAvailableModels.length);
             } else {
                 modelSelect.innerHTML = '<option value="" disabled selected>Nenhum modelo encontrado ou compatível.</option>';
                 showMessage("Nenhum modelo compatível encontrado da lista fornecida.", 'info');
@@ -559,6 +566,20 @@
             }
             toggleLoading(false); // Esconde o spinner de carregamento no final
         }
+
+        // Listener para exibir a descrição do modelo ao selecioná-lo
+        modelSelect.addEventListener('change', () => {
+            const selectedOption = modelSelect.options[modelSelect.selectedIndex];
+            const description = selectedOption.dataset.description;
+
+            if (description) {
+                modelDescriptionArea.textContent = description;
+                modelDescriptionArea.classList.remove('hidden');
+            } else {
+                modelDescriptionArea.textContent = 'Nenhuma descrição disponível para este modelo.';
+                modelDescriptionArea.classList.add('hidden'); // Esconde se não houver descrição
+            }
+        });
 
 
         // Função para verificar a expiração da chave periodicamente
