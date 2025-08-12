@@ -218,6 +218,7 @@
         const db = getFirestore(app);
 
         let userId = null;
+        let deviceId = null; // Variável para armazenar o ID do dispositivo
         let isAuthReady = false;
         let keyCheckInterval = null; // Para armazenar o ID do intervalo de verificação da chave
         let chatHistory = []; // Array para armazenar o histórico de chat
@@ -333,6 +334,18 @@
             });
         }
 
+        // Função para obter ou gerar um ID de dispositivo
+        function getOrCreateDeviceId() {
+            let id = localStorage.getItem('device_id');
+            if (!id) {
+                id = crypto.randomUUID();
+                localStorage.setItem('device_id', id);
+                console.log("CHAT APP: Novo deviceId gerado e salvo:", id);
+            } else {
+                console.log("CHAT APP: deviceId existente carregado:", id);
+            }
+            return id;
+        }
 
         // Autentica com Firebase
         onAuthStateChanged(auth, async (user) => {
@@ -353,6 +366,9 @@
             }
             userId = auth.currentUser?.uid || crypto.randomUUID();
             userIdDisplay.textContent = userId.substring(0, 8) + '...';
+            deviceId = getOrCreateDeviceId(); // Obter ou gerar o ID do dispositivo
+            console.log("CHAT APP: ID do Dispositivo:", deviceId);
+
             isAuthReady = true;
             console.log("CHAT APP: Firebase Auth Pronto. UID do Usuário Atual:", auth.currentUser?.uid);
             console.log("CHAT APP: App ID em uso (FIXO):", appId);
@@ -760,29 +776,32 @@
                 } else {
                     let keyIsValid = false;
                     let expiresAtTimestamp = 0;
-                    querySnapshot.forEach((doc) => {
-                        const keyData = doc.data();
+                    let keyDocRefToUpdate = null; // Referência para o documento da chave
+                    let keyDataFromFirestore = null; // Dados da chave do Firestore
+
+                    querySnapshot.forEach((docSnap) => {
+                        keyDataFromFirestore = docSnap.data();
+                        keyDocRefToUpdate = doc(db, `/artifacts/${appId}/public/data/accessKeys`, docSnap.id); // Pega a referência do doc
+                        
                         const currentTime = Date.now();
-                        console.log("CHAT APP: Dados da chave encontrados:", keyData);
+                        console.log("CHAT APP: Dados da chave encontrados:", keyDataFromFirestore);
 
                         let expiresAtMs;
-                        // Verifica se expiresAt é um objeto Timestamp do Firestore ou um número
-                        if (keyData.expiresAt && typeof keyData.expiresAt.toMillis === 'function') {
-                            expiresAtMs = keyData.expiresAt.toMillis();
-                        } else if (typeof keyData.expiresAt === 'number') {
-                            expiresAtMs = keyData.expiresAt;
+                        if (keyDataFromFirestore.expiresAt && typeof keyDataFromFirestore.expiresAt.toMillis === 'function') {
+                            expiresAtMs = keyDataFromFirestore.expiresAt.toMillis();
+                        } else if (typeof keyDataFromFirestore.expiresAt === 'number') {
+                            expiresAtMs = keyDataFromFirestore.expiresAt;
                         } else {
-                            // Se expiresAt não for um Timestamp ou número, assumimos 0 para segurança (expirado)
                             expiresAtMs = 0; 
                         }
                         
-                        console.log("CHAT APP: Status da chave:", keyData.status);
+                        console.log("CHAT APP: Status da chave:", keyDataFromFirestore.status);
                         console.log("CHAT APP: Hora atual (MS):", currentTime);
                         console.log("CHAT APP: Expira em (MS):", expiresAtMs);
-                        console.log("CHAT APP: Condição 1 (status === 'active'):", keyData.status === 'active');
+                        console.log("CHAT APP: Condição 1 (status === 'active'):", keyDataFromFirestore.status === 'active');
                         console.log("CHAT APP: Condição 2 (expiresAtMs > currentTime):", expiresAtMs > currentTime);
 
-                        if (keyData.status === 'active' && expiresAtMs > currentTime) {
+                        if (keyDataFromFirestore.status === 'active' && expiresAtMs > currentTime) {
                             keyIsValid = true;
                             expiresAtTimestamp = expiresAtMs; // Salva o timestamp de expiração
                             console.log("CHAT APP: Chave é válida! Todas as condições TRUE.");
@@ -791,8 +810,24 @@
                         }
                     });
 
-                    if (keyIsValid) {
-                        // Se a chave for válida, esconde a sobreposição de login
+                    if (keyIsValid && keyDataFromFirestore && keyDocRefToUpdate) {
+                        // Lógica de bloqueio por dispositivo
+                        if (keyDataFromFirestore.lockedToDeviceId && keyDataFromFirestore.lockedToDeviceId !== deviceId) {
+                            loginErrorMessage.textContent = "Esta chave já está em uso em outro dispositivo.";
+                            loginErrorMessage.classList.remove('hidden');
+                            console.log("CHAT APP: Tentativa de login negada: Chave já bloqueada para outro dispositivo.");
+                            toggleLoading(false); // Esconde o spinner
+                            return; // Sai da função
+                        } else if (!keyDataFromFirestore.lockedToDeviceId) {
+                            // Chave não está bloqueada para nenhum dispositivo, bloqueá-la para o atual
+                            await updateDoc(keyDocRefToUpdate, { lockedToDeviceId: deviceId });
+                            console.log("CHAT APP: Chave bloqueada para este dispositivo:", deviceId);
+                        } else {
+                            // Chave já está bloqueada para este dispositivo (DeviceId corresponde), continuar
+                            console.log("CHAT APP: Chave já bloqueada para este dispositivo, permitindo login.");
+                        }
+
+                        // Se a chave for válida e a lógica de bloqueio permitiu, esconde a sobreposição de login
                         loginOverlay.style.opacity = '0';
                         setTimeout(() => {
                             loginOverlay.classList.add('hidden');
