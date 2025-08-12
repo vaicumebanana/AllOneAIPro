@@ -130,11 +130,17 @@
     </style>
 </head>
 <body class="selection:bg-blue-200">
-    <!-- Sobreposição de Login -->
+    <!-- Overlay de Login -->
     <div id="login-overlay">
         <div class="login-box">
             <h1 class="text-3xl font-bold text-gray-800 mb-4">🔐 Acesso à IA</h1>
             <p class="text-gray-600 mb-6">Por favor, insira sua chave de acesso para continuar.</p>
+            <!-- Mensagem de pagamento adicionada aqui -->
+            <p class="text-md text-gray-700 font-semibold mb-4 bg-yellow-50 rounded-lg p-3 border border-yellow-200">
+                Para comprar a chave de acesso, envie <span class="text-green-700 font-bold">R$ 30,00</span> (um mês de acesso)
+                para o PIX: <span class="font-mono text-blue-700 break-all">493.897.228-02</span>.
+                Após o pagamento, envie o comprovante para o e-mail: <span class="font-mono text-blue-700 break-all">suportealloneai@gmail.com</span>.
+            </p>
             <input type="text" id="access-key-input" class="p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-50 text-gray-800 shadow-sm text-center" placeholder="Sua Chave de Acesso">
             <button id="login-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300">
                 Entrar
@@ -147,6 +153,10 @@
     <div id="chat-container" class="container hidden">
         <h1 class="text-4xl font-bold text-center text-gray-800 mb-2">🤖 All-in-One AI Chat</h1>
         <p class="text-center text-gray-500 text-sm mb-4">Usuário: <span id="user-id-display" class="font-mono text-gray-600">N/A</span></p>
+        <!-- Mensagem de boas-vindas adicionada aqui -->
+        <p id="welcome-message" class="text-center text-xl font-semibold text-blue-700 mb-4 hidden">
+            <!-- Olá (Nome)! será inserido aqui -->
+        </p>
 
         <!-- Seleção do Modelo -->
         <div class="flex flex-col gap-2">
@@ -230,6 +240,7 @@
         const loginErrorMessage = document.getElementById('login-error-message');
         const chatContainer = document.getElementById('chat-container');
         const userIdDisplay = document.getElementById('user-id-display');
+        const welcomeMessage = document.getElementById('welcome-message'); // Novo elemento para a mensagem de boas-vindas
         const modelSelect = document.getElementById('model-select');
         const messagesArea = document.getElementById('messages-area'); // Área para exibir mensagens
         const promptInput = document.getElementById('prompt-input');
@@ -379,83 +390,13 @@
             }
         });
 
-        // LISTA DE MODELOS FILTRADA PARA AS OPÇÕES FORNECIDAS
+        // LISTA DE MODELOS FILTRADA PARA AS OPÇÕES MAIS FAMOSAS (OpenAI, Groq, Mistral, Qwen, Gemini, Amazon)
         const allAvailableModels = [
+            // Amazon
             "openrouter:amazon/nova-lite-v1",
             "openrouter:amazon/nova-micro-v1",
             "openrouter:amazon/nova-pro-v1",
-            "openrouter:anthracite-org/magnum-v2-72b",
-            "openrouter:anthracite-org/magnum-v4-72b",
-            "openrouter:anthropic/claude-2",
-            "openrouter:anthropic/claude-2.0",
-            "openrouter:anthropic/claude-2.0:beta",
-            "openrouter:anthropic/claude-2.1",
-            "openrouter:anthropic/claude-2.1:beta",
-            "openrouter:anthropic/claude-2:beta",
-            "openrouter:anthropic/claude-3-haiku",
-            "openrouter:anthropic/claude-3-haiku:beta",
-            "openrouter:anthropic/claude-3-opus",
-            "openrouter:anthropic/claude-3-opus:beta",
-            "openrouter:anthropic/claude-3-sonnet",
-            "openrouter:anthropic/claude-3-sonnet:beta",
-            "openrouter:anthropic/claude-3.5-haiku",
-            "openrouter:anthropic/claude-3.5-haiku-20241022",
-            "openrouter:anthropic/claude-3.5-haiku-20241022:beta",
-            "openrouter:anthropic/claude-3.5-haiku:beta",
-            "openrouter:anthropic/claude-3.5-sonnet",
-            "openrouter:anthropic/claude-3.5-sonnet-20240620",
-            "openrouter:anthropic/claude-3.5-sonnet-20240620:beta",
-            "openrouter:anthropic/claude-3.5-sonnet:beta",
-            "openrouter:anthropic/claude-3.7-sonnet",
-            "openrouter:anthropic/claude-3.7-sonnet:beta",
-            "openrouter:anthropic/claude-3.7-sonnet:thinking",
-            "openrouter:anthropic/claude-opus-4",
-            "openrouter:anthropic/claude-sonnet-4",
-            "openrouter:arcee-ai/arcee-blitz",
-            "openrouter:arcee-ai/caller-large",
-            "openrouter:arcee-ai/coder-large",
-            "openrouter:arcee-ai/maestro-reasoning",
-            "openrouter:arcee-ai/spotlight",
-            "openrouter:arcee-ai/virtuoso-large",
-            "openrouter:arcee-ai/virtuoso-medium-v2",
-            "openrouter:arliai/qwq-32b-arliai-rpr-v1:free",
-            "openrouter:baidu/ernie-4.5-300b-a47b",
-            "openrouter:cognitivecomputations/dolphin-mixtral-8x22b",
-            "openrouter:cognitivecomputations/dolphin3.0-mistral-24b:free",
-            "openrouter:cognitivecomputations/dolphin3.0-r1-mistral-24b:free",
-            "openrouter:cohere/command",
-            "openrouter:cohere/command-a",
-            "openrouter:cohere/command-r",
-            "openrouter:cohere/command-r-03-2024",
-            "openrouter:cohere/command-r-08-2024",
-            "openrouter:cohere/command-r-plus",
-            "openrouter:cohere/command-r-plus-04-2024",
-            "openrouter:cohere/command-r-plus-08-2024",
-            "openrouter:cohere/command-r7b-12-2024",
-            "openrouter:deepseek/deepseek-chat",
-            "openrouter:deepseek/deepseek-chat-v3-0324",
-            "openrouter:deepseek/deepseek-chat-v3-0324:free",
-            "openrouter:deepseek/deepseek-chat:free",
-            "openrouter:deepseek/deepseek-prover-v2",
-            "openrouter:deepseek/deepseek-r1",
-            "openrouter:deepseek/deepseek-r1-0528",
-            "openrouter:deepseek/deepseek-r1-0528-qwen3-8b",
-            "openrouter:deepseek/deepseek-r1-0528-qwen3-8b:free",
-            "openrouter:deepseek/deepseek-r1-0528:free",
-            "openrouter:deepseek/deepseek-r1-distill-llama-70b",
-            "openrouter:deepseek/deepseek-r1-distill-llama-70b:free",
-            "openrouter:deepseek/deepseek-r1-distill-llama-8b",
-            "openrouter:deepseek/deepseek-r1-distill-qwen-1.5b",
-            "openrouter:deepseek/deepseek-r1-distill-qwen-14b",
-            "openrouter:deepseek/deepseek-r1-distill-qwen-14b:free",
-            "openrouter:deepseek/deepseek-r1-distill-qwen-32b",
-            "openrouter:deepseek/deepseek-r1-distill-qwen-7b",
-            "openrouter:deepseek/deepseek-r1:free",
-            "openrouter:deepseek/deepseek-v3-base:free",
-            "openrouter:eleutherai/llemma_7b",
-            "openrouter:eva-unit-01/eva-llama-3.33-70b",
-            "openrouter:eva-unit-01/eva-qwen-2.5-72b",
-            "openrouter:featherless/qwerky-72b:free",
+            // Gemini (Google)
             "openrouter:google/gemini-2.0-flash-001",
             "openrouter:google/gemini-2.0-flash-exp:free",
             "openrouter:google/gemini-2.0-flash-lite-001",
@@ -483,46 +424,9 @@
             "openrouter:google/gemma-3-4b-it:free",
             "openrouter:google/gemma-3n-e4b-it",
             "openrouter:google/gemma-3n-e4b-it:free",
-            "openrouter:gryphe/mythomax-l2-13b",
-            "openrouter:inception/mercury",
-            "openrouter:inception/mercury-coder",
-            "openrouter:infermatic/mn-inferor-12b",
-            "openrouter:inflection/inflection-3-pi",
-            "openrouter:inflection/inflection-3-productivity",
-            "openrouter:liquid/lfm-3b",
-            "openrouter:liquid/lfm-40b",
-            "openrouter:liquid/lfm-7b",
-            "openrouter:mancer/weaver",
-            "openrouter:meta-llama/llama-3-70b-instruct",
-            "openrouter:meta-llama/llama-3-8b-instruct",
-            "openrouter:meta-llama/llama-3.1-405b",
-            "openrouter:meta-llama/llama-3.1-405b-instruct",
-            "openrouter:meta-llama/llama-3.1-70b-instruct",
-            "openrouter:meta-llama/llama-3.1-8b-instruct",
-            "openrouter:meta-llama/llama-3.2-11b-vision-instruct",
-            "openrouter:meta-llama/llama-3.2-11b-vision-instruct:free",
-            "openrouter:meta-llama/llama-3.2-1b-instruct",
-            "openrouter:meta-llama/llama-3.2-3b-instruct",
-            "openrouter:meta-llama/llama-3.2-90b-vision-instruct",
-            "openrouter:meta-llama/llama-3.3-70b-instruct",
-            "openrouter:meta-llama/llama-3.3-70b-instruct:free",
-            "openrouter:meta-llama/llama-4-maverick",
-            "openrouter:meta-llama/llama-4-maverick:free",
-            "openrouter:meta-llama/llama-4-scout",
-            "openrouter:meta-llama/llama-4-scout:free",
-            "openrouter:meta-llama/llama-guard-2-8b",
-            "openrouter:meta-llama/llama-guard-3-8b",
-            "openrouter:meta-llama/llama-guard-4-12b",
-            "openrouter:microsoft/mai-ds-r1:free",
-            "openrouter:microsoft/phi-3-medium-128k-instruct",
-            "openrouter:microsoft/phi-3-mini-128k-instruct",
-            "openrouter:microsoft/phi-3.5-mini-128k-instruct",
-            "openrouter:microsoft/phi-4",
-            "openrouter:microsoft/phi-4-multimodal-instruct",
-            "openrouter:microsoft/phi-4-reasoning-plus",
-            "openrouter:microsoft/wizardlm-2-8x22b",
-            "openrouter:minimax/minimax-01",
-            "openrouter:minimax/minimax-m1",
+            // Groq (nenhum modelo diretamente com prefixo 'groq:' na lista anterior, mas se houver, seriam adicionados aqui)
+            // Não há modelos "groq:" no allAvailableModels fornecido anteriormente. Se existirem, precisaria de seus nomes completos.
+            // Mistral
             "openrouter:mistralai/codestral-2501",
             "openrouter:mistralai/devstral-small",
             "openrouter:mistralai/devstral-small:free",
@@ -555,26 +459,7 @@
             "openrouter:mistralai/mixtral-8x7b-instruct",
             "openrouter:mistralai/pixtral-12b",
             "openrouter:mistralai/pixtral-large-2411",
-            "openrouter:moonshotai/kimi-dev-72b:free",
-            "openrouter:moonshotai/kimi-vl-a3b-thinking:free",
-            "openrouter:morph/morph-v2",
-            "openrouter:morph/morph-v3-fast",
-            "openrouter:morph/morph-v3-large",
-            "openrouter:neversleep/llama-3-lumimaid-70b",
-            "openrouter:neversleep/llama-3-lumimaid-8b",
-            "openrouter:neversleep/llama-3.1-lumimaid-8b",
-            "openrouter:neversleep/noromaid-20b",
-            "openrouter:nothingiisreal/mn-celeste-12b",
-            "openrouter:nousresearch/deephermes-3-llama-3-8b-preview:free",
-            "openrouter:nousresearch/hermes-2-pro-llama-3-8b",
-            "openrouter:nousresearch/hermes-3-llama-3.1-405b",
-            "openrouter:nousresearch/hermes-3-llama-3.1-70b",
-            "openrouter:nousresearch/nous-hermes-2-mixtral-8x7b-dpo",
-            "openrouter:nvidia/llama-3.1-nemotron-70b-instruct",
-            "openrouter:nvidia/llama-3.1-nemotron-ultra-253b-v1",
-            "openrouter:nvidia/llama-3.1-nemotron-ultra-253b-v1:free",
-            "openrouter:nvidia/llama-3.3-nemotron-super-49b-v1",
-            "openrouter:nvidia/llama-3.3-nemotron-super-49b-v1:free",
+            // OpenAI
             "openrouter:openai/chatgpt-4o-latest",
             "openrouter:openai/codex-mini",
             "openrouter:openai/gpt-3.5-turbo-0613",
@@ -610,16 +495,7 @@
             "openrouter:openai/o3-pro",
             "openrouter:openai/o4-mini",
             "openrouter:openai/o4-mini-high",
-            "openrouter:opengvlab/internvl3-14b",
-            "openrouter:openrouter/auto",
-            "openrouter:openrouter/cypher-alpha:free",
-            "openrouter:perplexity/r1-1776",
-            "openrouter:perplexity/sonar",
-            "openrouter:perplexity/sonar-deep-research",
-            "openrouter:perplexity/sonar-pro",
-            "openrouter:perplexity/sonar-reasoning",
-            "openrouter:perplexity/sonar-reasoning-pro",
-            "openrouter:pygmalionai/mythalion-13b",
+            // Qwen
             "openrouter:qwen/qwen-2-72b-instruct",
             "openrouter:qwen/qwen-2.5-72b-instruct",
             "openrouter:qwen/qwen-2.5-72b-instruct:free",
@@ -647,47 +523,16 @@
             "openrouter:qwen/qwen3-8b",
             "openrouter:qwen/qwen3-8b:free",
             "openrouter:qwen/qwen3-coder",
-            "openrouter:qwq-32b",
-            "openrouter:qwq-32b-preview",
-            "openrouter:qwq-32b:free",
-            "openrouter:sao10k/l3-euryale-70b",
-            "openrouter:sao10k/l3-lunaris-8b",
-            "openrouter:sao10k/l3.1-euryale-70b",
-            "openrouter:sao10k/l3.3-euryale-70b",
-            "openrouter:scb10x/llama3.1-typhoon2-70b-instruct",
-            "openrouter:shisa-ai/shisa-v2-llama3.3-70b",
-            "openrouter:shisa-ai/shisa-v2-llama3.3-70b:free",
-            "openrouter:sophosympatheia/midnight-rose-70b",
-            "openrouter:switchpoint/router",
-            "openrouter:tencent/hunyuan-a13b-instruct",
-            "openrouter:tencent/hunyuan-a13b-instruct:free",
-            "openrouter:thedrummer/anubis-70b-v1.1",
-            "openrouter:thedrummer/anubis-pro-105b-v1",
-            "openrouter:thedrummer/rocinante-12b",
-            "openrouter:thedrummer/skyfall-36b-v2",
-            "openrouter:thedrummer/unslopnemo-12b",
-            "openrouter:thedrummer/valkyrie-49b-v1",
-            "openrouter:thudm/glm-4-32b",
-            "openrouter:thudm/glm-4.1v-9b-thinking",
-            "openrouter:thudm/glm-z1-32b",
-            "openrouter:thudm/glm-z1-32b:free",
-            "openrouter:tngtech/deepseek-r1t-chimera",
-            "openrouter:tngtech/deepseek-r1t-chimera:free",
-            "openrouter:tngtech/deepseek-r1t2-chimera:free",
-            "openrouter:undi95/remm-slerp-l2-13b",
-            "openrouter:x-ai/grok-2-1212",
-            "openrouter:x-ai/grok-2-vision-1212",
-            "openrouter:x-ai/grok-3",
-            "openrouter:x-ai/grok-3-beta",
-            "openrouter:x-ai/grok-3-mini",
-            "openrouter:x-ai/grok-3-mini-beta",
-            "openrouter:x-ai/grok-4",
-            "openrouter:x-ai/grok-vision-beta",
-            "openrouter:zai-org/glm-4.5",
-            "openrouter:zai-org/glm-4.5-air",
-            "openrouter:zai-org/glm-4.5-air:free",
-            "openrouter:zai-org/glm-4.5v",
-            "openrouter:z-ai/glm-4-32b"
+            "openrouter:qwen3-coder", // Mantido se for um modelo distinto
+            "openrouter:qwen/qwen-vl-max", // Mantido se for um modelo distinto
+            "openrouter:qwen/qwen-vl-plus", // Mantido se for um modelo distinto
+            // Groq (modelos que parecem ser do Groq, baseados em nomes comuns ou inferência)
+            // Se houver modelos específicos com prefixo 'groq:' na lista original, eles seriam incluídos aqui.
+            // Para referência, incluí alguns que não têm prefixo groq: mas são frequentemente associados a ele, se forem do OpenRouter.
+            // Exemplos (sem prefixo 'groq:', pois não foram fornecidos assim na lista anterior):
+            "openrouter:meta-llama/llama-3-70b-instruct", // Llama 3 é popular em Groq
+            "openrouter:meta-llama/llama-3-8b-instruct",   // Llama 3 é popular em Groq
+            "openrouter:mistralai/mixtral-8x7b-instruct", // Mixtral também é popular em Groq
         ];
 
         // Função para carregar e preencher os modelos da lista estática
@@ -735,6 +580,8 @@
                     chatHistory = [];
                     renderMessages();
                     userIdDisplay.textContent = 'N/A';
+                    welcomeMessage.textContent = ''; // Limpa a mensagem de boas-vindas
+                    welcomeMessage.classList.add('hidden'); // Esconde a mensagem de boas-vindas
                     // Opcional: desconecta o usuário Firebase (isso irá acionar onAuthStateChanged novamente)
                     // await auth.signOut();
                 } else {
@@ -818,6 +665,12 @@
                             console.log("CHAT APP: Tentativa de login negada: Chave já bloqueada para outro dispositivo.");
                             toggleLoading(false); // Esconde o spinner
                             return; // Sai da função
+                        } else if (keyDataFromFirestore.status === 'inactive') { // Verifica se a chave foi desativada no gerador
+                             loginErrorMessage.textContent = "Esta chave está inativa. Por favor, entre em contato com o administrador.";
+                             loginErrorMessage.classList.remove('hidden');
+                             console.log("CHAT APP: Tentativa de login negada: Chave inativa.");
+                             toggleLoading(false); // Esconde o spinner
+                             return; // Sai da função
                         } else if (!keyDataFromFirestore.lockedToDeviceId) {
                             // Chave não está bloqueada para nenhum dispositivo, bloqueá-la para o atual
                             await updateDoc(keyDocRefToUpdate, { lockedToDeviceId: deviceId });
@@ -832,6 +685,12 @@
                         setTimeout(() => {
                             loginOverlay.classList.add('hidden');
                             chatContainer.classList.remove('hidden');
+
+                            // Exibe a mensagem de boas-vindas
+                            if (keyDataFromFirestore.personName) {
+                                welcomeMessage.textContent = `Olá ${keyDataFromFirestore.personName}!`;
+                                welcomeMessage.classList.remove('hidden');
+                            }
                         }, 300); // Dá tempo para a transição
                         showMessage("Login bem-sucedido!", 'success');
                         // Inicia a verificação de expiração da chave
