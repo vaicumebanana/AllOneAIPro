@@ -184,6 +184,13 @@
 
     <!-- Biblioteca Puter.js -->
     <script src="https://js.puter.com/v2/"></script>
+    <script>
+        // Log para verificar se a biblioteca Puter foi carregada
+        // Isso deve ser visível no console ANTES do script type="module"
+        console.log("CHAT APP: >>> Verificação inicial do Puter SDK. typeof puter:", typeof puter);
+        // puter.ai e puter.ai.chat podem não estar imediatamente disponíveis após o carregamento assíncrono do script Puter.js
+        // mas este log inicial nos ajuda a ver se o 'puter' base existe.
+    </script>
     <!-- Bibliotecas Firebase -->
     <script type="module">
         // Importa as funções necessárias dos SDKs Firebase (versão 12.1.0)
@@ -195,7 +202,7 @@
         const appId = "1:1055585794088:web:0c7eab96a4e696cd6f9d1d"; 
 
         const firebaseConfig = {
-            apiKey: "AIzaSyCov5xP4aFRo3QPFCxCRQGN7X59dR9ZLF4",
+            apiKey: "AIzaSyCov5xP4aFRo3QPFCxCRQGN7X59dR9ZLF4", // Confirme se esta chave está correta no seu Firebase
             authDomain: "isiskd.firebaseapp.com",
             projectId: "isiskd",
             storageBucket: "isiskd.firebasestorage.app",
@@ -329,14 +336,13 @@
 
         // Autentica com Firebase
         onAuthStateChanged(auth, async (user) => {
+            console.log("CHAT APP: onAuthStateChanged acionado. User:", user ? user.uid : 'null');
             if (!user) {
                 try {
-                    // Tenta fazer login com token personalizado se disponível
                     if (initialAuthToken) {
                         await signInWithCustomToken(auth, initialAuthToken);
                         console.log("CHAT APP: Firebase: Login com token personalizado.");
                     } else {
-                        // Caso contrário, faz login anonimamente
                         await signInAnonymously(auth);
                         console.log("CHAT APP: Firebase: Login anônimo.");
                     }
@@ -345,89 +351,149 @@
                     showMessage(`Erro de autenticação Firebase: ${error.message}`, 'error');
                 }
             }
-            userId = auth.currentUser?.uid || crypto.randomUUID(); // Obtém o userId ou gera um se anônimo
-            userIdDisplay.textContent = userId.substring(0, 8) + '...'; // Exibe parte do ID para privacidade
+            userId = auth.currentUser?.uid || crypto.randomUUID();
+            userIdDisplay.textContent = userId.substring(0, 8) + '...';
             isAuthReady = true;
             console.log("CHAT APP: Firebase Auth Pronto. UID do Usuário Atual:", auth.currentUser?.uid);
-            console.log("CHAT APP: App ID em uso (FIXO):", appId); // Loga o appId fixo
+            console.log("CHAT APP: App ID em uso (FIXO):", appId);
             
-            // Carrega os modelos após a autenticação estar pronta
             if (isAuthReady) {
                 loadStaticModels();
-                // Carrega o histórico de chat apenas após o userId estar definido e autenticação pronta
                 loadChatHistory(); 
             }
         });
 
-        // LISTA DE MODELOS FORNECIDA PELO USUÁRIO (adaptada para uso direto)
+        // LISTA DE MODELOS FILTRADA PARA MARCAS ESPECÍFICAS
         const allAvailableModels = [
-            "gpt-5-2025-08-07","gpt-5","gpt-5-mini-2025-08-07","gpt-5-mini","gpt-5-nano-2025-08-07","gpt-5-nano","gpt-5-chat-latest","gpt-4o","gpt-4o-mini","o1","o1-mini","o1-pro","o3","o3-mini","o4-mini","gpt-4.1","gpt-4.1-mini","gpt-4.1-nano","gpt-4.5-preview","claude-opus-4-1-20250805","claude-opus-4-1","claude-opus-4-20250514","claude-opus-4","claude-opus-4-latest","claude-sonnet-4-20250514","claude-sonnet-4","claude-sonnet-4-latest","claude-3-7-sonnet-20250219","claude-3-7-sonnet-latest","claude-3-5-sonnet-20241022","claude-3-5-sonnet-latest","claude-3-5-sonnet-20240620","claude-3-haiku-20240307","cartesia/sonic","mistralai/Mistral-7B-Instruct-v0.3","cartesia/sonic-2","togethercomputer/MoA-1","meta-llama/Meta-Llama-Guard-3-8B","meta-llama/LlamaGuard-2-8b","meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo","meta-llama/Llama-3.2-3B-Instruct-Turbo","deepseek-ai/DeepSeek-R1","meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo","Qwen/Qwen2.5-7B-Instruct-Turbo","Qwen/Qwen2.5-72B-Instruct-Turbo","meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo","arize-ai/qwen-2-1.5b-instruct","meta-llama/Llama-3.3-70B-Instruct-Turbo","black-forest-labs/FLUX.1-pro","black-forest-labs/FLUX.1.1-pro","meta-llama/Llama-Guard-3-11B-Vision-Turbo","meta-llama/Llama-3-8b-chat-hf","Qwen/Qwen3-235B-A22B-Thinking-2507","Qwen/Qwen2.5-Coder-32B-Instruct","black-forest-labs/FLUX.1-krea-dev","togethercomputer/MoA-1-Turbo","black-forest-labs/FLUX.1-redux","Qwen/Qwen3-235B-A22B-Instruct-2507-tput","arcee_ai/arcee-spotlight","meta-llama/Llama-3.3-70B-Instruct-Turbo-Free","black-forest-labs/FLUX.1-dev-lora","meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo","meta-llama/Meta-Llama-3-70B-Instruct-Turbo","openai/whisper-large-v3","Qwen/Qwen3-235B-A22B-fp8-tput","Qwen/Qwen2.5-VL-72B-Instruct","openai/gpt-oss-120b","black-forest-labs/FLUX.1-schnell","deepcogito/cogito-v2-preview-llama-70B","deepcogito/cogito-v2-preview-llama-405B","lgai/exaone-3-5-32b-instruct","meta-llama/Llama-3-70b-chat-hf","mistralai/Mixtral-8x7B-Instruct-v0.1","black-forest-labs/FLUX.1-depth","black-forest-labs/FLUX.1-kontext-dev","mixedbread-ai/Mxbai-Rerank-Large-V2","google/gemma-2-27b-it","black-forest-labs/FLUX.1-dev","Qwen/Qwen2-72B-Instruct","meta-llama/Llama-2-70b-hf","black-forest-labs/FLUX.1-canny","togethercomputer/m2-bert-80M-32k-retrieval","Salesforce/Llama-Rank-V1","mistralai/Mistral-Small-24B-Instruct-2501","Qwen/Qwen2-VL-72B-Instruct","deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B","meta-llama/Llama-Vision-Free","deepcogito/cogito-v2-preview-deepseek-671b","perplexity-ai/r1-1776","scb10x/scb10x-llama3-1-typhoon2-70b-instruct","arcee_ai/arcee-spotlight","togethercomputer/Refuel-Llm-V2-Small","arcee_ai/coder-large","Qwen/QwQ-32B","deepseek-ai/DeepSeek-R1-0528-tput","marin-community/marin-8b-instruct","lgai/exaone-deep-32b","deepcogito/cogito-v2-preview-llama-109B-MoE","google/gemma-3-27b-it","deepseek-ai/DeepSeek-R1-Distill-Llama-70B","NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO","mistralai/Mistral-7B-Instruct-v0.1","meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8","deepseek-ai/DeepSeek-R1-Distill-Qwen-14B","deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free","scb10x/scb10x-typhoon-2-1-gemma3-12b","meta-llama/Llama-Guard-4-12B","togethercomputer/Refuel-Llm-V2","meta-llama/Meta-Llama-3-8B-Instruct-Lite","intfloat/multilingual-e5-large-instruct","meta-llama/Llama-4-Scout-17B-16E-Instruct","black-forest-labs/FLUX.1-kontext-max","Alibaba-NLP/gte-modernbert-base","nvidia/Llama-3.1-Nemotron-70B-Instruct-HF","deepseek-ai/DeepSeek-V3","black-forest-labs/FLUX.1-schnell-Free","Qwen/Qwen3-Coder-480B-A35B-Instruct-FP8","black-forest-labs/FLUX.1-kontext-pro","Virtue-AI/VirtueGuard-Text-Lite","meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo","arcee-ai/virtuoso-large","google/gemma-3n-E4B-it","moonshotai/Kimi-K2-Instruct","openai/gpt-oss-20b","mistralai/Mistral-7B-Instruct-v0.2","zai-org/GLM-4.5-Air-FP8","model-fallback-test-1","mistral-medium-2505","mistral-medium-latest","mistral-medium","mistral-large-latest","ministral-3b-2410","ministral-3b-latest","ministral-8b-2410","ministral-8b-latest","open-mistral-7b","mistral-tiny","mistral-tiny-2312","open-mistral-nemo","open-mistral-nemo-2407","mistral-tiny-2407","mistral-tiny-latest","open-mixtral-8x7b","mistral-small","mistral-small-2312","open-mixtral-8x22b","open-mixtral-8x22b-2404","pixtral-large-2411","pixtral-large-latest","mistral-large-pixtral-2411","codestral-2508","codestral-latest","devstral-small-2507","devstral-small-latest","pixtral-12b-2409","pixtral-12b","pixtral-12b-latest","mistral-small-2506","mistral-small-latest","mistral-saba-2502","mistral-saba-latest","magistral-medium-2507","magistral-medium-latest","magistral-small-2507","magistral-small-latest","mistral-moderation-2411","mistral-moderation-latest","mistral-ocr-2505","mistral-ocr-latest","grok-beta","grok-vision-beta","grok-3","grok-3-fast","grok-3-mini","grok-3-mini-fast","grok-2-vision","grok-2","deepseek-chat","deepseek-reasoner","gemini-1.5-flash","gemini-2.0-flash","openrouter:z-ai/glm-4.5v","openrouter:ai21/jamba-mini-1.7","openrouter:ai21/jamba-large-1.7","openrouter:openai/gpt-5-chat","openrouter:openai/gpt-5","openrouter:openai/gpt-5-mini","openrouter:openai/gpt-5-nano","openrouter:openai/gpt-oss-120b","openrouter:openai/gpt-oss-20b:free","openrouter:openai/gpt-oss-20b","openrouter:anthropic/claude-opus-4.1","openrouter:mistralai/codestral-2508","openrouter:qwen/qwen3-30b-a3b-instruct-2507","openrouter:z-ai/glm-4.5","openrouter:z-ai/glm-4.5-air:free","openrouter:z-ai/glm-4.5-air","openrouter:qwen/qwen3-235b-a22b-thinking-2507","openrouter:z-ai/glm-4-32b","openrouter:qwen/qwen3-coder:free","openrouter:qwen/qwen3-coder","openrouter:bytedance/ui-tars-1.5-7b","openrouter:google/gemini-2.5-flash-lite","openrouter:qwen/qwen3-235b-a22b-2507","openrouter:switchpoint/router","openrouter:moonshotai/kimi-k2:free","openrouter:moonshotai/kimi-k2","openrouter:thudm/glm-4.1v-9b-thinking","openrouter:mistralai/devstral-medium","openrouter:mistralai/devstral-small","openrouter:cognitivecomputations/dolphin-mistral-24b-venice-edition:free","openrouter:x-ai/grok-4","openrouter:google/gemma-3n-e2b-it:free","openrouter:tencent/hunyuan-a13b-instruct:free","openrouter:tencent/hunyuan-a13b-instruct","openrouter:tngtech/deepseek-r1t2-chimera:free","openrouter:morph/morph-v3-large","openrouter:morph/morph-v3-fast","openrouter:baidu/ernie-4.5-300b-a47b","openrouter:thedrummer/anubis-70b-v1.1","openrouter:inception/mercury","openrouter:mistralai/mistral-small-3.2-24b-instruct:free","openrouter:mistralai/mistral-small-3.2-24b-instruct","openrouter:minimax/minimax-m1","openrouter:google/gemini-2.5-flash-lite-preview-06-17","openrouter:google/gemini-2.5-flash","openrouter:google/gemini-2.5-pro","openrouter:moonshotai/kimi-dev-72b:free","openrouter:openai/o3-pro","openrouter:x-ai/grok-3-mini","openrouter:x-ai/grok-3","openrouter:mistralai/magistral-small-2506","openrouter:mistralai/magistral-medium-2506","openrouter:mistralai/magistral-medium-2506:thinking","openrouter:google/gemini-2.5-pro-preview","openrouter:deepseek/deepseek-r1-distill-qwen-7b","openrouter:deepseek/deepseek-r1-0528-qwen3-8b:free","openrouter:deepseek/deepseek-r1-0528-qwen3-8b","openrouter:deepseek/deepseek-r1-0528:free","openrouter:deepseek/deepseek-r1-0528","openrouter:sarvamai/sarvam-m:free","openrouter:thedrummer/valkyrie-49b-v1","openrouter:anthropic/claude-opus-4","openrouter:anthropic/claude-sonnet-4","openrouter:mistralai/devstral-small-2505:free","openrouter:mistralai/devstral-small-2505","openrouter:google/gemma-3n-e4b-it:free","openrouter:google/gemma-3n-e4b-it","openrouter:openai/codex-mini","openrouter:nousresearch/deephermes-3-mistral-24b-preview","openrouter:mistralai/mistral-medium-3","openrouter:google/gemini-2.5-pro-preview-05-06","openrouter:arcee-ai/spotlight","openrouter:arcee-ai/maestro-reasoning","openrouter:arcee-ai/virtuoso-large","openrouter:arcee-ai/coder-large","openrouter:microsoft/phi-4-reasoning-plus","openrouter:inception/mercury-coder","openrouter:qwen/qwen3-4b:free","openrouter:opengvlab/internvl3-14b","openrouter:deepseek/deepseek-prover-v2","openrouter:meta-llama/llama-guard-4-12b","openrouter:qwen/qwen3-30b-a3b:free","openrouter:qwen/qwen3-30b-a3b","openrouter:qwen/qwen3-8b:free","openrouter:qwen/qwen3-8b","openrouter:qwen/qwen3-14b:free","openrouter:qwen/qwen3-14b","openrouter:qwen/qwen3-32b","openrouter:qwen/qwen3-235b-a22b:free","openrouter:qwen/qwen3-235b-a22b","openrouter:tngtech/deepseek-r1t-chimera:free","openrouter:tngtech/deepseek-r1t-chimera","openrouter:microsoft/mai-ds-r1:free","openrouter:microsoft/mai-ds-r1","openrouter:thudm/glm-z1-32b:free","openrouter:thudm/glm-z1-32b","openrouter:thudm/glm-4-32b","openrouter:openai/o4-mini-high","openrouter:openai/o3","openrouter:openai/o4-mini","openrouter:shisa-ai/shisa-v2-llama3.3-70b:free","openrouter:shisa-ai/shisa-v2-llama3.3-70b","openrouter:openai/gpt-4.1","openrouter:openai/gpt-4.1-mini","openrouter:openai/gpt-4.1-nano","openrouter:eleutherai/llemma_7b","openrouter:alfredpros/codellama-7b-instruct-solidity","openrouter:arliai/qwq-32b-arliai-rpr-v1:free","openrouter:arliai/qwq-32b-arliai-rpr-v1","openrouter:agentica-org/deepcoder-14b-preview:free","openrouter:agentica-org/deepcoder-14b-preview","openrouter:moonshotai/kimi-vl-a3b-thinking:free","openrouter:moonshotai/kimi-vl-a3b-thinking","openrouter:x-ai/grok-3-mini-beta","openrouter:x-ai/grok-3-beta","openrouter:nvidia/llama-3.3-nemotron-super-49b-v1","openrouter:nvidia/llama-3.1-nemotron-ultra-253b-v1:free","openrouter:nvidia/llama-3.1-nemotron-ultra-253b-v1","openrouter:meta-llama/llama-4-maverick","openrouter:meta-llama/llama-4-scout","openrouter:deepseek/deepseek-v3-base","openrouter:scb10x/llama3.1-typhoon2-70b-instruct","openrouter:google/gemini-2.5-pro-exp-03-25","openrouter:qwen/qwen2.5-vl-32b-instruct:free","openrouter:qwen/qwen2.5-vl-32b-instruct","openrouter:deepseek/deepseek-chat-v3-0324:free","openrouter:deepseek/deepseek-chat-v3-0324","openrouter:featherless/qwerky-72b:free","openrouter:openai/o1-pro","openrouter:mistralai/mistral-small-3.1-24b-instruct:free","openrouter:mistralai/mistral-small-3.1-24b-instruct","openrouter:google/gemma-3-4b-it:free","openrouter:google/gemma-3-4b-it","openrouter:google/gemma-3-12b-it:free","openrouter:google/gemma-3-12b-it","openrouter:cohere/command-a","openrouter:openai/gpt-4o-mini-search-preview","openrouter:openai/gpt-4o-search-preview","openrouter:rekaai/reka-flash-3:free","openrouter:google/gemma-3-27b-it:free","openrouter:google/gemma-3-27b-it","openrouter:thedrummer/anubis-pro-105b-v1","openrouter:thedrummer/skyfall-36b-v2","openrouter:microsoft/phi-4-multimodal-instruct","openrouter:perplexity/sonar-reasoning-pro","openrouter:perplexity/sonar-pro","openrouter:perplexity/sonar-deep-research","openrouter:qwen/qwq-32b:free","openrouter:qwen/qwq-32b","openrouter:nousresearch/deephermes-3-llama-3-8b-preview:free","openrouter:google/gemini-2.0-flash-lite-001","openrouter:anthropic/claude-3.7-sonnet","openrouter:anthropic/claude-3.7-sonnet:thinking","openrouter:anthropic/claude-3.7-sonnet:beta","openrouter:perplexity/r1-1776","openrouter:mistralai/mistral-saba","openrouter:cognitivecomputations/dolphin3.0-r1-mistral-24b:free","openrouter:cognitivecomputations/dolphin3.0-r1-mistral-24b","openrouter:cognitivecomputations/dolphin3.0-mistral-24b:free","openrouter:cognitivecomputations/dolphin3.0-mistral-24b","openrouter:meta-llama/llama-guard-3-8b","openrouter:openai/o3-mini-high","openrouter:deepseek/deepseek-r1-distill-llama-8b","openrouter:google/gemini-2.0-flash-001","openrouter:qwen/qwen-vl-plus","openrouter:aion-labs/aion-1.0","openrouter:aion-labs/aion-1.0-mini","openrouter:aion-labs/aion-rp-llama-3.1-8b","openrouter:qwen/qwen-vl-max","openrouter:qwen/qwen-turbo","openrouter:qwen/qwen2.5-vl-72b-instruct:free","openrouter:qwen/qwen2.5-vl-72b-instruct","openrouter:qwen/qwen-plus","openrouter:qwen/qwen-max","openrouter:openai/o3-mini","openrouter:deepseek/deepseek-r1-distill-qwen-1.5b","openrouter:mistralai/mistral-small-24b-instruct-2501:free","openrouter:mistralai/mistral-small-24b-instruct-2501","openrouter:deepseek/deepseek-r1-distill-qwen-32b","openrouter:deepseek/deepseek-r1-distill-qwen-14b:free","openrouter:deepseek/deepseek-r1-distill-qwen-14b","openrouter:perplexity/sonar-reasoning","openrouter:perplexity/sonar","openrouter:liquid/lfm-7b","openrouter:liquid/lfm-3b","openrouter:deepseek/deepseek-r1-distill-llama-70b:free","openrouter:deepseek/deepseek-r1-distill-llama-70b","openrouter:deepseek/deepseek-r1:free","openrouter:deepseek/deepseek-r1","openrouter:minimax/minimax-01","openrouter:mistralai/codestral-2501","openrouter:microsoft/phi-4","openrouter:deepseek/deepseek-chat","openrouter:sao10k/l3.3-euryale-70b","openrouter:openai/o1","openrouter:x-ai/grok-2-vision-1212","openrouter:x-ai/grok-2-1212","openrouter:cohere/command-r7b-12-2024","openrouter:google/gemini-2.0-flash-exp:free","openrouter:meta-llama/llama-3.3-70b-instruct:free","openrouter:meta-llama/llama-3.3-70b-instruct","openrouter:amazon/nova-lite-v1","openrouter:amazon/nova-micro-v1","openrouter:amazon/nova-pro-v1","openrouter:qwen/qwq-32b-preview","openrouter:openai/gpt-4o-2024-11-20","openrouter:mistralai/mistral-large-2411","openrouter:mistralai/mistral-large-2407","openrouter:mistralai/pixtral-large-2411","openrouter:x-ai/grok-vision-beta","openrouter:infermatic/mn-inferor-12b","openrouter:qwen/qwen-2.5-coder-32b-instruct:free","openrouter:qwen/qwen-2.5-coder-32b-instruct","openrouter:raifle/sorcererlm-8x22b","openrouter:thedrummer/unslopnemo-12b","openrouter:anthropic/claude-3.5-haiku","openrouter:anthropic/claude-3.5-haiku-20241022","openrouter:anthropic/claude-3.5-sonnet","openrouter:anthracite-org/magnum-v4-72b","openrouter:mistralai/ministral-8b","openrouter:mistralai/ministral-3b","openrouter:qwen/qwen-2.5-7b-instruct","openrouter:nvidia/llama-3.1-nemotron-70b-instruct","openrouter:inflection/inflection-3-productivity","openrouter:inflection/inflection-3-pi","openrouter:google/gemini-flash-1.5-8b","openrouter:thedrummer/rocinante-12b","openrouter:anthracite-org/magnum-v2-72b","openrouter:liquid/lfm-40b","openrouter:meta-llama/llama-3.2-11b-vision-instruct:free","openrouter:meta-llama/llama-3.2-11b-vision-instruct","openrouter:meta-llama/llama-3.2-3b-instruct:free","openrouter:meta-llama/llama-3.2-3b-instruct","openrouter:meta-llama/llama-3.2-1b-instruct","openrouter:meta-llama/llama-3.2-90b-vision-instruct","openrouter:qwen/qwen-2.5-72b-instruct:free","openrouter:qwen/qwen-2.5-72b-instruct","openrouter:neversleep/llama-3.1-lumimaid-8b","openrouter:openai/o1-mini","openrouter:openai/o1-mini-2024-09-12","openrouter:mistralai/pixtral-12b","openrouter:cohere/command-r-plus-08-2024","openrouter:cohere/command-r-08-2024","openrouter:qwen/qwen-2.5-vl-7b-instruct","openrouter:sao10k/l3.1-euryale-70b","openrouter:microsoft/phi-3.5-mini-128k-instruct","openrouter:nousresearch/hermes-3-llama-3.1-70b","openrouter:nousresearch/hermes-3-llama-3.1-405b","openrouter:openai/chatgpt-4o-latest","openrouter:sao10k/l3-lunaris-8b","openrouter:openai/gpt-4o-2024-08-06","openrouter:meta-llama/llama-3.1-405b","openrouter:meta-llama/llama-3.1-405b-instruct:free","openrouter:meta-llama/llama-3.1-405b-instruct","openrouter:meta-llama/llama-3.1-8b-instruct","openrouter:meta-llama/llama-3.1-70b-instruct","openrouter:mistralai/mistral-nemo:free","openrouter:mistralai/mistral-nemo","openrouter:openai/gpt-4o-mini-2024-07-18","openrouter:openai/gpt-4o-mini","openrouter:google/gemma-2-27b-it","openrouter:google/gemma-2-9b-it:free","openrouter:google/gemma-2-9b-it","openrouter:anthropic/claude-3.5-sonnet-20240620","openrouter:sao10k/l3-euryale-70b","openrouter:cognitivecomputations/dolphin-mixtral-8x22b","openrouter:qwen/qwen-2-72b-instruct","openrouter:mistralai/mistral-7b-instruct-v0.3","openrouter:nousresearch/hermes-2-pro-llama-3-8b","openrouter:mistralai/mistral-7b-instruct:free","openrouter:mistralai/mistral-7b-instruct","openrouter:microsoft/phi-3-mini-128k-instruct","openrouter:microsoft/phi-3-medium-128k-instruct","openrouter:neversleep/llama-3-lumimaid-70b","openrouter:google/gemini-flash-1.5","openrouter:openai/gpt-4o","openrouter:openai/gpt-4o:extended","openrouter:meta-llama/llama-guard-2-8b","openrouter:openai/gpt-4o-2024-05-13","openrouter:meta-llama/llama-3-70b-instruct","openrouter:meta-llama/llama-3-8b-instruct","openrouter:mistralai/mixtral-8x22b-instruct","openrouter:microsoft/wizardlm-2-8x22b","openrouter:openai/gpt-4-turbo","openrouter:google/gemini-pro-1.5","openrouter:cohere/command-r-plus","openrouter:cohere/command-r-plus-04-2024","openrouter:sophosympatheia/midnight-rose-70b","openrouter:cohere/command","openrouter:cohere/command-r","openrouter:anthropic/claude-3-haiku","openrouter:anthropic/claude-3-opus","openrouter:cohere/command-r-03-2024","openrouter:mistralai/mistral-large","openrouter:openai/gpt-3.5-turbo-0613","openrouter:openai/gpt-4-turbo-preview","openrouter:nousresearch/nous-hermes-2-mixtral-8x7b-dpo","openrouter:mistralai/mistral-tiny","openrouter:mistralai/mistral-small","openrouter:mistralai/mistral-7b-instruct-v0.2","openrouter:mistralai/mixtral-8x7b-instruct","openrouter:neversleep/noromaid-20b","openrouter:alpindale/goliath-120b","openrouter:openrouter/auto","openrouter:openai/gpt-4-1106-preview","openrouter:mistralai/mistral-7b-instruct-v0.1","openrouter:openai/gpt-3.5-turbo-instruct","openrouter:pygmalionai/mythalion-13b","openrouter:openai/gpt-3.5-turbo-16k","openrouter:mancer/weaver","openrouter:undi95/remm-slerp-l2-13b","openrouter:gryphe/mythomax-l2-13b","openrouter:openai/gpt-4","openrouter:openai/gpt-3.5-turbo","openai/gpt-4-0314"
+            // Qwen Models
+            "qwen/qwen-2-72b-instruct",
+            "qwen/qwen-2.5-72b-instruct",
+            "qwen/qwen-2.5-72b-instruct:free",
+            "qwen/qwen-2.5-7b-instruct",
+            "qwen/qwen-2.5-coder-32b-instruct",
+            "qwen/qwen-2.5-coder-32b-instruct:free",
+            "qwen/qwen-2.5-vl-7b-instruct",
+            "qwen/qwen-max",
+            "qwen/qwen-plus",
+            "qwen/qwen-turbo",
+            "qwen/qwen-vl-max",
+            "qwen/qwen-vl-plus",
+            "qwen/qwen2.5-vl-32b-instruct",
+            "qwen/qwen2.5-vl-32b-instruct:free",
+            "qwen/qwen2.5-vl-72b-instruct",
+            "qwen/qwen2.5-vl-72b-instruct:free",
+            "qwen/qwen3-14b",
+            "qwen/qwen3-14b:free",
+            "qwen/qwen3-235b-a22b",
+            "qwen/qwen3-235b-a22b-07-25",
+            "qwen/qwen3-235b-a22b-07-25:free",
+            "qwen/qwen3-235b-a22b:free",
+            "qwen/qwen3-30b-a3b",
+            "qwen/qwen3-30b-a3b:free",
+            "qwen/qwen3-32b",
+            "qwen/qwen3-4b:free",
+            "qwen/qwen3-8b",
+            "qwen/qwen3-8b:free",
+            "qwen/qwen3-coder",
+            "qwen/qwq-32b",
+            "qwen/qwq-32b-preview",
+            "qwen/qwq-32b:free",
+
+            // OpenAI Models
+            "gpt-5",
+            "gpt-5-mini",
+            "gpt-5-nano",
+            "gpt-5-chat-latest",
+            "gpt-4.1",
+            "gpt-4.1-mini",
+            "gpt-4.1-nano",
+            "gpt-4.5-preview",
+            "gpt-4o",
+            "gpt-4o-mini",
+            "o1",
+            "o1-mini",
+            "o1-pro",
+            "o3",
+            "o3-mini",
+            "o4-mini",
+
+            // Meta Llama Models
+            "meta-llama/llama-3-70b-instruct",
+            "meta-llama/llama-3-8b-instruct",
+            "meta-llama/llama-3.1-405b",
+            "meta-llama/llama-3.1-405b-instruct",
+            "meta-llama/llama-3.1-70b-instruct",
+            "meta-llama/llama-3.1-8b-instruct",
+            "meta-llama/llama-3.2-11b-vision-instruct",
+            "meta-llama/llama-3.2-11b-vision-instruct:free",
+            "meta-llama/llama-3.2-1b-instruct",
+            "meta-llama/llama-3.2-3b-instruct",
+            "meta-llama/llama-3.2-90b-vision-instruct",
+            "meta-llama/llama-3.3-70b-instruct",
+            "meta-llama/llama-3.3-70b-instruct:free",
+            "meta-llama/llama-4-maverick",
+            "meta-llama/llama-4-maverick:free",
+            "meta-llama/llama-4-scout",
+            "meta-llama/llama-4-scout:free",
+            "meta-llama/llama-guard-2-8b",
+            "meta-llama/llama-guard-3-8b",
+            "meta-llama/llama-guard-4-12b",
+
+            // Google Gemini Models
+            "google/gemini-2.0-flash-001",
+            "google/gemini-2.0-flash-exp:free",
+            "google/gemini-2.0-flash-lite-001",
+            "google/gemini-2.5-flash",
+            "google/gemini-2.5-flash-lite-preview-06-17",
+            "google/gemini-2.5-flash-preview",
+            "google/gemini-2.5-flash-preview-05-20",
+            "google/gemini-2.5-flash-preview-05-20:thinking",
+            "google/gemini-2.5-flash-preview:thinking",
+            "google/gemini-2.5-pro",
+            "google/gemini-2.5-pro-exp-03-25",
+            "google/gemini-2.5-pro-preview",
+            "google/gemini-2.5-pro-preview-05-06",
+            "google/gemini-flash-1.5",
+            "google/gemini-flash-1.5-8b",
+            "google/gemini-pro-1.5",
+
+            // Groq Models
+            "x-ai/grok-3",
+            "x-ai/grok-3-beta",
+            "x-ai/grok-3-mini",
+            "x-ai/grok-3-mini-beta",
+            "x-ai/grok-4",
+
+            // Deepseek Models (Mantendo os que você já tinha e adicionando novas variações)
+            "deepseek-chat",
+            "deepseek-reasoner",
+            "deepseek-ai/DeepSeek-R1",
+            "deepseek-ai/DeepSeek-V3",
+            "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
+            "deepseek-ai/DeepSeek-R1-0528-tput",
+            "deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
+            "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B",
+            "deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free",
+            "deepcogito/cogito-v2-preview-deepseek-671b", // Modelos Deepcogito baseados em Deepseek
         ];
 
         // Função para carregar e preencher os modelos da lista estática
         function loadStaticModels() {
             console.log("CHAT APP: Começando a carregar modelos estáticos...");
-            modelSelect.innerHTML = '<option value="" disabled selected>Filtrando modelos...</option>'; // Placeholder
+            modelSelect.innerHTML = '<option value="" disabled selected>Carregando modelos...</option>'; // Placeholder
             toggleLoading(true); // Exibe o spinner de carregamento
 
-            const finalModels = new Set(); // Usar um Set para garantir unicidade
-
-            // Modelos prioritários (marcas e "famosos" definidos na conversa anterior)
-            const preferredPrefixes = [
-                "gpt-", "openai/", "o1", "o3", "o4", // OpenAI e "O" models
-                "gemini-", "google/gemini-", "google/gemma-", // Google Gemini e Gemma
-                "claude-", "anthropic/", // Claude (Anthropic)
-                "Qwen/", "alibaba/qwen-", // Qwen (Alibaba)
-                "grok-", "x-ai/grok-", // Grok (x-ai)
-                "mistral", "mistralai/", "open-mistral-", // Mistral AI
-                "meta-llama/", "llama-", // Meta Llama
-                "deepseek", "deepseek-ai/", // Deepseek
-                "microsoft/", "cohere/", "perplexity/", "moonshotai/", "arcee_ai/", // Outros notáveis
-                "togethercomputer/", "black-forest-labs/", "lgai/", "nvidia/", "cartesia/",
-                "zai-org/", "alphamind/", "arliai/", "neversleep/", "inflection/",
-                "sao10k/", "sophosympatheia/", "alpindale/", "pygmalionai/", "mancer/",
-                "undi95/", "gryphe/", "bytedance/", "liquid/", "tngtech/", "shisa-ai/",
-                "amazon/", "ai21/", "baidu/", "inception/", "nousresearch/", "sarvamai/",
-                "featherless/", "opengvlab/", "agentica-org/", "thudm/"
-            ];
-
-            // 1. Adicionar modelos que correspondem aos prefixos preferidos
-            allAvailableModels.forEach(model => {
-                let cleanModel = model;
-                if (model.startsWith('openrouter:')) {
-                    cleanModel = model.substring('openrouter:'.length);
-                }
-
-                const isPreferred = preferredPrefixes.some(prefix => {
-                    // Testa o modelo original E o modelo limpo (sem openrouter:)
-                    return model.startsWith(prefix) || cleanModel.startsWith(prefix);
-                });
-
-                if (isPreferred) {
-                    finalModels.add(model); // Adiciona o modelo original completo da lista
-                }
-            });
-
-            // 2. Adicionar quaisquer outros modelos da lista fornecida que não são do "openrouter:"
-            // e que ainda não foram adicionados (evita duplicatas e mantém os openrouter se não forem de marcas específicas)
-            allAvailableModels.forEach(model => {
-                if (!model.startsWith('openrouter:') && !finalModels.has(model)) {
-                    finalModels.add(model);
-                }
-            });
-            
-            // Converter para Array e ordenar alfabeticamente para exibir
-            let sortedFinalModels = Array.from(finalModels).sort();
-
-            if (sortedFinalModels.length > 0) {
+            if (allAvailableModels.length > 0) {
                 modelSelect.innerHTML = ''; // Limpa o placeholder
-                sortedFinalModels.forEach(model => {
+                // Ordena os modelos alfabeticamente para melhor visualização
+                const sortedModels = [...allAvailableModels].sort(); 
+                sortedModels.forEach(model => {
                     const option = document.createElement('option');
                     option.value = model;
                     option.textContent = model;
                     modelSelect.appendChild(option);
                 });
-                console.log("CHAT APP: Modelos preenchidos com sucesso:", sortedFinalModels);
+                console.log("CHAT APP: Modelos preenchidos com sucesso. Total:", sortedModels.length);
             } else {
                 modelSelect.innerHTML = '<option value="" disabled selected>Nenhum modelo encontrado ou compatível.</option>';
                 showMessage("Nenhum modelo compatível encontrado da lista fornecida.", 'info');
@@ -509,7 +575,8 @@
                         } else if (typeof keyData.expiresAt === 'number') {
                             expiresAtMs = keyData.expiresAt;
                         } else {
-                            expiresAtMs = 0;
+                            // Se expiresAt não for um Timestamp ou número, assumimos 0 para segurança (expirado)
+                            expiresAtMs = 0; 
                         }
                         
                         console.log("CHAT APP: Status da chave:", keyData.status);
@@ -561,9 +628,18 @@
                 showMessage("Por favor, digite um prompt para a IA.", 'error');
                 return;
             }
+            
+            // Log detalhado sobre o objeto puter antes de usar
+            console.log("CHAT APP: >>> Verificando objeto Puter antes da chamada AI:");
+            console.log("CHAT APP: typeof puter:", typeof puter);
+            console.log("CHAT APP: puter.ai:", typeof puter !== 'undefined' ? puter.ai : 'undefined');
+            console.log("CHAT APP: puter.ai.chat:", (typeof puter !== 'undefined' && puter.ai) ? puter.ai.chat : 'undefined');
 
-            if (!puter) {
-                showMessage("Puter SDK não carregado. Verifique a conexão com a internet.", 'error');
+
+            // Verifica se puter e puter.ai.chat estão disponíveis
+            if (typeof puter === 'undefined' || !puter.ai || typeof puter.ai.chat !== 'function') {
+                showMessage("Puter SDK não carregado ou não funcional. Verifique a conexão e o console.", 'error');
+                console.error("CHAT APP: Erro: Puter SDK não está disponível para chat. Verifique se o script 'https://js.puter.com/v2/' foi carregado e se o objeto 'puter' foi inicializado corretamente.");
                 return;
             }
 
@@ -577,20 +653,39 @@
             promptInput.value = ''; // Limpa a área de entrada
 
             try {
+                console.log(`CHAT APP: Chamando puter.ai.chat com modelo: ${selectedModel}, Prompt: "${promptInputValue.substring(0, 50)}..."`);
                 const response = await puter.ai.chat(promptInputValue, {
                     model: selectedModel
                 });
+                console.log("CHAT APP: Resposta da Puter API recebida:", response);
+
                 // Adiciona a resposta da IA ao histórico e renderiza
                 chatHistory.push({ role: 'ai', text: response.message.content });
                 renderMessages();
                 saveChatHistory(); // Salva o histórico atualizado
 
             } catch (error) {
-                console.error("CHAT APP: Erro no Chat da IA Puter:", error);
+                console.error("CHAT APP: Erro direto no Puter API call:", error);
+                let errorMessage = "Erro desconhecido ao obter resposta da IA.";
+                if (error instanceof Error) {
+                    errorMessage = error.message;
+                    // Se for um objeto Error, tente pegar o stack trace também
+                    console.error("CHAT APP: Stack trace do erro:", error.stack);
+                } else if (typeof error === 'object' && error !== null) {
+                    try {
+                        // Tenta stringify o erro para obter mais detalhes
+                        errorMessage = JSON.stringify(error, Object.getOwnPropertyNames(error));
+                    } catch (e) {
+                        errorMessage = String(error); // Último recurso
+                    }
+                } else {
+                    errorMessage = String(error); // Converte para string se não for um objeto
+                }
+                
                 // Adiciona uma mensagem de erro ao histórico se falhar
-                chatHistory.push({ role: 'ai', text: `Erro: Não foi possível obter resposta da IA. Detalhes: ${error.message}` });
+                chatHistory.push({ role: 'ai', text: `Erro: Não foi possível obter resposta da IA. Detalhes: ${errorMessage}` });
                 renderMessages();
-                showMessage("Erro ao obter resposta da IA.", 'error');
+                showMessage("Erro ao obter resposta da IA. Verifique o console para mais detalhes.", 'error');
             } finally {
                 toggleLoading(false); // Esconde indicador de carregamento
             }
@@ -598,3 +693,8 @@
     </script>
 </body>
 </html>
+
+
+
+
+
